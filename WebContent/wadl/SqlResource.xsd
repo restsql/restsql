@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://restsql.org/schema" elementFormDefault="unqualified"
+	jaxb:version="2.0" xmlns="http://www.w3.org/2001/XMLSchema" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" xmlns:rs="http://restsql.org/schema">
+
+	<element name="sqlResource" type="rs:SqlResource"></element>
+
+	<complexType name="SqlResource">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="SqlResourceDefinition" />
+			</appinfo>
+		</annotation>
+		<sequence>
+			<element name="query" type="rs:Query" maxOccurs="1" minOccurs="1"></element>
+			<element name="validatedAttribute" type="rs:ValidatedAttribute" maxOccurs="unbounded"
+				minOccurs="0">
+			</element>
+		</sequence>
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="defaultDatabase" type="string" use="required"></attribute>
+		<attribute name="parent" type="string" use="required"></attribute>
+		<attribute name="parentExt" type="string" use="optional"></attribute>
+		<attribute name="child" type="string" use="optional"></attribute>
+		<attribute name="childExt" type="string" use="optional"></attribute>
+		<attribute name="join" type="string" use="optional"></attribute>
+	</complexType>
+
+	<complexType name="Query">
+		<simpleContent>
+			<extension base="string">
+			</extension>
+		</simpleContent>
+	</complexType>
+
+	<complexType name="ValidatedAttribute">
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="type" use="required">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="String"></enumeration>
+					<enumeration value="Numeric"></enumeration>
+					<enumeration value="Custom"></enumeration>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="minLength" type="int" use="optional"></attribute>
+		<attribute name="maxLength" type="int" use="optional"></attribute>
+		<attribute name="regex" type="string" use="optional"></attribute>
+		<attribute name="minValue" type="double" use="optional"></attribute>
+		<attribute name="maxValue" type="double" use="optional"></attribute>
+		<attribute name="validatorClass" type="string" use="optional"></attribute>
+	</complexType>
+
+</schema>

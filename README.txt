@@ -1,0 +1,151 @@
+README.txt (14-May-2011)
+
+restSQL Deployment Guide
+
+Project website is at http://restsql.org. Distributions at http://restsql.org/dist. Source code hosted at http://github.com/restsql.
+
+-------------------------------------------------------------------------------
+Structure and Distributions
+
+restSQL source code is contained in three eclipse projects:
+    1. restsql                      (service and core framework)
+    2. restsql-sdk                  (documentation, HTTP API explorer, javadoc, examples)
+    3. restsql-test                 (test framework, test cases)
+
+restSQL binary distributions contain three libraries:
+    1. restsql-{version}.jar        (core framework only)
+    2. restsql-{version}.war        (service and core framework, 3rd party dependencies)
+    3. restsql-sdk-{version}.war    {sdk)
+
+restSQL source distributions consist of one jar:
+    1. restsql-{version}-src.jar    (service and core framework)
+    
+
+-------------------------------------------------------------------------------
+Deployment Modes
+
+restSQL may be deployed in two modes:
+    1. WAR - web application
+        Clients use an HTTP service (web app) directly
+        
+    2. JAR - java library
+        Clients use your service which uses the restSQL Java API
+
+-------------------------------------------------------------------------------
+Configuring restSQL
+
+restSQL uses three configuration files in both WAR and JAR modes:
+    1. restsql.properties           (general framework settings)
+    2. database.properties          (database settings)
+    3. log4j.properties             (logging settings)
+
+The files may be called anything you wish; these are only the suggested names.
+
+The general restsql.properties is set through a System Property, "org.restsql.properties". The value is an absolute path to your properties file, e.g. /etc/opt/company/restsql/restsql.properties. The WAR mode should use a context-param in the web.xml to set this (See Installation section later for details). The JAR mode will default to default-restsql.properties (source location: restsql/src/resources/properties) that is included in the jar.
+
+The general restsql.properties contains the following configurations:
+    1. Database.properties location         (required)
+    2. Logging                              (required)
+    3. SQL Resource definition location     (required)
+    4. Triggers                             (optional)
+    5. XML                                  (optional)
+    6. Factories                            (optional)
+
+Database.properties location example:
+
+    # database.config=/absolute/path
+    database.config=/etc/opt/company/restsql/database.properties
+
+Logging configuration example:
+
+    # logging.facility=[log4j,java]
+    # logging.config=relative/to/classpath
+    # logging.dir=/absolute/path  - this is only used by the /log service method to find logs
+    logging.facility=log4j
+    logging.config=resources/properties/default-log4j.properties
+    logging.dir=/var/log/restsql
+ 
+Note that unlike all other locations, the logging.config location is RELATIVE to the classpath, not absolute. The default logging framework is log4j, using the default-log4j.properties included in the jar/war. This logs to the location /var/log/restsql. The logging levels are set for development, not production mode.
+
+The location of SQL Resource definitions is critical. An example:
+
+    # sqlresources.dir=/absolute/path
+    sqlresources.dir=/etc/opt/company/restsql/sqlresources
+
+The XML configuration is optional. The defaults are:
+
+    # request.useXmlSchema=[true, false]
+    # response.useXmlDirective=[true, false]
+    # response.useXmlSchema=[true, false]w
+    request.useXmlSchema=false
+    response.useXmlSchema=false
+    response.useXmlDirective=false
+
+The default settings indicate that request documents may be sent without schema references. Likewise response documents are sent without the xml directive (<?xml version="1.0" encoding="UTF-8"?>) and without schema references. 
+
+The Triggers configuration is optional. Here is an example:
+
+    # triggers.classpath=/absolute/path
+    # triggers.definition=/absolute/path
+    triggers.classpath=/opt/company/restsql/triggers
+    triggers.definition=/opt/company/restsql/triggers/triggers.properties
+
+The Factories configuration is optional. The defaults are:
+
+    #### Implementation settings. Use these to provide framework extensions. ####
+    # org.restsql.core.Factory.Connection=fully.qualified.class.name
+    # org.restsql.core.Factory.Request=fully.qualified.class.name
+    # org.restsql.core.Factory.SqlResource=fully.qualified.class.name
+    org.restsql.core.Factory.Connection=org.restsql.core.impl.ConnectionFactoryImpl
+    org.restsql.core.Factory.Request=org.restsql.core.impl.RequestFactoryImpl
+    org.restsql.core.Factory.SqlResource=org.restsql.core.impl.SqlResourceFactoryImpl
+
+
+See the SDK for more detail on Logging and Trigger configuration.
+
+Access http://yourhost:port/restsql for links to the effective runtime configuration.
+
+
+-------------------------------------------------------------------------------
+Installing restSQL WAR mode
+
+Requirements: JEE Container, JAR tool, MySQL
+
+The restsql-{version}.war contains the service and framework classes as well as dependencies. Extract it's contents to some temp area, e.g. /tmp/restsql. Use the standard jar tool that comes with your JRE/JDK. The command is jar -xf war-file-name. It extracts all contents in the current directory. The contents looks like:
+    restsql/
+        META-INF/
+        wadl/
+        WEB-INF/
+        index.html
+
+Properties Files: Create your restsql.properties, database.properties and log4j.properties (or logging.properties) as above. The restsql.properties and database.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
+
+web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know where to load your restsql.properties. Here's an example:
+
+    <context-param>
+        <param-name>org.restsql.properties</param-name>
+        <param-value>/etc/opt/company/restsql/restsql.properties</param-value>
+    </context-param>
+
+Naming: You may deploy this as a single file or exploded war to your JEE container. Rename it to restsql.war or webapps/restsql if you want the path to be http://yourhost:port/restsql. Containers like Tomcat use the war file name instead of the web.xml's id to name the web app. Additionally, the SDK's HTTP API Explorer will work without any customization.
+
+Deploy: Copy your exploded war or war to your container's webapps dir and restart the container, or deploy the webapp in your preferred style. All third party dependencies are included in the war distribution in the WEB-INF/lib.
+
+
+-------------------------------------------------------------------------------
+Installing restSQL JAR mode
+
+Properties: Follow the instructions for WAR mode.
+
+Deploy: Copy jar to the classpath of your web app, e.g. WEB-INF/lib. The following third party dependencies also need to be in your classpath:
+	* commons-logging.jar  (tested with version 1.1.1)
+	* mysql-connector-java.jar (tested with version 5.1.14)
+	* log4j.jar (tested with 1.2.16)
+
+log4j may be excluded if you are using Java native logging.
+
+
+-------------------------------------------------------------------------------
+License
+
+restSQL is licensed under the standard MIT license. Refer to the LICENSE.txt and CONTRIBUTORS.txt in the distribution. 

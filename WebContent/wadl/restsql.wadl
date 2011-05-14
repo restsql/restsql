@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="wadl.xsl"?>
+<wadl:application xmlns:wadl="http://wadl.dev.java.net/2009/02" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:rs="http://restsql.org/schema" xs:schemaLocation="http://wadl.dev.java.net/2009/02 wadl.xsd ">
+	<wadl:doc title="restSQL Web Service">
+		restSQL is a lightweight database framework that provides a RESTful
+		interface to an RDBMS.
+    </wadl:doc>
+	<wadl:grammars>
+		<wadl:include href="Request.xsd" />
+		<wadl:include href="Response.xsd" />
+		<wadl:include href="SqlResource.xsd" />
+	</wadl:grammars>
+	<wadl:resources base="/restsql/">
+		<wadl:resource path="res/{resName}">
+			<wadl:param name="resName" type="xs:string" style="template" required="true">
+				<wadl:doc>SQL Resource name</wadl:doc>
+			</wadl:param>
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns rows for SQL Resource matching query parameters
+				</wadl:doc>
+				<wadl:doc title="Example">res/film?year=2010</wadl:doc>
+				<wadl:doc title="Example">res/actorFilm?year=2010&amp;_limit=100&amp;_offset=0
+				</wadl:doc>
+				<wadl:request>
+					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
+						required="false">
+						<wadl:doc>Attach optional attribute values with which to filter results</wadl:doc>
+					</wadl:param>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:readResponse"
+						href="Response.xsd">
+						<wadl:doc title="Read response" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="400">
+					<wadl:doc title="Bad Request">Invalid parameters</wadl:doc>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="POST">
+				<wadl:doc title="Description">Creates row using URL-encoded form params or one or
+					more rows in an XML
+					body. For hierarchical SQL Resources, parents and children must be added in
+					separate requests.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:representation mediaType="application/x-www-form-urlencoded">
+						<wadl:doc>Create request in URL-encoded form params</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Create request in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Create response, includes number of rows created" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="PUT">
+				<wadl:doc title="Description">Updates rows using query params and URL-encoded form
+					params or rows
+					specified in a XML body.
+					For hierarchical SQL Resources, parents and children must
+					be updated in
+					separate requests.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
+						required="false">
+						<wadl:doc>Attach optional attribute values with which to filter update set. Use only with
+							URL-encoded form params</wadl:doc>
+					</wadl:param>
+					<wadl:representation mediaType="application/x-www-form-urlencoded">
+						<wadl:doc>Update request in URL-encoded form params</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Update request in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Update response, includes number of rows updated" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="400">
+					<wadl:doc title="Bad Request">Invalid parameters</wadl:doc>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="DELETE">
+				<wadl:doc title="Description">Deletes one or more rows using query params or all rows in an XML
+					body.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
+						required="false">
+						<wadl:doc>Attribute values with which to filter delete set</wadl:doc>
+					</wadl:param>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Delete request in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Delete response, includes number of rows deleted" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="res/{resName}/{resId}">
+			<wadl:param name="resId" type="any-scalar" style="template" required="true"
+				repeating="true">
+				<wadl:doc>Primary key value. Multiple values allowed for multi-valued primary key.</wadl:doc>
+			</wadl:param>
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns row for SQL Resource matching primary key
+				</wadl:doc>
+				<wadl:doc title="Example">res/film/1023</wadl:doc>
+				<wadl:doc title="Example">res/actorFilm/Fredonia/123
+				</wadl:doc>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:readResponse"
+						href="Response.xsd">
+						<wadl:doc title="Read response" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="POST">
+				<wadl:doc title="Description">Creates children rows using XML body for hierarchical SQL Resources.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Create request in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Create response, includes number of rows created" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="PUT">
+				<wadl:doc title="Description">Updates specific row using URL-encoded form params or multiple child
+					rows using XML body for hierarchical SQL Resources.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
+						required="false">
+						<wadl:doc>Attribute values with which to filter update set. Use only with
+							URL-encoded form params</wadl:doc>
+					</wadl:param>
+					<wadl:representation mediaType="application/x-www-form-urlencoded">
+						<wadl:doc>Update request in URL-encoded form params</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Update request in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Update response, includes number of rows updated" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="400">
+					<wadl:doc title="Bad Request">Invalid parameters</wadl:doc>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+			<wadl:method name="DELETE">
+				<wadl:doc title="Description">Deletes specific row by primary key. For hierarchical SQL Resources,
+					deletes all children contained in the XML body.
+				</wadl:doc>
+				<wadl:request>
+					<wadl:representation mediaType="application/xml" element="rs:request"
+						href="Request.xsd">
+						<wadl:doc>Optional delete request for children in XML format</wadl:doc>
+					</wadl:representation>
+				</wadl:request>
+				<wadl:response status="200">
+					<wadl:doc title="OK">Normal response</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
+						href="Response.xsd">
+						<wadl:doc title="Delete response, includes number of rows deleted" />
+					</wadl:representation>
+				</wadl:response>
+				<wadl:response status="404">
+					<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+				</wadl:response>
+				<wadl:response status="500">
+					<wadl:doc title="Server Error">SQL Exception / database error</wadl:doc>
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="conf">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns general framework configuration</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="text/plain" />
+				</wadl:response>
+			</wadl:method>
+			<wadl:resource path="log">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns logging configuration</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+		</wadl:resource>
+		<wadl:resource path="log">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns browsable list of current and rollover access, error and trace
+					log files, if any</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="text/html" />
+				</wadl:response>
+			</wadl:method>
+			<wadl:resource path="access">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns current access log</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+			<wadl:resource path="error">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns current error log</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+			<wadl:resource path="trace">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns current trace log</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+		</wadl:resource>
+		<wadl:resource path="stats">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns summary statistics such as number of requests, errors and
+					average response times</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="text/plain" />
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="wadl">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns restSQL WADL</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="application/xml" />
+					<!-- <wadl:representation mediaType="application/vnd.sun.wadl" />  -->
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+	</wadl:resources>
+</wadl:application>

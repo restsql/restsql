@@ -1,0 +1,13 @@
+<html>
+<body>
+restSQL is a database framework for building lightweight middle-tier services. The framework makes it simple to put a RESTful interface on a database. The framework is used in two ways: 1) Clients may connect directly to the restSQL engine using the RESTful interface (XML or JSON over HTTP), and 2) Services use a Java API. Optionally, applications provide Java-based triggers to manage data validation and business logic.
+
+<p>restSQL right-sizes four technologies: SQL, XML, Java and HTTP. SQL is embedded in XML files that define resources, like database views, that may be queried, added to, updated or deleted using HTTP or a Java access API. The framework itself is written in Java. Developers use Java to write triggers and to customize the framework.</p>
+
+<p>restSQL enables you to multiple SQL Resources, queryable and updatable database “views” that exist on the middle tier and are accessible via Java or REST. SQL Resources may be flat views or hierarchical parent-child. The SQL Resource is defined in an XML file. The core of the definition is the query expression, an SQL ’99-compliant DML expression.</p>
+
+<p>SQL Resources optionally define Java-based triggers that execute before and after inserts, updates and deletes, performing business logic or complex data validations. Simple data validations, such as minimum string lengths and number ranges are defined declaratively in the SQL Resource definition.</p>
+
+<p>The engine is deployed as a Web Application Archive (WAR) in any Java Enterprise Edition (JEE) container. The access API is deployed as a Java ARchive (JAR) and bundled in the consumer’s application. Any SQL ’92 database will do, though MySQL is officially supported.</p>
+</body>
+</html>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://restsql.org/schema" elementFormDefault="unqualified"
+	xmlns="http://www.w3.org/2001/XMLSchema" xmlns:rs="http://restsql.org/schema">
+
+    <element name="readResponse" type="anyType"></element>
+
+	<element name="writeResponse" type="rs:WriteResponse"></element>
+
+	<complexType name="WriteResponse">
+		<attribute name="rowsAffected" type="int" use="required"></attribute>
+	</complexType>
+
+</schema>
