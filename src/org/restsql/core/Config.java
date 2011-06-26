@@ -6,8 +6,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.net.URI;
-import java.net.URL;
 import java.util.Properties;
 import java.util.Set;
 
@@ -102,7 +100,7 @@ public class Config {
 							}
 						}
 					} catch (Exception exception) {
-						logger.error("Error dumping config", exception);	// this should never happen
+						logger.error("Error dumping config", exception); // this should never happen
 					}
 				}
 			}
@@ -151,35 +149,32 @@ public class Config {
 			config = System.getProperty(KEY_LOG4J_CONFIG);
 			properties.backingProperties.setProperty(KEY_LOG4J_CONFIG, config);
 		}
-		loadLoggingProperties(config);
 		logger = LogFactory.getLog(NAME_LOGGER_INTERNAL);
+		loadLoggingProperties(config);
 	}
 
 	private static void loadLoggingProperties(final String fileName) {
-		loggingPropertiesFileName = fileName;
+		loggingPropertiesFileName = "/" + fileName;
 		loggingProperties = new ImmutableProperties();
-		final URL url = Config.class.getResource("/" + fileName);
-		FileInputStream inputStream = null;
-		try {
-			final File file = new File(new URI(url.toString()));
-			inputStream = new FileInputStream(file);
-			loggingProperties.backingProperties.load(inputStream);
-			inputStream.close();
-
-			// Now load the contents into a string for easier reading
-			final byte[] buffer = new byte[(int) file.length()];
-			inputStream = new FileInputStream(file);
-			inputStream.read(buffer);
-			loggingPropertiesFileContent = new String(buffer);
-		} catch (final Exception exception) {
-			exception.printStackTrace();
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (final IOException ignored) {
+		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+				loggingPropertiesFileName);
+		if (inputStream != null) {
+			try {
+				loggingProperties.backingProperties.load(inputStream);
+				loggingPropertiesFileContent = loggingProperties.toString();
+			} catch (final Exception exception) {
+				logger.error("Error loading properties file", exception);
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (final IOException ignored) {
+					}
 				}
 			}
+		} else {
+			logger.warn("Current thread's class loader could not locate logging conf file "
+					+ loggingPropertiesFileName);
 		}
 	}
 
@@ -238,6 +233,14 @@ public class Config {
 
 		private String getProperty(final String key) {
 			return backingProperties.getProperty(key);
+		}
+
+		public String toString() {
+			StringBuffer buffer = new StringBuffer(1000);
+			for (Object key : backingProperties.keySet()) {
+				printProperty(buffer, (String) key, backingProperties.getProperty((String) key));
+			}
+			return buffer.toString();
 		}
 
 		private Set<Object> keySet() {

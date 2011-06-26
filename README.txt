@@ -1,4 +1,4 @@
-README.txt (14-May-2011)
+README.txt (26-Jun-2011)
 
 restSQL Deployment Guide
 
@@ -130,6 +130,9 @@ web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know 
 Naming: You may deploy this as a single file or exploded war to your JEE container. Rename it to restsql.war or webapps/restsql if you want the path to be http://yourhost:port/restsql. Containers like Tomcat use the war file name instead of the web.xml's id to name the web app. Additionally, the SDK's HTTP API Explorer will work without any customization.
 
 Deploy: Copy your exploded war or war to your container's webapps dir and restart the container, or deploy the webapp in your preferred style. All third party dependencies are included in the war distribution in the WEB-INF/lib.
+
+Container Specific Issues:
+	JBoss - The jdbc library will not load from restsql's WAR file. It must be placed in a server lib. In JBoss Enterprise Web Platform 5.1, the only location that works is jboss-as-web/common/lib. If that does not work on your JBoss products/version variant, try server/lib or server/default/lib. If you receive a 500 response to any res query with the text "No suitable driver found", then JBoss cannot find your jdbc driver. The very first request on EAP 5.1 will fail with the previous message but all subsequent queries will succeed.
 
 
 -------------------------------------------------------------------------------
