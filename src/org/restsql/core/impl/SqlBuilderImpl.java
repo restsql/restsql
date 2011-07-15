@@ -10,58 +10,59 @@ import org.restsql.core.ColumnMetaData;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
+import org.restsql.core.SqlBuilder;
+import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
 import org.restsql.core.Request.Type;
 
 /**
- * Builds SQL for an operation on a SQL Resource. No caching.
+ * Builds SQL for an operation on a SQL Resource.
  * 
  * @author Mark Sawers
  * @todo optimize - save sql or change to prepared statement?
  * @todo handle parameter string escaping
  */
-public class SqlBuilder {
+public class SqlBuilderImpl implements SqlBuilder {
 	private static final int DEFAULT_DELETE_SIZE = 100;
 	private static final int DEFAULT_INSERT_SIZE = 300;
 	private static final int DEFAULT_SELECT_SIZE = 300;
 	private static final int DEFAULT_UPDATE_SIZE = 300;
 
-	/**
-	 * Builds select sql.
-	 */
-	static String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
+	/** Creates select SQL. */
+	public String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
 			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params)
 			throws InvalidRequestException {
 		final SqlStruct sql = new SqlStruct(0, DEFAULT_SELECT_SIZE);
 		buildSelectSql(metaData, mainSql, resourceIdentifiers, sql);
 		buildSelectSql(metaData, mainSql, params, sql);
-		if (sql.limit > -1) {
-			if (sql.offset >= 0) {
-				sql.clause.append(" LIMIT ");
-				sql.clause.append(sql.offset);
-				sql.clause.append(',');
-				sql.clause.append(sql.limit);
+		if (sql.getLimit() > -1) {
+			if (sql.getOffset() >= 0) {
+				sql.getClause().append(" LIMIT ");
+				sql.getClause().append(sql.getLimit());
+				sql.getClause().append(" OFFSET ");
+				sql.getClause().append(sql.getOffset());
 			} else {
 				throw new InvalidRequestException(InvalidRequestException.MESSAGE_OFFSET_REQUIRED);
 			}
-		} else if (sql.offset >= 0) {
+		} else if (sql.getOffset() >= 0) {
 			throw new InvalidRequestException(InvalidRequestException.MESSAGE_LIMIT_REQUIRED);
 		}
-		return mainSql + sql.clause;
+		return mainSql + sql.getClause();
 	}
 
-	static Map<String, SqlStruct> buildWriteSql(final SqlResourceMetaData metaData, final Request request,
+	/** Creates update, insert or delete SQL.*/
+	public Map<String, SqlStruct> buildWriteSql(final SqlResourceMetaData metaData, final Request request,
 			final boolean doParent) throws InvalidRequestException {
 		Map<String, SqlStruct> sqls = null;
 		switch (request.getType()) {
 			case INSERT:
-				sqls = SqlBuilder.buildInsertSql(metaData, request, doParent);
+				sqls = SqlBuilderImpl.buildInsertSql(metaData, request, doParent);
 				break;
 			case UPDATE:
-				sqls = SqlBuilder.buildUpdateSql(metaData, request, doParent);
+				sqls = SqlBuilderImpl.buildUpdateSql(metaData, request, doParent);
 				break;
 			case DELETE:
-				sqls = SqlBuilder.buildDeleteSql(metaData, request, doParent);
+				sqls = SqlBuilderImpl.buildDeleteSql(metaData, request, doParent);
 				break;
 			default:
 				throw new InvalidRequestException("SELECT Request provided to SqlBuilder.buildWriteSql()");
@@ -69,6 +70,8 @@ public class SqlBuilder {
 		return sqls;
 	}
 
+	// Private helper methods
+	
 	private static Map<String, SqlStruct> buildDeleteSql(final SqlResourceMetaData metaData,
 			final Request request, final boolean doParent) throws InvalidRequestException {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
@@ -105,13 +108,13 @@ public class SqlBuilder {
 							// Create new sql holder
 							sql = new SqlStruct(DEFAULT_DELETE_SIZE, DEFAULT_DELETE_SIZE / 2);
 							sqls.put(qualifiedTableName, sql);
-							sql.main.append("DELETE FROM ");
-							sql.main.append(qualifiedTableName);
-							sql.clause.append(" WHERE ");
+							sql.getMain().append("DELETE FROM ");
+							sql.getMain().append(qualifiedTableName);
+							sql.getClause().append(" WHERE ");
 						} else {
-							sql.clause.append(" AND ");
+							sql.getClause().append(" AND ");
 						}
-						setNameValue(Request.Type.DELETE, metaData, column, nameValuePair, sql.clause);
+						setNameValue(Request.Type.DELETE, metaData, column, nameValuePair, sql.getClause());
 					}
 				}
 			}
@@ -141,22 +144,22 @@ public class SqlBuilder {
 						// Create new sql holder
 						sql = new SqlStruct(DEFAULT_INSERT_SIZE, DEFAULT_INSERT_SIZE / 2);
 						sqls.put(qualifiedTableName, sql);
-						sql.main.append("INSERT INTO ");
-						sql.main.append(qualifiedTableName);
-						sql.main.append(" (");
+						sql.getMain().append("INSERT INTO ");
+						sql.getMain().append(qualifiedTableName);
+						sql.getMain().append(" (");
 
-						sql.clause.append(" VALUES (");
+						sql.getClause().append(" VALUES (");
 					} else {
-						sql.main.append(',');
-						sql.clause.append(',');
+						sql.getMain().append(',');
+						sql.getClause().append(',');
 					}
-					sql.main.append(column.getColumnName()); // since parameter may use column label
+					sql.getMain().append(column.getColumnName()); // since parameter may use column label
 					if (column.isCharType()) {
-						sql.clause.append('\'');
+						sql.getClause().append('\'');
 					}
-					sql.clause.append(param.getValue());
+					sql.getClause().append(param.getValue());
 					if (column.isCharType()) {
-						sql.clause.append('\'');
+						sql.getClause().append('\'');
 					}
 				}
 			}
@@ -167,8 +170,8 @@ public class SqlBuilder {
 			if (sql == null) {
 				sqls.remove(tableName);
 			} else {
-				sql.main.append(')');
-				sql.clause.append(')');
+				sql.getMain().append(')');
+				sql.getClause().append(')');
 				sql.appendClauseToMain();
 			}
 		}
@@ -186,33 +189,33 @@ public class SqlBuilder {
 			for (final NameValuePair param : nameValues) {
 				if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_LIMIT)) {
 					try {
-						sql.limit = Integer.valueOf(param.getValue());
+						sql.setLimit(Integer.valueOf(param.getValue()));
 					} catch (final NumberFormatException exception) {
 						throw new InvalidRequestException("Limit value " + param.getValue() + " is not a number");
 					}
 				} else if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_OFFSET)) {
 					try {
-						sql.offset = Integer.valueOf(param.getValue());
+						sql.setOffset(Integer.valueOf(param.getValue()));
 					} catch (final NumberFormatException exception) {
 						throw new InvalidRequestException("Offset value " + param.getValue() + " is not a number");
 					}
 				} else {
 					if (mainSql.indexOf("where ") > 0 || mainSql.indexOf("WHERE ") > 0
-							|| sql.clause.length() != 0) {
-						sql.clause.append(" AND ");
+							|| sql.getClause().length() != 0) {
+						sql.getClause().append(" AND ");
 					} else {
-						sql.clause.append(" WHERE ");
+						sql.getClause().append(" WHERE ");
 					}
 					for (final TableMetaData table : metaData.getTables()) {
 						final ColumnMetaData column = table.getColumns().get(param.getName());
 						if (column != null && !column.isNonqueriedForeignKey()) {
 							validParamFound = true;
-							setNameValue(Request.Type.SELECT, metaData, column, param, sql.clause);
+							setNameValue(Request.Type.SELECT, metaData, column, param, sql.getClause());
 						}
 					}
 				}
 			}
-			if (sql.clause.length() > 0 && !validParamFound) {
+			if (sql.getClause().length() > 0 && !validParamFound) {
 				throw new InvalidRequestException(InvalidRequestException.MESSAGE_INVALID_PARAMS);
 			}
 		}
@@ -249,15 +252,15 @@ public class SqlBuilder {
 							// Create new sql holder
 							sql = new SqlStruct(DEFAULT_UPDATE_SIZE, DEFAULT_UPDATE_SIZE / 2);
 							sqls.put(column.getQualifiedTableName(), sql);
-							sql.main.append("UPDATE ");
-							sql.main.append(column.getQualifiedTableName());
-							sql.main.append(" SET ");
+							sql.getMain().append("UPDATE ");
+							sql.getMain().append(column.getQualifiedTableName());
+							sql.getMain().append(" SET ");
 						} else {
-							sql.main.append(',');
+							sql.getMain().append(',');
 						}
 
 						validParamFound = true;
-						setNameValue(request.getType(), metaData, column, param, sql.main);
+						setNameValue(request.getType(), metaData, column, param, sql.getMain());
 					}
 				}
 			}
@@ -278,13 +281,13 @@ public class SqlBuilder {
 					final TableMetaData table = metaData.getTableMap().get(qualifiedTableName);
 					final ColumnMetaData column = table.getColumns().get(resId.getName());
 					if (column != null) {
-						if (sql.clause.length() == 0) {
-							sql.clause.append(" WHERE ");
-						} else { // sql.clause.length() > 0
-							sql.clause.append(" AND ");
+						if (sql.getClause().length() == 0) {
+							sql.getClause().append(" WHERE ");
+						} else { // sql.getClause().length() > 0
+							sql.getClause().append(" AND ");
 						}
 						validParamFound = true;
-						setNameValue(request.getType(), metaData, column, resId, sql.clause);
+						setNameValue(request.getType(), metaData, column, resId, sql.getClause());
 					}
 				}
 				sql.appendClauseToMain();
@@ -355,34 +358,6 @@ public class SqlBuilder {
 		sql.append(param.getValue());
 		if (column.isCharType()) {
 			sql.append('\'');
-		}
-	}
-
-	/**
-	 * Helper struct for building sql.
-	 * 
-	 * @author Mark Sawers
-	 */
-	static class SqlStruct {
-		StringBuffer clause;
-		int limit = -1, offset = -1;
-		StringBuffer main;
-
-		SqlStruct(final int mainSize, final int clauseSize) {
-			main = new StringBuffer(mainSize);
-			clause = new StringBuffer(clauseSize);
-		}
-
-		public String getSql() {
-			return main.toString();
-		}
-
-		public boolean isClauseEmpty() {
-			return clause.length() == 0;
-		}
-
-		void appendClauseToMain() {
-			main.append(clause);
 		}
 	}
 }

@@ -23,8 +23,9 @@ public interface TableMetaData {
 	public List<ColumnMetaData> getPrimaryKeys();
 
 	/**
-	 * Returns table name qualified by database in the form <code>database.table</code>, for example
-	 * <code>sakila.film</code>.
+	 * Returns fully qualified table name in database-specific form for use in SQL statements. MySQL uses the form
+	 * <code>database.table</code>, for example <code>sakila.film</code>. PostgreSQL uses the form
+	 * <code>database.schema.table</code>, for example <code>sakila.public.film</code>.
 	 */
 	public String getQualifiedTableName();
 

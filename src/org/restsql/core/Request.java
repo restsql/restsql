@@ -33,7 +33,10 @@ public interface Request {
 	/** Returns request type. */
 	public Type getType();
 
-	/**
+	/** Sets parameters for request. Used for cloning requests on child objects. */ 
+	public void setParameters(List<NameValuePair> params);
+
+		/**
 	 * Represents request types, mapping to CRUD operations.
 	 * 
 	 * @author Mark Sawers

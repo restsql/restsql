@@ -21,7 +21,7 @@ public class LifecycleListener implements ServletContextListener {
     	}
 		System.out.println("Loading restsql properties from " + value);
     	System.setProperty(Config.KEY_RESTSQL_PROPERTIES, value);
-    	Config.loadProperties();
+    	Config.loadAllProperties();
     }
 
 	/**

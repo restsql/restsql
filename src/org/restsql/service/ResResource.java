@@ -26,11 +26,11 @@ import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
 import org.restsql.core.RequestLogger;
+import org.restsql.core.RequestUtil;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.Request.Type;
-import org.restsql.core.impl.RequestFactoryImpl;
 import org.restsql.core.impl.Serializer;
 
 /**
@@ -295,7 +295,7 @@ public class ResResource {
 			RequestLogger requestLogger) {
 		try {
 			final SqlResource sqlResource = Factory.getSqlResource(resName);
-			final List<NameValuePair> resIds = RequestFactoryImpl.getResIds(sqlResource, resIdValues);
+			final List<NameValuePair> resIds = RequestUtil.getResIds(sqlResource, resIdValues);
 			return executeRequest(requestType, resName, sqlResource, resIds, params, body, requestLogger);
 		} catch (final SqlResourceException exception) {
 			return handleException(exception, requestLogger);

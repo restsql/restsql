@@ -20,7 +20,6 @@ import org.apache.commons.logging.LogFactory;
 public class Config {
 
 	public static final String DEFAULT_CONNECTION_FACTORY = "org.restsql.core.impl.ConnectionFactoryImpl";
-	public static final String DEFAULT_DATABASE_CONFIG = "/resources/properties/default-database.properties";
 	public static final String DEFAULT_JAVA_LOGGING_CONFIG = "resources/properties/default-logging.properties";
 	public static final String DEFAULT_LOG4J_CONFIG = "resources/properties/default-log4j.properties";
 	public static final String DEFAULT_LOGGING_DIR = "/var/log/restsql";
@@ -31,23 +30,26 @@ public class Config {
 	public static final String DEFAULT_RESPONSE_USE_XML_DIRECTIVE = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
+	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.SqlBuilderImpl";
 	public static final String DEFAULT_SQL_RESOURCE_FACTORY = "org.restsql.core.impl.SqlResourceFactoryImpl";
+	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.SqlResourceMetaDataMySql";
 	public static final String DEFAULT_SQLRESOURCES_DIR = "/resources/xml/sqlresources";
 
 	public static final String KEY_CONNECTION_FACTORY = "org.restsql.core.Factory.Connection";
-	public static final String KEY_DATABASE_CONFIG = "database.config";
 	public static final String KEY_JAVA_LOGGING_CONFIG = "java.util.logging.config.file";
 	public static final String KEY_LOG4J_CONFIG = "log4j.configuration";
 	public static final String KEY_LOGGING_DIR = "logging.dir";
 	public static final String KEY_LOGGING_CONFIG = "logging.config";
 	public static final String KEY_LOGGING_FACILITY = "logging.facility";
-	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.Request";
-	public static final String KEY_REQUEST_LOGGER_FACTORY = "org.restsql.core.Factory.LoggerRequest";
+	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.RequestFactory";
+	public static final String KEY_REQUEST_LOGGER_FACTORY = "org.restsql.core.Factory.RequestLoggerFactory";
 	public static final String KEY_REQUEST_USE_XML_SCHEMA = "request.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";
 	public static final String KEY_RESTSQL_PROPERTIES = "org.restsql.properties";
-	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResource";
+	public static final String KEY_SQL_BUILDER = "org.restsql.core.SqlBuilder";
+	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResourceFactory";
+	public static final String KEY_SQL_RESOURCE_METADATA = "org.restsql.core.SqlResourceMetaData";
 	public static final String KEY_SQLRESOURCES_DIR = "sqlresources.dir";
 	public static final String KEY_TRIGGERS_CLASSPATH = "triggers.classpath";
 	public static final String KEY_TRIGGERS_DEFINITION = "triggers.definition";
@@ -65,10 +67,10 @@ public class Config {
 
 	private static String loggingPropertiesFileContent;
 	private static String loggingPropertiesFileName;
-	private static String propertiesFileName;
+	private static String restsqlPropertiesFileName;
 
 	static {
-		loadProperties();
+		loadAllProperties();
 	}
 
 	// Public utils
@@ -77,7 +79,7 @@ public class Config {
 	public static String dumpConfig(final boolean includeDefaults) {
 		final StringBuffer dump = new StringBuffer(1500);
 		dump.append("Properties loaded from ");
-		dump.append(propertiesFileName);
+		dump.append(restsqlPropertiesFileName);
 		dump.append(":\n");
 		for (final Object key : properties.keySet()) {
 			printProperty(dump, (String) key, properties.getProperty((String) key));
@@ -119,9 +121,49 @@ public class Config {
 	}
 
 	/** Loads all properties. */
-	public static void loadProperties() {
+	public static void loadAllProperties() {
 		if (properties == null) {
-			loadProperties(System.getProperty(KEY_RESTSQL_PROPERTIES, DEFAULT_RESTSQL_PROPERTIES));
+			// Load restsql properties
+			boolean propertiesLoaded = false;
+			restsqlPropertiesFileName = System
+					.getProperty(KEY_RESTSQL_PROPERTIES, DEFAULT_RESTSQL_PROPERTIES);
+			properties = new ImmutableProperties();
+			InputStream inputStream = null;
+			try {
+				final File file = new File(restsqlPropertiesFileName);
+				if (file.exists()) {
+					inputStream = new FileInputStream(file);
+				} else {
+					inputStream = Config.class.getResourceAsStream(restsqlPropertiesFileName);
+				}
+				if (inputStream != null) {
+					properties.backingProperties.load(inputStream);
+					propertiesLoaded = true;
+				}
+			} catch (final Exception exception) {
+				System.out.println("Error loading properties from " + restsqlPropertiesFileName + ":" + exception.toString());
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (final IOException ignored) {
+					}
+				}
+			}
+
+			// Configure logging
+			configureLogging();
+
+			if (!propertiesLoaded) {
+				logger.error("Error loading properties from " + restsqlPropertiesFileName + ". Using defaults.");
+			} else {
+				if (logger.isInfoEnabled()) {
+					logger.info("Loaded restsql properties from " + restsqlPropertiesFileName);
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug(dumpConfig(false));
+				}
+			}
 		}
 	}
 
@@ -158,12 +200,15 @@ public class Config {
 		loggingProperties = new ImmutableProperties();
 		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
 				loggingPropertiesFileName);
+		if (inputStream == null) {
+			inputStream = Config.class.getResourceAsStream(loggingPropertiesFileName);
+		}
 		if (inputStream != null) {
 			try {
 				loggingProperties.backingProperties.load(inputStream);
 				loggingPropertiesFileContent = loggingProperties.toString();
 			} catch (final Exception exception) {
-				logger.error("Error loading properties file", exception);
+				logger.error("Error loading logging conf file", exception);
 			} finally {
 				if (inputStream != null) {
 					try {
@@ -178,39 +223,6 @@ public class Config {
 		}
 	}
 
-	private static void loadProperties(final String fileName) {
-		propertiesFileName = fileName;
-		properties = new ImmutableProperties();
-		InputStream inputStream = null;
-		try {
-			final File file = new File(fileName);
-			if (file.exists()) {
-				inputStream = new FileInputStream(file);
-			} else {
-				inputStream = Config.class.getResourceAsStream(fileName);
-			}
-			properties.backingProperties.load(inputStream);
-
-			configureLogging();
-
-			if (logger.isInfoEnabled()) {
-				logger.info("Loaded restsql properties from " + fileName);
-			}
-			if (logger.isDebugEnabled()) {
-				logger.debug(dumpConfig(false));
-			}
-		} catch (final Exception exception) {
-			exception.printStackTrace();
-		} finally {
-			if (inputStream != null) {
-				try {
-					inputStream.close();
-				} catch (final IOException ignored) {
-				}
-			}
-		}
-	}
-
 	private static void printProperty(final StringBuffer string, final String key, final String value) {
 		string.append("\t");
 		string.append(key);
@@ -218,6 +230,13 @@ public class Config {
 		string.append(value);
 		string.append("\n");
 	}
+
+	public static final String KEY_DATABASE_USER = "database.user";
+	public static final String KEY_DATABASE_URL = "database.url";
+	public static final String KEY_DATABASE_PASSWORD = "database.password";
+	public static final String DEFAULT_DATABASE_USER = "root";
+	public static final String DEFAULT_DATABASE_URL = "jdbc:mysql://localhost:3306/";
+	public static final String DEFAULT_DATABASE_PASSWORD = "root";
 
 	/** Wraps a java.util.Properties, exposing only the property getter. */
 	public static class ImmutableProperties {

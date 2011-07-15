@@ -38,6 +38,6 @@
 	</listener>
 	<context-param>
 		<param-name>org.restsql.properties</param-name>
-		<param-value>/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql.properties</param-value>
+		<param-value>/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
 	</context-param>
 </web-app>

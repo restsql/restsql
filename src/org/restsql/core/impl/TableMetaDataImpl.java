@@ -17,18 +17,20 @@ import org.restsql.core.TableMetaData;
  */
 public class TableMetaDataImpl implements TableMetaData {
 	private final Map<String, ColumnMetaData> columns;
-	private final TableRole tableRole;
+	private final String databaseName;
 	private final List<ColumnMetaData> primaryKeys;
 	private final String qualifiedTableName;
-	private final String tableName, databaseName;
+	private final String tableName;
+	private final TableRole tableRole;
 
-	public TableMetaDataImpl(final String tableName, final String databaseName, final TableRole tableRole) {
+	public TableMetaDataImpl(final String tableName, final String qualifedTableName,
+			final String databaseName, final TableRole tableRole) {
 		this.tableName = tableName;
+		qualifiedTableName = qualifedTableName;
 		this.databaseName = databaseName;
+		this.tableRole = tableRole;
 		primaryKeys = new ArrayList<ColumnMetaData>();
 		columns = new HashMap<String, ColumnMetaData>();
-		qualifiedTableName = databaseName + "." + tableName;
-		this.tableRole = tableRole;
 	}
 
 	public void addColumn(final ColumnMetaData column) {
@@ -59,15 +61,15 @@ public class TableMetaDataImpl implements TableMetaData {
 		return tableName;
 	}
 
+	public TableRole getTableRole() {
+		return tableRole;
+	}
+
 	public boolean isChild() {
 		return tableRole == TableRole.Child;
 	}
 
 	public boolean isParent() {
 		return tableRole == TableRole.Parent;
-	}
-
-	public TableRole getTableRole() {
-		return tableRole;
 	}
 }

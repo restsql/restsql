@@ -16,12 +16,14 @@ import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
+import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
+import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
 import org.restsql.core.Trigger;
 import org.restsql.core.Request.Type;
-import org.restsql.core.impl.SqlBuilder.SqlStruct;
+import org.restsql.core.SqlBuilder.SqlStruct;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
 /**
@@ -32,14 +34,16 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
 public class SqlResourceImpl implements SqlResource {
 	private final SqlResourceDefinition definition;
 	private final SqlResourceMetaData metaData;
+	private final SqlBuilder sqlBuilder;
 	private final List<Trigger> triggers;
 
-	public SqlResourceImpl(final SqlResourceDefinition definition, final List<Trigger> triggers)
-			throws SqlResourceException {
+	public SqlResourceImpl(final SqlResourceDefinition definition, final SqlResourceMetaData metaData,
+			final SqlBuilder sqlBuilder, final List<Trigger> triggers) throws SqlResourceException {
 		this.definition = definition;
 		cleanSql();
+		this.metaData = metaData;
+		this.sqlBuilder = sqlBuilder;
 		this.triggers = triggers;
-		metaData = new SqlResourceMetaData(definition);
 	}
 
 	@Override
@@ -93,7 +97,7 @@ public class SqlResourceImpl implements SqlResource {
 		try {
 			connection = Factory.getConnection(definition.getDefaultDatabase());
 			final Statement statement = connection.createStatement();
-			sql = SqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
+			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
 					.getResourceIdentifiers(), request.getParameters());
 			Config.logger.debug(sql);
 			request.getLogger().addSql(sql);
@@ -136,7 +140,7 @@ public class SqlResourceImpl implements SqlResource {
 		try {
 			connection = Factory.getConnection(definition.getDefaultDatabase());
 			final Statement statement = connection.createStatement();
-			sql = SqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
+			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
 					.getResourceIdentifiers(), request.getParameters());
 			Config.logger.debug(sql);
 			request.getLogger().addSql(sql);
@@ -180,8 +184,8 @@ public class SqlResourceImpl implements SqlResource {
 		try {
 			connection = Factory.getConnection(definition.getDefaultDatabase());
 			if (metaData.isHierarchical()) {
-				final RequestImpl childRequest = new RequestImpl(request.getType(), getName(), request
-						.getResourceIdentifiers(), null, null, request.getLogger());
+				final Request childRequest = Factory.getRequestForChild(request.getType(), getName(), request
+						.getResourceIdentifiers(), request.getLogger());
 				if (request.getChildrenParameters() != null) {
 					// Delete, update or insert specified children
 					for (final List<NameValuePair> childRowParams : request.getChildrenParameters()) {
@@ -373,12 +377,12 @@ public class SqlResourceImpl implements SqlResource {
 	private int write(final Connection connection, final Request request, final boolean doParent)
 			throws SqlResourceException {
 		int rowsAffected = 0;
-		final Map<String, SqlStruct> sqls = SqlBuilder.buildWriteSql(metaData, request, doParent);
+		final Map<String, SqlBuilder.SqlStruct> sqls = sqlBuilder.buildWriteSql(metaData, request, doParent);
 
 		// Remove sql for main table
 		final String mainTableName = doParent ? metaData.getParent().getQualifiedTableName() : metaData
 				.getChild().getQualifiedTableName();
-		final SqlStruct mainTableSqlStruct = sqls.remove(mainTableName);
+		final SqlBuilder.SqlStruct mainTableSqlStruct = sqls.remove(mainTableName);
 
 		// Do the main table if insert
 		if (request.getType() == Type.INSERT) {
@@ -386,7 +390,7 @@ public class SqlResourceImpl implements SqlResource {
 		}
 
 		// Do extensions next
-		for (final SqlStruct sqlStruct : sqls.values()) {
+		for (final SqlBuilder.SqlStruct sqlStruct : sqls.values()) {
 			rowsAffected += write(connection, request, sqlStruct, false);
 		}
 

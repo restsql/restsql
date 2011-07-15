@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="restsql" default="all">
+<project name="restsql" default="dist">
 	<property file="build.properties" />
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask" classpath="lib/jaxb-xjc.jar" />
 
-	<target name="all" depends="clean,compile-schema,compile,lib,doc" />
+	<target name="dist" depends="compile,lib" />
 
 	<target name="clean">
 		<delete dir="obj" failonerror="false" includeEmptyDirs="true" quiet="true" />

@@ -7,15 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.restsql.core.ColumnMetaData;
 import org.restsql.core.Factory;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
 import org.restsql.core.RequestLogger;
+import org.restsql.core.RequestUtil;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
-import org.restsql.core.TableMetaData;
 import org.restsql.core.Factory.RequestFactory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.Request.Type;
@@ -26,26 +25,6 @@ import org.restsql.core.Request.Type;
  * @author Mark Sawers
  */
 public class RequestFactoryImpl implements RequestFactory {
-
-	public static List<NameValuePair> getResIds(final SqlResource sqlResource, final String[] values) {
-		List<NameValuePair> resIds = null;
-		if (values != null) {
-			resIds = new ArrayList<NameValuePair>(values.length);
-			for (final TableMetaData table : sqlResource.getTables().values()) {
-				if (table.isParent()) {
-					for (final ColumnMetaData column : table.getPrimaryKeys()) {
-						for (final String value : values) {
-							if (value != null) {
-								final NameValuePair resId = new NameValuePair(column.getColumnLabel(), value);
-								resIds.add(resId);
-							}
-						}
-					}
-				}
-			}
-		}
-		return resIds;
-	}
 
 	/**
 	 * Builds request from URI. Assumes pattern
@@ -90,7 +69,7 @@ public class RequestFactoryImpl implements RequestFactory {
 
 		if (resIdValues != null) {
 			final SqlResource sqlResource = Factory.getSqlResource(resName);
-			resIds = getResIds(sqlResource, resIdValues);
+			resIds = RequestUtil.getResIds(sqlResource, resIdValues);
 		}
 
 		// Parse query params
@@ -134,5 +113,10 @@ public class RequestFactoryImpl implements RequestFactory {
 			default:
 		}
 		return new RequestImpl(type, sqlResource, resIds, params, childrenParams, requestLogger);
+	}
+
+	public Request getRequestForChild(Type type, String sqlResource, List<NameValuePair> resIds,
+			RequestLogger requestLogger) {
+		return new RequestImpl(type, sqlResource, resIds, null, null, requestLogger);
 	}
 }

@@ -21,7 +21,8 @@ public class RequestImpl implements Request {
 	private RequestLogger requestLogger;
 
 	public RequestImpl(final Request.Type type, final String sqlResource,
-			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params, final List<List<NameValuePair>> childrenParams, RequestLogger requestLogger) {
+			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params,
+			final List<List<NameValuePair>> childrenParams, RequestLogger requestLogger) {
 		this.type = type;
 		this.resourceIdentifiers = resourceIdentifiers;
 		this.sqlResource = sqlResource;
@@ -37,7 +38,7 @@ public class RequestImpl implements Request {
 	public RequestLogger getLogger() {
 		return requestLogger;
 	}
-	
+
 	public List<NameValuePair> getParameters() {
 		return params;
 	}
@@ -53,7 +54,7 @@ public class RequestImpl implements Request {
 	public Request.Type getType() {
 		return type;
 	}
-	
+
 	public void setParameters(List<NameValuePair> params) {
 		this.params = params;
 	}
