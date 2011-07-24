@@ -1,4 +1,4 @@
-README.txt (14-Jul-2011)
+README.txt (23-Jul-2011)
 
 restSQL Deployment Guide
 
@@ -22,6 +22,12 @@ restSQL source distributions consist of one jar:
     
 
 -------------------------------------------------------------------------------
+Versions
+
+The restsql and restsql-sdk versions are found in the jar and war's META-INF/MANIFEST.MF. It is also found in the the source tree in restsql/build.properties and restsql-sdk/build.properties in the property build.version. 
+
+
+-------------------------------------------------------------------------------
 Deployment Modes
 
 restSQL may be deployed in two modes:
@@ -30,6 +36,7 @@ restSQL may be deployed in two modes:
         
     2. JAR - java library
         Clients use your service which uses the restSQL Java API
+
 
 -------------------------------------------------------------------------------
 Configuring restSQL
