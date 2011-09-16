@@ -15,9 +15,11 @@ import org.restsql.core.Factory.ConnectionFactory;
  * @author Mark Sawers
  */
 public class ConnectionFactoryImpl implements ConnectionFactory {
-	private String url, user, password;
+	private String driverClassName, url, user, password;
 
 	public ConnectionFactoryImpl() {
+		driverClassName = Config.properties.getProperty(Config.KEY_DATABASE_DRIVER_CLASSNAME,
+				Config.DEFAULT_DATABASE_DRIVER_CLASSNAME);
 		url = Config.properties.getProperty(Config.KEY_DATABASE_URL, Config.DEFAULT_DATABASE_URL);
 		user = Config.properties.getProperty(Config.KEY_DATABASE_USER, Config.DEFAULT_DATABASE_USER);
 		password = Config.properties.getProperty(Config.KEY_DATABASE_PASSWORD,
@@ -25,6 +27,11 @@ public class ConnectionFactoryImpl implements ConnectionFactory {
 	}
 
 	public Connection getConnection(String defaultDatabase) throws SQLException {
+		try {
+			Class.forName(driverClassName).newInstance();
+		} catch (Exception exception) {
+			throw new SQLException("Failed to load JDBC driver class " + driverClassName, exception);
+		}
 		Connection connection = DriverManager.getConnection(url, user, password);
 		if (defaultDatabase != null) {
 			connection.setCatalog(defaultDatabase);

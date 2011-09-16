@@ -9,13 +9,16 @@ package org.restsql.core;
 public interface RequestLogger {
 	/**
 	 * Adds sql statement.
-	 * 
-	 * @param sql sql
 	 */
 	public void addSql(final String sql);
 
 	/**
-	 * Logs exceptional response.
+	 * Logs exceptional response without an exception.
+	 */
+	public void log(final int responseCode);
+
+	/**
+	 * Logs exceptional response with an exception.
 	 */
 	public void log(final int responseCode, final Exception exception);
 

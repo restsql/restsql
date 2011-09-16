@@ -19,7 +19,12 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Config {
 
+	public static final String DEFAULT_AUTHORIZER = "org.restsql.security.impl.AuthorizerImpl";
 	public static final String DEFAULT_CONNECTION_FACTORY = "org.restsql.core.impl.ConnectionFactoryImpl";
+	public static final String DEFAULT_DATABASE_DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
+	public static final String DEFAULT_DATABASE_PASSWORD = "root";
+	public static final String DEFAULT_DATABASE_URL = "jdbc:mysql://localhost:3306/";
+	public static final String DEFAULT_DATABASE_USER = "root";
 	public static final String DEFAULT_JAVA_LOGGING_CONFIG = "resources/properties/default-logging.properties";
 	public static final String DEFAULT_LOG4J_CONFIG = "resources/properties/default-log4j.properties";
 	public static final String DEFAULT_LOGGING_DIR = "/var/log/restsql";
@@ -31,15 +36,20 @@ public class Config {
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
 	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.SqlBuilderImpl";
+
 	public static final String DEFAULT_SQL_RESOURCE_FACTORY = "org.restsql.core.impl.SqlResourceFactoryImpl";
 	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.SqlResourceMetaDataMySql";
 	public static final String DEFAULT_SQLRESOURCES_DIR = "/resources/xml/sqlresources";
-
+	public static final String KEY_AUTHORIZER = "org.restsql.security.Authorizer";
 	public static final String KEY_CONNECTION_FACTORY = "org.restsql.core.Factory.Connection";
+	public static final String KEY_DATABASE_DRIVER_CLASSNAME = "database.driverClassName";
+	public static final String KEY_DATABASE_PASSWORD = "database.password";
+	public static final String KEY_DATABASE_URL = "database.url";
+	public static final String KEY_DATABASE_USER = "database.user";
 	public static final String KEY_JAVA_LOGGING_CONFIG = "java.util.logging.config.file";
 	public static final String KEY_LOG4J_CONFIG = "log4j.configuration";
-	public static final String KEY_LOGGING_DIR = "logging.dir";
 	public static final String KEY_LOGGING_CONFIG = "logging.config";
+	public static final String KEY_LOGGING_DIR = "logging.dir";
 	public static final String KEY_LOGGING_FACILITY = "logging.facility";
 	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.RequestFactory";
 	public static final String KEY_REQUEST_LOGGER_FACTORY = "org.restsql.core.Factory.RequestLoggerFactory";
@@ -47,6 +57,7 @@ public class Config {
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";
 	public static final String KEY_RESTSQL_PROPERTIES = "org.restsql.properties";
+	public static final String KEY_SECURITY_PRIVILEGES = "security.privileges";
 	public static final String KEY_SQL_BUILDER = "org.restsql.core.SqlBuilder";
 	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResourceFactory";
 	public static final String KEY_SQL_RESOURCE_METADATA = "org.restsql.core.SqlResourceMetaData";
@@ -54,13 +65,13 @@ public class Config {
 	public static final String KEY_TRIGGERS_CLASSPATH = "triggers.classpath";
 	public static final String KEY_TRIGGERS_DEFINITION = "triggers.definition";
 
-	/** The internal logger, for software troubleshooting **/
-	public static Log logger;
-
 	public static final String NAME_LOGGER_ACCESS = "org.restsql.access";
 	public static final String NAME_LOGGER_ERROR = "org.restsql.error";
 	public static final String NAME_LOGGER_INTERNAL = "org.restsql.internal";
 	public static final String NAME_LOGGER_TRACE = "org.restsql.trace";
+
+	/** The internal logger, for software troubleshooting **/
+	public static Log logger;
 
 	/** Read-only version of configuration settings for other classes **/
 	public static ImmutableProperties properties, loggingProperties;
@@ -101,7 +112,7 @@ public class Config {
 							} catch (final Exception exception) {
 							}
 						}
-					} catch (Exception exception) {
+					} catch (final Exception exception) {
 						logger.error("Error dumping config", exception); // this should never happen
 					}
 				}
@@ -141,7 +152,8 @@ public class Config {
 					propertiesLoaded = true;
 				}
 			} catch (final Exception exception) {
-				System.out.println("Error loading properties from " + restsqlPropertiesFileName + ":" + exception.toString());
+				System.out.println("Error loading properties from " + restsqlPropertiesFileName + ":"
+						+ exception.toString());
 			} finally {
 				if (inputStream != null) {
 					try {
@@ -155,7 +167,8 @@ public class Config {
 			configureLogging();
 
 			if (!propertiesLoaded) {
-				logger.error("Error loading properties from " + restsqlPropertiesFileName + ". Using defaults.");
+				logger.error("Error loading properties from " + restsqlPropertiesFileName
+						+ ". Using defaults.");
 			} else {
 				if (logger.isInfoEnabled()) {
 					logger.info("Loaded restsql properties from " + restsqlPropertiesFileName);
@@ -174,7 +187,8 @@ public class Config {
 		final String config;
 		if (facility.equals("java")) {
 			if (System.getProperty(KEY_JAVA_LOGGING_CONFIG) == null) {
-				String javaConfig = properties.getProperty(KEY_LOGGING_CONFIG, DEFAULT_JAVA_LOGGING_CONFIG);
+				final String javaConfig = properties.getProperty(KEY_LOGGING_CONFIG,
+						DEFAULT_JAVA_LOGGING_CONFIG);
 				System.setProperty(KEY_JAVA_LOGGING_CONFIG, javaConfig);
 				System.setProperty("org.apache.commons.logging.Log",
 						"org.apache.commons.logging.impl.Jdk14Logger");
@@ -183,7 +197,7 @@ public class Config {
 			properties.backingProperties.setProperty(KEY_JAVA_LOGGING_CONFIG, config);
 		} else { // log4j
 			if (System.getProperty(KEY_LOG4J_CONFIG) == null) {
-				String log4jConfig = properties.getProperty(KEY_LOGGING_CONFIG, DEFAULT_LOG4J_CONFIG);
+				final String log4jConfig = properties.getProperty(KEY_LOGGING_CONFIG, DEFAULT_LOG4J_CONFIG);
 				System.setProperty(KEY_LOG4J_CONFIG, log4jConfig);
 				System.setProperty("org.apache.commons.logging.Log",
 						"org.apache.commons.logging.impl.Log4JLogger");
@@ -198,8 +212,8 @@ public class Config {
 	private static void loadLoggingProperties(final String fileName) {
 		loggingPropertiesFileName = "/" + fileName;
 		loggingProperties = new ImmutableProperties();
-		InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
-				loggingPropertiesFileName);
+		InputStream inputStream = Thread.currentThread().getContextClassLoader()
+				.getResourceAsStream(loggingPropertiesFileName);
 		if (inputStream == null) {
 			inputStream = Config.class.getResourceAsStream(loggingPropertiesFileName);
 		}
@@ -231,13 +245,6 @@ public class Config {
 		string.append("\n");
 	}
 
-	public static final String KEY_DATABASE_USER = "database.user";
-	public static final String KEY_DATABASE_URL = "database.url";
-	public static final String KEY_DATABASE_PASSWORD = "database.password";
-	public static final String DEFAULT_DATABASE_USER = "root";
-	public static final String DEFAULT_DATABASE_URL = "jdbc:mysql://localhost:3306/";
-	public static final String DEFAULT_DATABASE_PASSWORD = "root";
-
 	/** Wraps a java.util.Properties, exposing only the property getter. */
 	public static class ImmutableProperties {
 		Properties backingProperties = new Properties();
@@ -250,16 +257,17 @@ public class Config {
 			return backingProperties.getProperty(key, defaultValue);
 		}
 
-		private String getProperty(final String key) {
-			return backingProperties.getProperty(key);
-		}
-
+		@Override
 		public String toString() {
-			StringBuffer buffer = new StringBuffer(1000);
-			for (Object key : backingProperties.keySet()) {
+			final StringBuffer buffer = new StringBuffer(1000);
+			for (final Object key : backingProperties.keySet()) {
 				printProperty(buffer, (String) key, backingProperties.getProperty((String) key));
 			}
 			return buffer.toString();
+		}
+
+		private String getProperty(final String key) {
+			return backingProperties.getProperty(key);
 		}
 
 		private Set<Object> keySet() {

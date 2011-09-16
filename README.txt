@@ -1,8 +1,8 @@
-README.txt (23-Jul-2011)
+README.txt (15-Sep-2011)
 
 restSQL Deployment Guide
 
-Project website is at http://restsql.org. Distributions at http://restsql.org/dist. Source code hosted at http://github.com/restsql.
+Project website is at http://restsql.org. Distributions at http://restsql.org/dist. Release history at http://restsql.org/doc/ReleaseHistory.html. Source code hosted at http://github.com/restsql.
 
 -------------------------------------------------------------------------------
 Structure and Distributions
@@ -52,10 +52,11 @@ The general restsql.properties is set through a System Property, "org.restsql.pr
 The general restsql.properties contains the following configurations:
     1. Logging                              (required)
     2. SQL Resource definition location     (required)
-    3. Triggers                             (optional)
-    4. XML                                  (optional)
-    5. Database                             (required)
-    6. Implementation classes               (optional)
+    3. Security								(optional)
+    4. Triggers                             (optional)
+    5. XML                                  (optional)
+    6. Database                             (required)
+    7. Implementation classes               (optional)
 
 Logging configuration example:
 
@@ -71,7 +72,7 @@ Note that unlike all other locations, the logging.config location is RELATIVE to
 The location of SQL Resource definitions is critical. An example:
 
 	# sqlresources.dir=/absolute/path
-	sqlresources.dir=/opt/business/sqlresources
+	sqlresources.dir=/etc/opt/business/restsql/sqlresources
 
 The XML configuration is optional. The defaults are:
 
@@ -84,18 +85,28 @@ The XML configuration is optional. The defaults are:
 
 The default settings indicate that request documents may be sent without schema references. Likewise response documents are sent without the xml directive (<?xml version="1.0" encoding="UTF-8"?>) and without schema references. 
 
+The Security configuration is optional. Here is an example:
+	# security.privileges=/absolute/path
+	security.privileges=/etc/opt/business/restsql/privileges.properties
+
 The Triggers configuration is optional. Here is an example:
 
 	# triggers.classpath=/absolute/path
 	# triggers.definition=/absolute/path
-	triggers.classpath=/opt/business/triggers
-	triggers.definition=/opt/business/triggers.properties
+	triggers.classpath=/etc/opt/business/restsql/triggers
+	triggers.definition=/etc/opt/business/restsql/triggers.properties
 
 Database configuration is required. Here is an example for a database with built-in support:
 
+	# database.driverClassName=x.x.x
+	#	for MySQL use com.mysql.jdbc.Driver
+	#    for PostgreSQL use org.postgresql.Driver
 	# database.url=jdbc:etc:etc
+	#    for MySQL use jdbc:mysql://hostname:3306/
+	#    for PostgreSQL use jdbc:postgresql://hostname:5432/{database-name}
 	# database.user=userName
 	# database.password=password
+	database.driverClassName=com.mysql.jdbc.Driver
 	database.url=jdbc:mysql://localhost:3306/
 	database.user=restsql
 	database.password=Rest00sql#
@@ -121,7 +132,7 @@ Implementation classes configuration is optional. The defaults are:
 	org.restsql.core.Factory.RequestLoggerFactory=org.restsql.core.impl.RequestLoggerFactoryImpl
 	org.restsql.core.Factory.SqlResourceFactory=org.restsql.core.impl.SqlResourceFactoryImpl
 
-See the SDK for more detail on Logging and Trigger configuration.
+See the SDK for more detail on Logging, Security and Trigger configuration.
 
 Access http://yourhost:port/restsql for links to the effective runtime configuration.
 
@@ -138,7 +149,7 @@ The restsql-{version}.war contains the service and framework classes as well as 
         WEB-INF/
         index.html
 
-Properties Files: Create your restsql.properties and log4j.properties (or logging.properties) as above. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
+Properties Files: Create your two required properties files (restsql.properties and log4j.properties (or logging.properties), as above. Create your two optional privileges and triggers definitions if required. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
 
 web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know where to load your restsql.properties. Here's an example:
 
@@ -147,28 +158,33 @@ web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know 
         <param-value>/etc/opt/business/restsql/restsql.properties</param-value>
     </context-param>
 
+The default deployment descriptor (web.xml) contains login config (authentication method) and security constraints (authorization declarations). See the restSQL SDK's /restsql-sdk/default/xml/web.xml for the default deployment descriptor. 
+
+Disabling Security: To disable authentication/authorization, simply remove or comment out the security-constraint and login-config elements in the web.xml. 
+
+Enabling Security: You may use the default security constraints and login config or change it to conform to your specific roles, realm and other requirements. More information on Web Application Security using deployment descriptors is available at http://java.sun.com/javaee/6/docs/tutorial/doc/bncbe.html. Or consult your container's documentation. Authentication mechanisms (credential management, user to role assigment) are typically container-specific/proprietary. You will also need to configure a privileges properties file and reference it in the restsql properties file. See the SDK's Security configuration for instructions. 
+
 Naming: You may deploy this as a single file or exploded war to your JEE container. Rename it to restsql.war or webapps/restsql if you want the path to be http://yourhost:port/restsql. Containers generally use the war file name instead of the web.xml's id to name the web app. Additionally, the SDK's HTTP API Explorer will work without any customization.
 
 Deploy: Copy your exploded war or war to your container's webapps dir and restart the container, or deploy the webapp in your preferred style. All third party dependencies are included in the war distribution in the WEB-INF/lib.
-
-Container Specific Issues:
-	JBoss - The jdbc library will not load from restsql's WAR file. It must be placed in a server lib. In JBoss Enterprise Web Platform 5.1, the only location that works is jboss-as-web/common/lib. If that does not work on your JBoss products/version variant, try server/lib or server/default/lib. If you receive a 500 response to any res query with the text "No suitable driver found", then JBoss cannot find your jdbc driver. The very first request on EAP 5.1 will fail with the previous message but all subsequent queries will succeed.
 
 
 -------------------------------------------------------------------------------
 Installing restSQL JAR mode
 
-Properties: Follow the instructions for WAR mode.
+Properties: Follow the instructions for Configuring restSQL.
 
 Deploy: Copy jar to the classpath of your web app, e.g. WEB-INF/lib. The following third party dependencies also need to be in your classpath:
 	* commons-logging.jar  (tested with version 1.1.1)
 	* log4j.jar (tested with 1.2.16)
 
-log4j may be excluded if you are using Java native logging.
+log4j is not necessary if your app uses Java Native Logging. restSQL has been tested with JRE 1.6 and Java Native Logging.
 
 Additionally one of the following jdbc drivers is necessary for databases with built-in support:
-	* mysql-connector-java.jar (tested with MySQL version 5.5)
-	* postgresql-9.0-801.jdbc4.jar (tested with PostgreSQL version 9.0)
+	* mysql-connector-java-#.jar (tested with MySQL version 5.5)
+	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 9.0)
+
+Enabling Security: restSQL will authorize SQL Resource operations. Your app will authenticate users and associate users with roles. You must provide a priviliges properties file and reference it in the restsql.properties. Your app will call restSQL's Authorizer and provide a SecurityContextimplementation. See the SDK's Security configuration for more instructions.
 
 
 -------------------------------------------------------------------------------

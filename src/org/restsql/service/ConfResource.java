@@ -8,9 +8,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.restsql.core.Config;
+import org.restsql.security.SecurityFactory;
 
 /**
- * Provides access to general restSQL and logging configuration.
+ * Provides access to general restSQL, logging and security configuration.
  * 
  * @author Mark Sawers
  */
@@ -27,5 +28,12 @@ public class ConfResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response dumpLoggingConfig() {
 		return Response.ok(Config.dumpLoggingConfig()).build();
+	}
+
+	@GET
+	@Path("security")
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response dumpSecurityConfig() {
+		return Response.ok(SecurityFactory.getAuthorizer().dumpConfig()).build();
 	}
 }

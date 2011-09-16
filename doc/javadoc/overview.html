@@ -1,13 +1,82 @@
 <html>
 <body>
-restSQL is a database framework for building lightweight middle-tier services. The framework makes it simple to put a RESTful interface on a database. The framework is used in two ways: 1) Clients may connect directly to the restSQL engine using the RESTful interface (XML or JSON over HTTP), and 2) Services use a Java API. Optionally, applications provide Java-based triggers to manage data validation and business logic.
+<p>restSQL is an ultra-lightweight data access layer for HTTP clients. restSQL is a persistence framework or engine in the middle tier of a classic three tier architecture: client, application server and database. It may also be embedded in any middle-tier as a Java library.</p>
 
-<p>restSQL right-sizes four technologies: SQL, XML, Java and HTTP. SQL is embedded in XML files that define resources, like database views, that may be queried, added to, updated or deleted using HTTP or a Java access API. The framework itself is written in Java. Developers use Java to write triggers and to customize the framework.</p>
+<h4>What it is</h4>
+<ul>
+	<li>an SQL generator with Java and HTTP APIs</li>
+	<li>uses a simple RESTful HTTP API with XML or JSON serialization</li>
+	<li>presents flat or hierarchical views of relational database tables</li>
+	<li>organizes access through query-able and updatable database views called SQL Resources</li>
+	<li>uses declarative authorization</li>
+	<li>offers declarative and plugin mechanisms for implementing domain constraints and business logic</li>
+	<li>a JEE web application or a Java library</li>
+	<li>platform, JEE container and database agnostic</li>
+</ul>
 
-<p>restSQL enables you to multiple SQL Resources, queryable and updatable database ìviewsî that exist on the middle tier and are accessible via Java or REST. SQL Resources may be flat views or hierarchical parent-child. The SQL Resource is defined in an XML file. The core of the definition is the query expression, an SQL í99-compliant DML expression.</p>
+<h4>What it is Not</h4>
+<ul>
+	<li>an HTTP to JDBC/ODBC bridge that tunnels SQL over HTTP</li>
+	<li>an Object-Relational Mapping tool (ORM) that maps tables to objects</li>
+	<li>a database or a data storage engine</li>
+	<li>a sophisticated query or report generator</li>
+	<li>an OLAP-style cube or data warehousing engine</li>
+</ul>
 
-<p>SQL Resources optionally define Java-based triggers that execute before and after inserts, updates and deletes, performing business logic or complex data validations. Simple data validations, such as minimum string lengths and number ranges are defined declaratively in the SQL Resource definition.</p>
+<h4>Where it could be Used</h4>
+<p class="text">Applications needing:</p>
+<ul>
+	<li>basic CRUD (Create-Read-Update-Delete) access to relational databases</li>
+	<li>a database abstraction layer</li>
+	<li>a lighter-weight alternative to ORM (e.g. ADO or EJB)</li>
+	<li>a lighter-weight alternative to WSDL/SOAP</li>
+</ul>
 
-<p>The engine is deployed as a Web Application Archive (WAR) in any Java Enterprise Edition (JEE) container. The access API is deployed as a Java ARchive (JAR) and bundled in the consumerís application. Any SQL í92 database will do, though MySQL is officially supported.</p>
+
+<h4>Motivation</h4>
+<p class="text">For many apps:</p>
+<ul>
+	<li>Conventional ORM is too heavyweight
+		<ul>
+			<li>We‚Äôve gone overboard with objects</li>
+			<li>Oodles of classes, interfaces, deployment descriptors</li>
+			<li>OQL - another language to learn</li>
+		</ul>
+	</li>
+	<li>Conventional ORM is inflexible
+		<ul>
+			<li>A domain object layer rarely serves multiple apps well</li>
+			<li>Entity objects can‚Äôt be joined into arbitrary views</li>
+			<li>More accidental complexity: code required to join entities</li>
+		</ul>
+	</li>
+	<li>Conventional Web Services is too heavyweight
+		<ul>
+			<li>WSDL and SOAP are complicated</li>
+			<li>RESTful Web Services and WADL are simpler</li>
+		</ul>
+	</li>
+</ul>
+
+<h4>The bottom line &#8211; 80/20</h4>
+<ul>
+	<li>restSQL is targeted at the 80% of data access that is basic CRUD</li>
+	<li>No more messing around with basic SQL, some complex ORM tool, oodles of Objects and Interfaces, or quirky OQL.</li>
+	<li>Developers can spend their efforts on the remaining 20% of the database access, using an approach appropriate to the problem.</li>
+	<li>restSQL frees developers to focus on the essential work of software engineering:
+		<ul>
+			<li>architecture, data modeling, workflow, UI design, business logic, testing and tuning</li>
+			<li>and making our stakeholders happy</li>
+		</ul> 
+	</li>
+</ul>
+
+<h3>Description</h3>
+<p class="text">restSQL is a different kind of middle tier framework. There is no object-relational mapping, no object query language and no beans. It is intentionally not an object-oriented view of the database. It provides an interface based on <a href="http://en.wikipedia.org/wiki/Representational_State_Transfer">Representational State Transfer</a> (REST) principles, which use HTTP's built-in features, rather than abstracting away from them. The framework makes it simple to put a RESTful interface on a database.</p>
+<p class="text">The framework is used in two ways: 1) Clients may connect directly to the restSQL engine using the HTTP API, and 2) your Services use a Java API.</p>
+<p class="text">Optionally, applications provide Java-based triggers to manage data validation and business logic.
+restSQL right-sizes five technologies: SQL, XML, JSON, Java and HTTP. SQL is embedded in XML files that define resources, like database views, that may be queried, added to, updated or deleted using HTTP or a Java access API. Data is serialized over XML or JSON. The framework itself is written in Java and deployed as a JAR or WAR on a standard JEE Container.</p>
+<p class="text">restSQL enables you to build multiple SQL Resources, queryable and updatable database ‚Äúviews‚Äù that exist on the middle tier and are accessible via Java or HTTP APIs. SQL Resources may be flat views or hierarchical parent-child. The SQL Resource is defined in an XML file. The core of the definition is the query expression, an SQL DML expression.</p>
+<p style="font-size:1.25em">restSQL &#8211; <span style="text-decoration:none">Trim your Middle</span></p>
 </body>
 </html>

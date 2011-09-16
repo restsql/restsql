@@ -115,7 +115,14 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	}
 
 	/**
-	 * Logs exceptional response.
+	 * Logs exceptional response without an exception.
+	 */
+	public void log(final int responseCode) {
+		log(responseCode, null, null);
+	}
+
+	/**
+	 * Logs exceptional response with an exception.
 	 */
 	public void log(final int responseCode, final Exception exception) {
 		log(responseCode, null, exception);
