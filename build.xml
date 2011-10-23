@@ -88,7 +88,7 @@
 		<mkdir dir="obj/war/WEB-INF/lib" />
 		<copy todir="obj/war/WEB-INF/lib">
 			<path>
-				<fileset dir="lib" includes="*.jar" excludes="jaxb-*.jar" />
+				<fileset dir="lib" includes="*.jar" excludes="jaxb-*.jar,servlet-api.jar" />
 			</path>
 		</copy>
 

@@ -69,7 +69,7 @@ public class XmlRequestProcessor {
 		@Override
 		public void endElement(final String uri, final String localName, final String qName)
 				throws SAXException {
-			if (qName.equals(sqlResource.getParentTable().getTableName())) {
+			if (qName.equals(sqlResource.getParentTable().getTableAlias())) {
 				if (childrenParams != null) {
 					// Apply operation to the children
 					// Parent is only for giving context to child inserts and updates
@@ -107,7 +107,7 @@ public class XmlRequestProcessor {
 		public void startElement(final String uri, final String localName, final String qName,
 				final Attributes attributes) throws SAXException {
 			if (!qName.equals(TAG_REQUEST)) {
-				if (qName.equals(sqlResource.getParentTable().getTableName())) {
+				if (qName.equals(sqlResource.getParentTable().getTableAlias())) {
 					parentAttributes = parseAttributes(attributes);
 				} else { // child element
 					if (childrenParams == null) {

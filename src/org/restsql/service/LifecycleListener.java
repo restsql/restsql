@@ -1,10 +1,13 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.service;
 
+import java.sql.SQLException;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.restsql.core.Config;
+import org.restsql.core.Factory;
 
 /**
  * Loads properties file from servlet context.
@@ -28,6 +31,11 @@ public class LifecycleListener implements ServletContextListener {
      * @see ServletContextListener#contextDestroyed(ServletContextEvent)
      */
     public void contextDestroyed(ServletContextEvent arg0) {
+    	try {
+			Factory.getConnectionFactory().destroy();
+		} catch (SQLException exception) {
+			exception.printStackTrace();
+		}
     }
 	
 }

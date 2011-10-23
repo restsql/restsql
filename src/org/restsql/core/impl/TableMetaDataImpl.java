@@ -20,12 +20,14 @@ public class TableMetaDataImpl implements TableMetaData {
 	private final String databaseName;
 	private final List<ColumnMetaData> primaryKeys;
 	private final String qualifiedTableName;
+	private String tableAlias;
 	private final String tableName;
 	private final TableRole tableRole;
 
 	public TableMetaDataImpl(final String tableName, final String qualifedTableName,
 			final String databaseName, final TableRole tableRole) {
 		this.tableName = tableName;
+		this.tableAlias = tableName;
 		qualifiedTableName = qualifedTableName;
 		this.databaseName = databaseName;
 		this.tableRole = tableRole;
@@ -57,6 +59,10 @@ public class TableMetaDataImpl implements TableMetaData {
 		return qualifiedTableName;
 	}
 
+	public String getTableAlias() {
+		return tableAlias;
+	}
+
 	public String getTableName() {
 		return tableName;
 	}
@@ -71,5 +77,9 @@ public class TableMetaDataImpl implements TableMetaData {
 
 	public boolean isParent() {
 		return tableRole == TableRole.Parent;
+	}
+
+	void setTableAlias(String tableAlias) {
+		this.tableAlias = tableAlias;
 	}
 }

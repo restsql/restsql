@@ -76,7 +76,7 @@ public interface SqlResource {
 	 * @throws SqlResourceException if a database access error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
-	public List<Map<String, Object>> readCollection(Request request)
+	public List<Map<String, Object>> readAsCollection(Request request)
 			throws SqlResourceException;
 
 	/**
@@ -86,7 +86,7 @@ public interface SqlResource {
 	 * @throws SqlResourceException if a database access error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
-	public String readXml(Request request) throws SqlResourceException;
+	public String readAsXml(Request request) throws SqlResourceException;
 
 	/**
 	 * Executes insert, update or delete.

@@ -85,9 +85,9 @@ public class Serializer {
 	private static void serializeRows(final SqlResource sqlResource, final List<Map<String, Object>> rows,
 			final StringBuffer string, final int level) {
 		boolean hierarchical = false;
-		String tableName = sqlResource.getDefinition().getParent();
+		String tableAlias = sqlResource.getParentTable().getTableAlias();
 		if (level == 2) {
-			tableName = sqlResource.getDefinition().getChild();
+			tableAlias = sqlResource.getChildTable().getTableAlias();
 		}
 		for (final Map<String, Object> row : rows) {
 			if (level == 1) {
@@ -95,7 +95,7 @@ public class Serializer {
 			} else {
 				string.append("\n\t\t<");
 			}
-			string.append(tableName);
+			string.append(tableAlias);
 
 			// Do parent attribute columns
 			for (final String columnLabel : row.keySet()) {
@@ -118,7 +118,7 @@ public class Serializer {
 
 			if (hierarchical) {
 				string.append("\n\t</");
-				string.append(tableName);
+				string.append(tableAlias);
 				string.append(">");
 			} else if (level == 2) {
 				string.append(" />");

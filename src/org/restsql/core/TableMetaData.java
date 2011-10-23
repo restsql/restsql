@@ -29,6 +29,9 @@ public interface TableMetaData {
 	 */
 	public String getQualifiedTableName();
 
+	/** Returns table alias. */
+	public String getTableAlias();
+
 	/** Returns table name. */
 	public String getTableName();
 

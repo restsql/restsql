@@ -43,7 +43,19 @@
 		<param-value>/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
 	</context-param>
 
-	<!-- Remove security-constraints and login-config for no authentication/authorization -->
+	<!-- Remove security-roles, security-constraints and login-config for no authentication/authorization -->
+	<security-role>
+	    <role-name>all</role-name>
+	</security-role>
+	<security-role>
+	    <role-name>limited</role-name>
+	</security-role>
+	<security-role>
+	    <role-name>readonly</role-name>
+	</security-role>	
+	<security-role>
+	    <role-name>admin</role-name>
+	</security-role>	
 	<security-constraint>
 		<web-resource-collection>
 			<web-resource-name>SQL Resources</web-resource-name>

@@ -329,7 +329,7 @@ public class ResResource {
 			if (requestType.equals(Request.Type.SELECT)) {
 				final Request request = Factory.getRequest(requestType, resName, resIds, params, null,
 						requestLogger);
-				responseBody = sqlResource.readXml(request);
+				responseBody = sqlResource.readAsXml(request);
 			} else { // INSERT, UPDATE or DELETE
 				final int rowsAffected;
 				if (body == null || body.length() == 0) {

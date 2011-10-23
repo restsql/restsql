@@ -20,8 +20,10 @@
 		<attribute name="name" type="string" use="required"></attribute>
 		<attribute name="defaultDatabase" type="string" use="required"></attribute>
 		<attribute name="parent" type="string" use="required"></attribute>
+		<attribute name="parentAlias" type="string" use="optional"></attribute>
 		<attribute name="parentExt" type="string" use="optional"></attribute>
 		<attribute name="child" type="string" use="optional"></attribute>
+		<attribute name="childAlias" type="string" use="optional"></attribute>
 		<attribute name="childExt" type="string" use="optional"></attribute>
 		<attribute name="join" type="string" use="optional"></attribute>
 	</complexType>

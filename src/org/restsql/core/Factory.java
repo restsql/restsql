@@ -23,9 +23,13 @@ public class Factory extends AbstractFactory {
 
 	/** Returns connection. */
 	public static Connection getConnection(final String defaultDatabase) throws SQLException {
-		final ConnectionFactory connectionFactory = (ConnectionFactory) getInstance(
-				Config.KEY_CONNECTION_FACTORY, Config.DEFAULT_CONNECTION_FACTORY);
-		return connectionFactory.getConnection(defaultDatabase);
+		return getConnectionFactory().getConnection(defaultDatabase);
+	}
+
+	/** Return connection factory. Useful for destroying it on app unload. */
+	public static ConnectionFactory getConnectionFactory() {
+		return (ConnectionFactory) getInstance(Config.KEY_CONNECTION_FACTORY,
+				Config.DEFAULT_CONNECTION_FACTORY);
 	}
 
 	/** Returns request object. */
@@ -140,6 +144,8 @@ public class Factory extends AbstractFactory {
 	/** Creates JDBC connection objects. */
 	public interface ConnectionFactory {
 		public Connection getConnection(String defaultDatabase) throws SQLException;
+
+		public void destroy() throws SQLException;
 	}
 
 	/** Creates request objects. */

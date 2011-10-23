@@ -88,7 +88,7 @@ public class SqlResourceImpl implements SqlResource {
 	 * @throws TriggerException if a trigger error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
-	public List<Map<String, Object>> readCollection(final Request request) throws SqlResourceException {
+	public List<Map<String, Object>> readAsCollection(final Request request) throws SqlResourceException {
 		TriggerManager.executeTriggers(getName(), request, true);
 
 		final List<Map<String, Object>> results;
@@ -131,7 +131,7 @@ public class SqlResourceImpl implements SqlResource {
 	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
 	 * @return xml string
 	 */
-	public String readXml(final Request request) throws SqlResourceException {
+	public String readAsXml(final Request request) throws SqlResourceException {
 		TriggerManager.executeTriggers(getName(), request, true);
 
 		String results;
@@ -280,7 +280,7 @@ public class SqlResourceImpl implements SqlResource {
 		boolean newParent = false;
 		final int numberParentElementColumns = metaData.getParentReadColumns().size();
 		final int numberChildElementColumns = metaData.getChildReadColumns().size();
-		final String childRowElementName = definition.getChild() + "s";
+		final String childRowElementName = metaData.getChild().getTableAlias() + "s";
 		Map<String, Object> parentRow = null;
 		List<Map<String, Object>> childRows = null;
 

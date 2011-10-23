@@ -361,12 +361,18 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				switch (tableRole) {
 					case Parent:
 						parentTable = table;
+						if (definition.getParentAlias() != null) {
+							table.setTableAlias(definition.getParentAlias());
+						}
 						// fall through
 					case ParentExtension:
 						parentPlusExtTables.add(table);
 						break;
 					case Child:
 						childTable = table;
+						if (definition.getChildAlias() != null) {
+							table.setTableAlias(definition.getChildAlias());
+						}
 						// fall through
 					case ChildExtension:
 						childPlusExtTables.add(table);
