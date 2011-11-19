@@ -38,7 +38,7 @@
 <ul>
 	<li>Conventional ORM is too heavyweight
 		<ul>
-			<li>We’ve gone overboard with objects</li>
+			<li>We've gone overboard with objects</li>
 			<li>Oodles of classes, interfaces, deployment descriptors</li>
 			<li>OQL - another language to learn</li>
 		</ul>
@@ -46,7 +46,7 @@
 	<li>Conventional ORM is inflexible
 		<ul>
 			<li>A domain object layer rarely serves multiple apps well</li>
-			<li>Entity objects can’t be joined into arbitrary views</li>
+			<li>Entity objects can be joined into arbitrary views</li>
 			<li>More accidental complexity: code required to join entities</li>
 		</ul>
 	</li>
@@ -76,7 +76,7 @@
 <p class="text">The framework is used in two ways: 1) Clients may connect directly to the restSQL engine using the HTTP API, and 2) your Services use a Java API.</p>
 <p class="text">Optionally, applications provide Java-based triggers to manage data validation and business logic.
 restSQL right-sizes five technologies: SQL, XML, JSON, Java and HTTP. SQL is embedded in XML files that define resources, like database views, that may be queried, added to, updated or deleted using HTTP or a Java access API. Data is serialized over XML or JSON. The framework itself is written in Java and deployed as a JAR or WAR on a standard JEE Container.</p>
-<p class="text">restSQL enables you to build multiple SQL Resources, queryable and updatable database “views” that exist on the middle tier and are accessible via Java or HTTP APIs. SQL Resources may be flat views or hierarchical parent-child. The SQL Resource is defined in an XML file. The core of the definition is the query expression, an SQL DML expression.</p>
+<p class="text">restSQL enables you to build multiple SQL Resources, queryable and updatable database views that exist on the middle tier and are accessible via Java or HTTP APIs. SQL Resources may be flat views or hierarchical parent-child. The SQL Resource is defined in an XML file. The core of the definition is the query expression, an SQL DML expression.</p>
 <p style="font-size:1.25em">restSQL &#8211; <span style="text-decoration:none">Trim your Middle</span></p>
 </body>
 </html>

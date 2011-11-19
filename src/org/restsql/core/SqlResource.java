@@ -39,6 +39,13 @@ public interface SqlResource {
 	 * @return table meta data or null if flat resource or one-to-many hierarchical
 	 */
 	public TableMetaData getJoinTable();
+	
+	/**
+	 * Returns meta data for SQL resource.
+	 * 
+	 * @return SQL rsource meta data
+	 */
+	public SqlResourceMetaData getMetaData();
 
 	/**
 	 * Returns meta data for parent table.

@@ -32,7 +32,7 @@ import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
-import org.restsql.core.impl.Serializer;
+import org.restsql.core.impl.ResultsSerializer;
 import org.restsql.security.SecurityFactory;
 
 /**
@@ -340,7 +340,7 @@ public class ResResource {
 					rowsAffected = XmlRequestProcessor.execWrite(requestType, resIds, sqlResource, body,
 							requestLogger);
 				}
-				responseBody = Serializer.serializeWrite(rowsAffected);
+				responseBody = ResultsSerializer.serializeWrite(rowsAffected);
 			}
 
 			requestLogger.log(responseBody);

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -31,26 +32,27 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
  * @author Mark Sawers
  */
 public class SqlResourceFactoryImpl implements SqlResourceFactory {
+	private final Map<String, SqlResource> sqlResources = new HashMap<String, SqlResource>();
 	private String sqlResourcesDir;
-	private Map<String, SqlResource> sqlResources = new HashMap<String, SqlResource>();
 
 	@SuppressWarnings("unchecked")
-	public SqlResource getSqlResource(String resName) throws SqlResourceFactoryException,
+	@Override
+	public SqlResource getSqlResource(final String resName) throws SqlResourceFactoryException,
 			SqlResourceException {
 		SqlResource sqlResource = sqlResources.get(resName);
 		if (sqlResource == null) {
-			InputStream inputStream = getInputStream(resName);
+			final InputStream inputStream = getInputStream(resName);
 			JAXBContext context;
 			try {
 				context = JAXBContext.newInstance(ObjectFactory.class);
 				final Unmarshaller unmarshaller = context.createUnmarshaller();
 				unmarshaller.setSchema(null);
-				SqlResourceDefinition definition = ((JAXBElement<SqlResourceDefinition>) unmarshaller
+				final SqlResourceDefinition definition = ((JAXBElement<SqlResourceDefinition>) unmarshaller
 						.unmarshal(inputStream)).getValue();
-				sqlResource = new SqlResourceImpl(definition, Factory.getSqlResourceMetaData(definition),
-						Factory.getSqlBuilder(), new ArrayList<Trigger>());
+				sqlResource = new SqlResourceImpl(resName, definition, Factory.getSqlResourceMetaData(
+						resName, definition), Factory.getSqlBuilder(), new ArrayList<Trigger>());
 				sqlResources.put(resName, sqlResource);
-			} catch (JAXBException exception) {
+			} catch (final JAXBException exception) {
 				throw new SqlResourceFactoryException("Error unmarshalling SQL Resource "
 						+ getSqlResourceFileName(resName) + " -- " + exception.getMessage());
 			}
@@ -58,39 +60,34 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 		return sqlResource;
 	}
 
-	public InputStream getSqlResourceDefinition(String resName) throws SqlResourceFactoryException {
+	@Override
+	public InputStream getSqlResourceDefinition(final String resName) throws SqlResourceFactoryException {
 		return getInputStream(resName);
 	}
 
 	/**
 	 * Returns available SQL Resource names.
 	 */
+	@Override
 	public List<String> getSqlResourceNames() {
-		List<String> resNames = new ArrayList<String>();
-		File dir = new File(getSqlResourcesDir());
-		for (File file : dir.listFiles()) {
-			int extIndex = file.getName().indexOf(".xml");
-			if (extIndex > 0) {
-				resNames.add(file.getName().substring(0, extIndex));
-			}
-		}
+		final List<String> resNames = new ArrayList<String>();
+		getSqlResourceNames(resNames, getSqlResourcesDir(), "");
 		return resNames;
 	}
 
-	public boolean isSqlResourceLoaded(String name) {
+	/** Returns true if the resource has been loaded, i.e. requested previously. */
+	public boolean isSqlResourceLoaded(final String name) {
 		return sqlResources.containsKey(name);
 	}
 
-	private String getSqlResourceFileName(String resName) {
-		return getSqlResourcesDir() + "/" + resName + ".xml";
-	}
+	// Private utils
 
-	private InputStream getInputStream(String resName) throws SqlResourceFactoryException {
-		String fileName = getSqlResourceFileName(resName);
+	private InputStream getInputStream(final String resName) throws SqlResourceFactoryException {
+		final String fileName = getSqlResourceFileName(resName);
 		InputStream inputStream = null;
 		try {
 			inputStream = new FileInputStream(fileName);
-		} catch (FileNotFoundException exception) {
+		} catch (final FileNotFoundException exception) {
 			inputStream = this.getClass().getResourceAsStream(fileName);
 		}
 		if (inputStream == null) {
@@ -98,6 +95,42 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 					+ fileName);
 		}
 		return inputStream;
+	}
+
+	private String getSqlResourceFileName(final String resName) {
+		final StringBuilder fileName = new StringBuilder(128);
+		fileName.append(getSqlResourcesDir());
+		final StringTokenizer tokenizer = new StringTokenizer(resName, ".");
+		while (tokenizer.hasMoreTokens()) {
+			fileName.append("/");
+			fileName.append(tokenizer.nextToken());
+		}
+		fileName.append(".xml");
+		return fileName.toString();
+	}
+
+	/**
+	 * Scans for xml files and recursively descends subdirs.
+	 */
+	private void getSqlResourceNames(final List<String> resNames, final String dirName,
+			final String packageName) {
+		final File dir = new File(dirName);
+		Config.logger.info("listing files for " + dirName);
+		for (final File file : dir.listFiles()) {
+			if (file.isFile()) {
+				final int extIndex = file.getName().indexOf(".xml");
+				if (extIndex > 0) {
+					resNames.add(packageName + file.getName().substring(0, extIndex));
+				}
+			}
+		}
+		for (final File subDir : dir.listFiles()) {
+			if (subDir.isDirectory()) {
+				String subPackageName = packageName.length() == 0 ? subDir.getName() + "." : packageName
+						+ subDir.getName() + ".";
+				getSqlResourceNames(resNames, subDir.getAbsolutePath(), subPackageName);
+			}
+		}
 	}
 
 	private String getSqlResourcesDir() {

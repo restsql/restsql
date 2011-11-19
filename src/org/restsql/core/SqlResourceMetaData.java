@@ -43,5 +43,5 @@ public interface SqlResourceMetaData {
 
 	public boolean isHierarchical();
 	
-	public void setDefinition(SqlResourceDefinition definition) throws SqlResourceException;
+	public void setDefinition(String sqlResourceName, SqlResourceDefinition definition) throws SqlResourceException;
 }

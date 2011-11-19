@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,13 +33,16 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
 public class SqlResourceImpl implements SqlResource {
 	private final SqlResourceDefinition definition;
 	private final SqlResourceMetaData metaData;
+	private final String name;
 	private final SqlBuilder sqlBuilder;
 	private final List<Trigger> triggers;
 
-	public SqlResourceImpl(final SqlResourceDefinition definition, final SqlResourceMetaData metaData,
-			final SqlBuilder sqlBuilder, final List<Trigger> triggers) throws SqlResourceException {
+	public SqlResourceImpl(final String name, final SqlResourceDefinition definition,
+			final SqlResourceMetaData metaData, final SqlBuilder sqlBuilder, final List<Trigger> triggers)
+			throws SqlResourceException {
+		this.name = name;
 		this.definition = definition;
-		cleanSql();
+		definition.getQuery().setValue(SqlUtils.removeWhitespaceFromSql(definition.getQuery().getValue()));
 		this.metaData = metaData;
 		this.sqlBuilder = sqlBuilder;
 		this.triggers = triggers;
@@ -51,16 +53,24 @@ public class SqlResourceImpl implements SqlResource {
 		return metaData.getChild();
 	}
 
+	@Override
 	public SqlResourceDefinition getDefinition() {
 		return definition;
 	}
 
+	@Override
 	public TableMetaData getJoinTable() {
 		return metaData.getJoin();
 	}
 
+	@Override
+	public SqlResourceMetaData getMetaData() {
+		return metaData;
+	}
+
+	@Override
 	public String getName() {
-		return definition.getName();
+		return name;
 	}
 
 	@Override
@@ -68,14 +78,17 @@ public class SqlResourceImpl implements SqlResource {
 		return metaData.getParent();
 	}
 
+	@Override
 	public Map<String, TableMetaData> getTables() {
 		return metaData.getTableMap();
 	}
 
+	@Override
 	public List<Trigger> getTriggers() {
 		return triggers;
 	}
 
+	@Override
 	public boolean isHierarchical() {
 		return metaData.isHierarchical();
 	}
@@ -88,40 +101,10 @@ public class SqlResourceImpl implements SqlResource {
 	 * @throws TriggerException if a trigger error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
+	@SuppressWarnings("unchecked")
+	@Override
 	public List<Map<String, Object>> readAsCollection(final Request request) throws SqlResourceException {
-		TriggerManager.executeTriggers(getName(), request, true);
-
-		final List<Map<String, Object>> results;
-		Connection connection = null;
-		String sql = null;
-		try {
-			connection = Factory.getConnection(definition.getDefaultDatabase());
-			final Statement statement = connection.createStatement();
-			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
-					.getResourceIdentifiers(), request.getParameters());
-			Config.logger.debug(sql);
-			request.getLogger().addSql(sql);
-			final ResultSet resultSet = statement.executeQuery(sql);
-			if (metaData.isHierarchical()) {
-				results = buildReadResultsHierachicalCollection(resultSet);
-			} else {
-				results = buildReadResultsFlatCollection(resultSet);
-			}
-			resultSet.close();
-			statement.close();
-		} catch (final SQLException exception) {
-			throw new SqlResourceException(exception, sql);
-		} finally {
-			if (connection != null) {
-				try {
-					connection.close();
-				} catch (SQLException ignored) {
-				}
-			}
-		}
-
-		TriggerManager.executeTriggers(getName(), request, false);
-		return results;
+		return (List<Map<String, Object>>) read(request, false);
 	}
 
 	/**
@@ -131,40 +114,9 @@ public class SqlResourceImpl implements SqlResource {
 	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
 	 * @return xml string
 	 */
+	@Override
 	public String readAsXml(final Request request) throws SqlResourceException {
-		TriggerManager.executeTriggers(getName(), request, true);
-
-		String results;
-		Connection connection = null;
-		String sql = null;
-		try {
-			connection = Factory.getConnection(definition.getDefaultDatabase());
-			final Statement statement = connection.createStatement();
-			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
-					.getResourceIdentifiers(), request.getParameters());
-			Config.logger.debug(sql);
-			request.getLogger().addSql(sql);
-			final ResultSet resultSet = statement.executeQuery(sql);
-			if (metaData.isHierarchical()) {
-				results = buildReadResultsHierachicalXml(resultSet);
-			} else {
-				results = buildReadResultsFlatXml(resultSet);
-			}
-			resultSet.close();
-			statement.close();
-		} catch (final SQLException exception) {
-			throw new SqlResourceException(exception, sql);
-		} finally {
-			if (connection != null) {
-				try {
-					connection.close();
-				} catch (SQLException ignored) {
-				}
-			}
-		}
-
-		TriggerManager.executeTriggers(getName(), request, false);
-		return results;
+		return (String) read(request, true);
 	}
 
 	/**
@@ -174,6 +126,7 @@ public class SqlResourceImpl implements SqlResource {
 	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
 	 * @return rows affected
 	 */
+	@Override
 	public int write(final Request request) throws SqlResourceException {
 		TriggerManager.executeTriggers(getName(), request, true);
 
@@ -212,28 +165,17 @@ public class SqlResourceImpl implements SqlResource {
 			}
 
 			TriggerManager.executeTriggers(getName(), request, false);
-		} catch (SQLException exception) {
+		} catch (final SQLException exception) {
 			throw new SqlResourceException(exception);
 		} finally {
 			if (connection != null) {
 				try {
 					connection.close();
-				} catch (SQLException ignored) {
+				} catch (final SQLException ignored) {
 				}
 			}
 		}
 		return rowsAffected;
-	}
-
-	// Private utils
-
-	/**
-	 * For testability.
-	 * 
-	 * @return meta data
-	 */
-	SqlResourceMetaData getSqlResourceMetaData() {
-		return metaData;
 	}
 
 	private List<Map<String, Object>> buildReadResultsFlatCollection(final ResultSet resultSet)
@@ -244,7 +186,7 @@ public class SqlResourceImpl implements SqlResource {
 			for (final ColumnMetaData column : metaData.getAllReadColumns()) {
 				// Simple name, value pairs will do
 				if (!column.isNonqueriedForeignKey()) {
-					row.put(column.getColumnLabel(), getObjectByColumnNumber(column, resultSet));
+					row.put(column.getColumnLabel(), SqlUtils.getObjectByColumnNumber(column, resultSet));
 				}
 			}
 			results.add(row);
@@ -252,25 +194,7 @@ public class SqlResourceImpl implements SqlResource {
 		return results;
 	}
 
-	// @todo figure out string sizing
-	private String buildReadResultsFlatXml(final ResultSet resultSet) throws SQLException {
-		final StringBuffer string = new StringBuffer(1000);
-		Serializer.appendReadDocStart(string);
-		while (resultSet.next()) {
-			string.append("\n\t<");
-			string.append(definition.getParent());
-			for (final ColumnMetaData column : metaData.getAllReadColumns()) {
-				// Simple name, value pairs will do
-				if (!column.isNonqueriedForeignKey()) {
-					Serializer.appendNameValuePair(string, column.getColumnLabel(), getObjectByColumnNumber(
-							column, resultSet));
-				}
-			}
-			string.append(" />");
-		}
-		Serializer.appendReadDocEnd(string);
-		return string.toString();
-	}
+	// Private utils
 
 	private List<Map<String, Object>> buildReadResultsHierachicalCollection(final ResultSet resultSet)
 			throws SQLException {
@@ -294,7 +218,8 @@ public class SqlResourceImpl implements SqlResource {
 				newParent = false;
 				for (int i = 0; i < currentParentPkValues.size(); i++) {
 					final ColumnMetaData column = metaData.getParent().getPrimaryKeys().get(i);
-					if (!currentParentPkValues.get(i).equals(getObjectByColumnLabel(column, resultSet))) {
+					if (!currentParentPkValues.get(i).equals(
+							SqlUtils.getObjectByColumnLabel(column, resultSet))) {
 						newParent = true;
 						break;
 					}
@@ -310,7 +235,7 @@ public class SqlResourceImpl implements SqlResource {
 				currentParentPkValues.clear();
 
 				for (final ColumnMetaData column : metaData.getParentReadColumns()) {
-					final Object value = getObjectByColumnLabel(column, resultSet);
+					final Object value = SqlUtils.getObjectByColumnLabel(column, resultSet);
 					if (column.isPrimaryKey()) {
 						currentParentPkValues.add(value);
 					}
@@ -322,7 +247,7 @@ public class SqlResourceImpl implements SqlResource {
 			Map<String, Object> childRow = new HashMap<String, Object>(numberChildElementColumns);
 			boolean nullPk = false;
 			for (final ColumnMetaData column : metaData.getChildReadColumns()) {
-				final Object value = getObjectByColumnLabel(column, resultSet);
+				final Object value = SqlUtils.getObjectByColumnLabel(column, resultSet);
 				if (column.isPrimaryKey()) {
 					nullPk = value == null;
 				}
@@ -338,40 +263,49 @@ public class SqlResourceImpl implements SqlResource {
 		return results;
 	}
 
-	private String buildReadResultsHierachicalXml(final ResultSet resultSet) throws SQLException {
-		final List<Map<String, Object>> results = buildReadResultsHierachicalCollection(resultSet);
-		return Serializer.serializeRead(this, results);
-	}
+	private Object read(final Request request, final boolean returnXml) throws SqlResourceException {
+		TriggerManager.executeTriggers(getName(), request, true);
 
-	/**
-	 * Strips whitespace from sql in the definition.
-	 */
-	private void cleanSql() {
-		String sql = definition.getQuery().getValue().replaceAll("\\n", "");
-		sql = sql.replaceAll("\\r", "");
-		sql = sql.replaceFirst("\\s+", "");
-		sql = sql.replaceFirst("\\t+", " ");
-		sql = sql.replaceFirst("\\t+$", "");
-		sql = sql.replaceAll("\\t", " ");
-		definition.getQuery().setValue(sql);
-	}
-
-	private Object getObjectByColumnLabel(final ColumnMetaData column, final ResultSet resultSet)
-			throws SQLException {
-		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
-			return new Integer(resultSet.getInt(column.getColumnLabel()));
-		} else {
-			return resultSet.getObject(column.getColumnLabel());
+		final Object results;
+		Connection connection = null;
+		String sql = null;
+		try {
+			connection = Factory.getConnection(definition.getDefaultDatabase());
+			final Statement statement = connection.createStatement();
+			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
+					.getResourceIdentifiers(), request.getParameters());
+			Config.logger.debug(sql);
+			request.getLogger().addSql(sql);
+			final ResultSet resultSet = statement.executeQuery(sql);
+			if (metaData.isHierarchical()) {
+				if (returnXml) {
+					results = ResultsSerializer.serializeReadHierarchical(this,
+							buildReadResultsHierachicalCollection(resultSet));
+				} else {
+					results = buildReadResultsHierachicalCollection(resultSet);
+				}
+			} else {
+				if (returnXml) {
+					results = ResultsSerializer.serializeReadFlat(this, resultSet);
+				} else {
+					results = buildReadResultsFlatCollection(resultSet);
+				}
+			}
+			resultSet.close();
+			statement.close();
+		} catch (final SQLException exception) {
+			throw new SqlResourceException(exception, sql);
+		} finally {
+			if (connection != null) {
+				try {
+					connection.close();
+				} catch (final SQLException ignored) {
+				}
+			}
 		}
-	}
 
-	private Object getObjectByColumnNumber(final ColumnMetaData column, final ResultSet resultSet)
-			throws SQLException {
-		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
-			return new Integer(resultSet.getInt(column.getColumnNumber()));
-		} else {
-			return resultSet.getObject(column.getColumnNumber());
-		}
+		TriggerManager.executeTriggers(getName(), request, false);
+		return results;
 	}
 
 	private int write(final Connection connection, final Request request, final boolean doParent)
@@ -402,8 +336,8 @@ public class SqlResourceImpl implements SqlResource {
 		return rowsAffected;
 	}
 
-	private int write(final Connection connection, Request request, final SqlStruct sqlStruct, boolean doMain)
-			throws SqlResourceException {
+	private int write(final Connection connection, final Request request, final SqlStruct sqlStruct,
+			final boolean doMain) throws SqlResourceException {
 		int rowsAffected = 0;
 		if (sqlStruct != null) {
 			if (!doMain && sqlStruct.isClauseEmpty()) {

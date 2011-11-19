@@ -1,13 +1,16 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import org.restsql.core.ColumnMetaData;
 import org.restsql.core.Config;
 import org.restsql.core.SqlResource;
 
-public class Serializer {
+public class ResultsSerializer {
 	public static boolean useXmlDirective = Boolean.valueOf(Config.properties.getProperty(
 			Config.KEY_RESPONSE_USE_XML_DIRECTIVE, Config.DEFAULT_RESPONSE_USE_XML_DIRECTIVE));
 	public static boolean useXmlSchema = Boolean.valueOf(Config.properties.getProperty(
@@ -26,17 +29,45 @@ public class Serializer {
 	/**
 	 * Converts select results to xml string.
 	 * 
-	 * @param sqlResource
-	 * @param results
+	 * @param sqlResource SQL resource
+	 * @param results results
 	 * @return XML string
 	 * @todo escape illegal xml chars, e.g. quotes
 	 */
-	public static String serializeRead(final SqlResource sqlResource, final List<Map<String, Object>> results) {
+	public static String serializeReadHierarchical(final SqlResource sqlResource, final List<Map<String, Object>> results) {
 		final StringBuffer string = new StringBuffer(results.size() * 100);
 		appendReadDocStart(string);
 		serializeRows(sqlResource, results, string, 1);
 		appendReadDocEnd(string);
 		return string.toString();
+	}
+	
+	/**
+	 * Converts select results to xml string.
+	 * 
+	 * @param sqlResource SQL resource
+	 * @param resultSet results
+	 * @return XML string
+	 * @todo escape illegal xml chars, e.g. quotes
+	 */
+	public static String serializeReadFlat(final SqlResource sqlResource, final ResultSet resultSet)
+			throws SQLException {
+		final StringBuffer string = new StringBuffer(1000);
+		appendReadDocStart(string);
+		while (resultSet.next()) {
+			string.append("\n\t<");
+			string.append(sqlResource.getParentTable().getTableAlias());
+			for (final ColumnMetaData column : sqlResource.getMetaData().getAllReadColumns()) {
+				if (!column.isNonqueriedForeignKey()) {
+					appendNameValuePair(string, column.getColumnLabel(), SqlUtils.getObjectByColumnNumber(
+							column, resultSet));
+				}
+			}
+			string.append(" />");
+		}
+		appendReadDocEnd(string);
+		return string.toString();
+		
 	}
 
 	public static String serializeWrite(final int rowsAffected) {

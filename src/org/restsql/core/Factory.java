@@ -122,11 +122,11 @@ public class Factory extends AbstractFactory {
 	 * 
 	 * @throws SqlResourceException if a database access error occurs
 	 */
-	public static SqlResourceMetaData getSqlResourceMetaData(final SqlResourceDefinition definition)
-			throws SqlResourceException {
+	public static SqlResourceMetaData getSqlResourceMetaData(final String resName,
+			final SqlResourceDefinition definition) throws SqlResourceException {
 		final SqlResourceMetaData sqlResourceMetaData = (SqlResourceMetaData) newInstance(
 				Config.KEY_SQL_RESOURCE_METADATA, Config.DEFAULT_SQL_RESOURCE_METADATA);
-		sqlResourceMetaData.setDefinition(definition);
+		sqlResourceMetaData.setDefinition(resName, definition);
 		return sqlResourceMetaData;
 	}
 

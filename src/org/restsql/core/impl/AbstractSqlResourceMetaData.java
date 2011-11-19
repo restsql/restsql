@@ -37,6 +37,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	private boolean hierarchical;
 	private List<TableMetaData> joinList;
 	private boolean multipleDatabases;
+	private String resName;
 	/** Map<database.table, TableMetaData> */
 	private Map<String, TableMetaData> tableMap;
 	private List<TableMetaData> tables, childPlusExtTables, parentPlusExtTables;
@@ -104,7 +105,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	}
 
 	/** Populates metadata using definition. */
-	public void setDefinition(final SqlResourceDefinition definition) throws SqlResourceException {
+	public void setDefinition(String resName, final SqlResourceDefinition definition)
+			throws SqlResourceException {
+		this.resName = resName;
 		this.definition = definition;
 		Connection connection = null;
 		String sql = null;
@@ -113,7 +116,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			final Statement statement = connection.createStatement();
 			sql = getSqlMainQuery(definition);
 			if (Config.logger.isDebugEnabled()) {
-				Config.logger.debug("Loading meta data for " + definition.getName() + " - " + sql);
+				Config.logger.debug("Loading meta data for " + this.resName + " - " + sql);
 			}
 			final ResultSet resultSet = statement.executeQuery(sql);
 			resultSet.next();
@@ -170,8 +173,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException;
 
 	/** Retrieves database-specific table name used in SQL statements. Used to build join table meta data. */
-	protected abstract String getQualifiedTableName(Connection connection, String databaseName, String tableName)
-			throws SQLException;
+	protected abstract String getQualifiedTableName(Connection connection, String databaseName,
+			String tableName) throws SQLException;
 
 	/**
 	 * Retrieves sql for querying columns. Hook method for buildInvisibleForeignKeys() and buildJoinTableMetadata()
