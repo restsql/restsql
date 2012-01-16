@@ -21,6 +21,8 @@ import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
 import org.restsql.core.TableMetaData.TableRole;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
+import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
+import org.restsql.core.sqlresource.Table;
 
 /**
  * Represents meta data for sql resource. Queries database for table and column meta data and primary and foreign keys.
@@ -111,8 +113,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		this.definition = definition;
 		Connection connection = null;
 		String sql = null;
+		SqlResourceDefinitionUtils.validate(definition);
 		try {
-			connection = Factory.getConnection(definition.getDefaultDatabase());
+			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			final Statement statement = connection.createStatement();
 			sql = getSqlMainQuery(definition);
 			if (Config.logger.isDebugEnabled()) {
@@ -136,9 +139,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				}
 			}
 		}
-		hierarchical = definition.getChild() != null;
+		hierarchical = getChild() != null;
 	}
-
+	
 	// Protected methods for database-specific implementation
 
 	/**
@@ -242,17 +245,19 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	}
 
 	private void buildJoinTableMetadata(final Connection connection) throws SQLException {
-		final String possiblyQualifiedTableName = definition.getJoin();
-		if (possiblyQualifiedTableName != null && joinTable == null) {
+		// Join table could have been idenitfied in buildTablesAndColumns(), but not always
+		Table joinDef = SqlResourceDefinitionUtils.getTable(definition, TableRole.Join);
+		if (joinDef != null && joinTable == null) {
 			// Determine table and database name
 			String tableName, databaseName;
+			final String possiblyQualifiedTableName = joinDef.getName();
 			final int dotIndex = possiblyQualifiedTableName.indexOf('.');
 			if (dotIndex > 0) {
 				tableName = possiblyQualifiedTableName.substring(0, dotIndex);
 				databaseName = possiblyQualifiedTableName.substring(dotIndex + 1);
 			} else {
 				tableName = possiblyQualifiedTableName;
-				databaseName = definition.getDefaultDatabase();
+				databaseName = SqlResourceDefinitionUtils.getDefaultDatabase(definition);
 			}
 
 			final String qualifiedTableName = getQualifiedTableName(connection, databaseName, tableName);
@@ -329,8 +334,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * 
 	 * @param resultSet resultSet
 	 * @throws SQLException if a database access error occurs
+	 * @throws SqlResourceException if definition is invalid
 	 */
-	private void buildTablesAndColumns(final ResultSet resultSet) throws SQLException {
+	private void buildTablesAndColumns(final ResultSet resultSet) throws SQLException, SqlResourceException {
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 		final int columnCount = resultSetMetaData.getColumnCount();
 
@@ -355,17 +361,20 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 			TableMetaDataImpl table = (TableMetaDataImpl) tableMap.get(column.getQualifiedTableName());
 			if (table == null) {
-				// Create table object and add to special references
-				final TableRole tableRole = getTableRole(column);
-				table = new TableMetaDataImpl(tableName, qualifiedTableName, databaseName, tableRole);
+				// Create table metadata object and add to special references
+				final Table tableDef = SqlResourceDefinitionUtils.getTable(definition, column);
+				if (tableDef == null) {
+					throw new SqlResourceException("Definition requires table element for " + column.getTableName() + ", referenced by column " + column.getColumnLabel());
+				}
+				table = new TableMetaDataImpl(tableName, qualifiedTableName, databaseName, TableRole.valueOf(tableDef.getRole()));
 				tableMap.put(column.getQualifiedTableName(), table);
 				tables.add(table);
 
-				switch (tableRole) {
+				switch (table.getTableRole()) {
 					case Parent:
 						parentTable = table;
-						if (definition.getParentAlias() != null) {
-							table.setTableAlias(definition.getParentAlias());
+						if (tableDef.getAlias() != null) {
+							table.setTableAlias(tableDef.getAlias());
 						}
 						// fall through
 					case ParentExtension:
@@ -373,8 +382,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 						break;
 					case Child:
 						childTable = table;
-						if (definition.getChildAlias() != null) {
-							table.setTableAlias(definition.getChildAlias());
+						if (tableDef.getAlias() != null) {
+							table.setTableAlias(tableDef.getAlias());
 						}
 						// fall through
 					case ChildExtension:
@@ -405,33 +414,5 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		}
 
 		multipleDatabases = databases.size() > 1;
-	}
-
-	private TableRole getTableRole(final ColumnMetaData column) {
-		if (queryTableMatches(column, definition.getParent())) {
-			return TableRole.Parent;
-		} else if (queryTableMatches(column, definition.getChild())) {
-			return TableRole.Child;
-		} else if (queryTableMatches(column, definition.getJoin())) {
-			return TableRole.Join;
-		} else if (queryTableMatches(column, definition.getParentExt())) {
-			return TableRole.ParentExtension;
-		} else if (queryTableMatches(column, definition.getChildExt())) {
-			return TableRole.ChildExtension;
-		} else {
-			return TableRole.Unknown;
-		}
-	}
-
-	private boolean queryTableMatches(final ColumnMetaData column, final String queryTable) {
-		if (queryTable != null) {
-			if (queryTable.indexOf(".") > 0) {
-				return column.getQualifiedTableName().equals(queryTable);
-			} else {
-				return column.getTableName().equals(queryTable);
-			}
-		} else {
-			return false;
-		}
 	}
 }

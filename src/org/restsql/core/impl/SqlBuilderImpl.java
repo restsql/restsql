@@ -28,13 +28,17 @@ public class SqlBuilderImpl implements SqlBuilder {
 	private static final int DEFAULT_SELECT_SIZE = 300;
 	private static final int DEFAULT_UPDATE_SIZE = 300;
 
+	// Public methods
+
 	/** Creates select SQL. */
 	public String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
 			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params)
 			throws InvalidRequestException {
-		final SqlStruct sql = new SqlStruct(0, DEFAULT_SELECT_SIZE);
-		buildSelectSql(metaData, mainSql, resourceIdentifiers, sql);
-		buildSelectSql(metaData, mainSql, params, sql);
+		final SqlStruct sql = new SqlStruct(mainSql.length(), DEFAULT_SELECT_SIZE);
+		sql.getMain().append(mainSql);
+		buildSelectSql(metaData, resourceIdentifiers, sql);
+		buildSelectSql(metaData, params, sql);
+		addOrderBy(metaData, sql);
 		if (sql.getLimit() > -1) {
 			if (sql.getOffset() >= 0) {
 				sql.getClause().append(" LIMIT ");
@@ -47,22 +51,23 @@ public class SqlBuilderImpl implements SqlBuilder {
 		} else if (sql.getOffset() >= 0) {
 			throw new InvalidRequestException(InvalidRequestException.MESSAGE_LIMIT_REQUIRED);
 		}
-		return mainSql + sql.getClause();
+		sql.appendClauseToMain();
+		return sql.getMain().toString();
 	}
 
-	/** Creates update, insert or delete SQL.*/
+	/** Creates update, insert or delete SQL. */
 	public Map<String, SqlStruct> buildWriteSql(final SqlResourceMetaData metaData, final Request request,
 			final boolean doParent) throws InvalidRequestException {
 		Map<String, SqlStruct> sqls = null;
 		switch (request.getType()) {
 			case INSERT:
-				sqls = SqlBuilderImpl.buildInsertSql(metaData, request, doParent);
+				sqls = buildInsertSql(metaData, request, doParent);
 				break;
 			case UPDATE:
-				sqls = SqlBuilderImpl.buildUpdateSql(metaData, request, doParent);
+				sqls = buildUpdateSql(metaData, request, doParent);
 				break;
 			case DELETE:
-				sqls = SqlBuilderImpl.buildDeleteSql(metaData, request, doParent);
+				sqls = buildDeleteSql(metaData, request, doParent);
 				break;
 			default:
 				throw new InvalidRequestException("SELECT Request provided to SqlBuilder.buildWriteSql()");
@@ -71,9 +76,33 @@ public class SqlBuilderImpl implements SqlBuilder {
 	}
 
 	// Private helper methods
-	
-	private static Map<String, SqlStruct> buildDeleteSql(final SqlResourceMetaData metaData,
-			final Request request, final boolean doParent) throws InvalidRequestException {
+
+	/** Adds order by statement . */
+	private void addOrderBy(final SqlResourceMetaData metaData, final SqlStruct sql) {
+		boolean firstColumn = true;
+		firstColumn = addOrderByColumn(metaData, sql, firstColumn, metaData.getParent());
+		addOrderByColumn(metaData, sql, firstColumn, metaData.getChild());
+	}
+
+	/** Adds order by column list for the table's primary keys. */
+	private boolean addOrderByColumn(final SqlResourceMetaData metaData, final SqlStruct sql,
+			boolean firstColumn, final TableMetaData table) {
+		if (table != null) {
+			for (final ColumnMetaData column : table.getPrimaryKeys()) {
+				if (firstColumn) {
+					sql.getClause().append(" ORDER BY ");
+					firstColumn = false;
+				} else {
+					sql.getClause().append(", ");
+				}
+				sql.getClause().append(column.getColumnName());
+			}
+		}
+		return firstColumn;
+	}
+
+	private Map<String, SqlStruct> buildDeleteSql(final SqlResourceMetaData metaData, final Request request,
+			final boolean doParent) throws InvalidRequestException {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
 		buildDeleteSqlPart(metaData, request.getResourceIdentifiers(), sqls, doParent);
 		buildDeleteSqlPart(metaData, request.getParameters(), sqls, doParent);
@@ -93,7 +122,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return sqls;
 	}
 
-	private static void buildDeleteSqlPart(final SqlResourceMetaData metaData,
+	private void buildDeleteSqlPart(final SqlResourceMetaData metaData,
 			final List<NameValuePair> nameValuePairs, final Map<String, SqlStruct> sqls,
 			final boolean doParent) {
 		if (nameValuePairs != null) {
@@ -128,8 +157,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 	 * @return map of sql struct, per table
 	 * @throws InvalidRequestException if a database access error occurs
 	 */
-	private static Map<String, SqlStruct> buildInsertSql(final SqlResourceMetaData metaData,
-			final Request request, final boolean doParent) throws InvalidRequestException {
+	private Map<String, SqlStruct> buildInsertSql(final SqlResourceMetaData metaData, final Request request,
+			final boolean doParent) throws InvalidRequestException {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
 
 		// Iterate through the params and build the sql for each table
@@ -182,8 +211,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return sqls;
 	}
 
-	private static void buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
-			final List<NameValuePair> nameValues, final SqlStruct sql) throws InvalidRequestException {
+	private void buildSelectSql(final SqlResourceMetaData metaData, final List<NameValuePair> nameValues,
+			final SqlStruct sql) throws InvalidRequestException {
 		if (nameValues != null) {
 			boolean validParamFound = false;
 			for (final NameValuePair param : nameValues) {
@@ -191,16 +220,18 @@ public class SqlBuilderImpl implements SqlBuilder {
 					try {
 						sql.setLimit(Integer.valueOf(param.getValue()));
 					} catch (final NumberFormatException exception) {
-						throw new InvalidRequestException("Limit value " + param.getValue() + " is not a number");
+						throw new InvalidRequestException("Limit value " + param.getValue()
+								+ " is not a number");
 					}
 				} else if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_OFFSET)) {
 					try {
 						sql.setOffset(Integer.valueOf(param.getValue()));
 					} catch (final NumberFormatException exception) {
-						throw new InvalidRequestException("Offset value " + param.getValue() + " is not a number");
+						throw new InvalidRequestException("Offset value " + param.getValue()
+								+ " is not a number");
 					}
 				} else {
-					if (mainSql.indexOf("where ") > 0 || mainSql.indexOf("WHERE ") > 0
+					if (sql.getMain().indexOf("where ") > 0 || sql.getMain().indexOf("WHERE ") > 0
 							|| sql.getClause().length() != 0) {
 						sql.getClause().append(" AND ");
 					} else {
@@ -221,8 +252,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 		}
 	}
 
-	private static Map<String, SqlStruct> buildUpdateSql(final SqlResourceMetaData metaData,
-			final Request request, final boolean doParent) throws InvalidRequestException {
+	private Map<String, SqlStruct> buildUpdateSql(final SqlResourceMetaData metaData, final Request request,
+			final boolean doParent) throws InvalidRequestException {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
 
 		List<NameValuePair> resIds;
@@ -300,9 +331,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return sqls;
 	}
 
-	// Private utils
-
-	private static boolean containsWildcard(final String value) {
+	private boolean containsWildcard(final String value) {
 		boolean contains = false;
 		final int index = value.indexOf("%");
 		contains = index > -1;
@@ -315,8 +344,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 	/**
 	 * Determines the tables to use for write, possibly substituting the parent+, child+ or join table for query tables.
 	 */
-	private static List<TableMetaData> getWriteTables(final Type requestType,
-			final SqlResourceMetaData metaData, final boolean doParent) {
+	private List<TableMetaData> getWriteTables(final Type requestType, final SqlResourceMetaData metaData,
+			final boolean doParent) {
 		List<TableMetaData> tables;
 		if (metaData.isHierarchical()) {
 			if (!doParent) { // child write
@@ -336,7 +365,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return tables;
 	}
 
-	private static void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
+	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
 			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql) {
 		if (requestType == Request.Type.SELECT) {
 			if (metaData.hasMultipleDatabases()) {

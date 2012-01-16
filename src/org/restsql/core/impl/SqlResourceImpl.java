@@ -24,6 +24,7 @@ import org.restsql.core.Trigger;
 import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder.SqlStruct;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
+import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 
 /**
  * Represents a SQL Resource, an queryable and updatable database "view". Loads metadata on creation and caches it.
@@ -135,7 +136,7 @@ public class SqlResourceImpl implements SqlResource {
 		Connection connection = null;
 
 		try {
-			connection = Factory.getConnection(definition.getDefaultDatabase());
+			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			if (metaData.isHierarchical()) {
 				final Request childRequest = Factory.getRequestForChild(request.getType(), getName(), request
 						.getResourceIdentifiers(), request.getLogger());
@@ -270,7 +271,7 @@ public class SqlResourceImpl implements SqlResource {
 		Connection connection = null;
 		String sql = null;
 		try {
-			connection = Factory.getConnection(definition.getDefaultDatabase());
+			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			final Statement statement = connection.createStatement();
 			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
 					.getResourceIdentifiers(), request.getParameters());
@@ -343,7 +344,7 @@ public class SqlResourceImpl implements SqlResource {
 			if (!doMain && sqlStruct.isClauseEmpty()) {
 				// do not execute update on extension, which would affect all rows
 			} else {
-				final String sql = sqlStruct.getSql();
+				final String sql = sqlStruct.getMain().toString();
 				try {
 					final Statement statement = connection.createStatement();
 					Config.logger.debug(sql);

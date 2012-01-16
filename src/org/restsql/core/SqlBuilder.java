@@ -56,24 +56,12 @@ public interface SqlBuilder {
 			return offset;
 		}
 
-		public String getSql() {
-			return main.toString();
-		}
-
 		public boolean isClauseEmpty() {
 			return clause.length() == 0;
 		}
 
-		public void setClause(final StringBuffer clause) {
-			this.clause = clause;
-		}
-
 		public void setLimit(final int limit) {
 			this.limit = limit;
-		}
-
-		public void setMain(final StringBuffer main) {
-			this.main = main;
 		}
 
 		public void setOffset(final int offset) {

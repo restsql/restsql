@@ -13,17 +13,11 @@
 		</annotation>
 		<sequence>
 			<element name="query" type="rs:Query" maxOccurs="1" minOccurs="1"></element>
+			<element name="metadata" type="rs:MetaData" maxOccurs="1" minOccurs="1"></element>
 			<element name="validatedAttribute" type="rs:ValidatedAttribute" maxOccurs="unbounded"
 				minOccurs="0">
 			</element>
 		</sequence>
-		<attribute name="name" type="string" use="required"></attribute>
-		<attribute name="defaultDatabase" type="string" use="required"></attribute>
-		<attribute name="parent" type="string" use="required"></attribute>
-		<attribute name="parentExt" type="string" use="optional"></attribute>
-		<attribute name="child" type="string" use="optional"></attribute>
-		<attribute name="childExt" type="string" use="optional"></attribute>
-		<attribute name="join" type="string" use="optional"></attribute>
 	</complexType>
 
 	<complexType name="Query">
@@ -52,4 +46,34 @@
 		<attribute name="validatorClass" type="string" use="optional"></attribute>
 	</complexType>
 
+
+	<complexType name="MetaData">
+		<sequence>
+			<element name="database" type="rs:Database" maxOccurs="1" minOccurs="1"></element>
+			<element name="table" type="rs:Table" maxOccurs="unbounded" minOccurs="1"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="Database">
+		<attribute name="default" type="string" use="required">
+			<annotation>
+				<documentation>Default database name when not used to prefix the table names.</documentation>
+			</annotation></attribute>
+	</complexType>
+
+	<complexType name="Table">
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="alias" type="string" use="optional"></attribute>
+		<attribute name="role" use="required">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="Parent"></enumeration>
+					<enumeration value="ParentExtension"></enumeration>
+					<enumeration value="Child"></enumeration>
+					<enumeration value="ChildExtension"></enumeration>
+					<enumeration value="Join"></enumeration>
+				</restriction>
+			</simpleType>
+		</attribute>
+	</complexType>
 </schema>

@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import org.postgresql.PGResultSetMetaData;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
+import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 
 /**
  * Implements SqlResourceMetaData for PostgreSQL.
@@ -31,7 +32,7 @@ public class SqlResourceMetaDataPostgreSql extends AbstractSqlResourceMetaData {
 	@Override
 	protected String getColumnDatabaseName(final SqlResourceDefinition definition,
 			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
-		return definition.getDefaultDatabase();
+		return SqlResourceDefinitionUtils.getDefaultDatabase(definition);
 	}
 
 	/**
@@ -76,8 +77,8 @@ public class SqlResourceMetaDataPostgreSql extends AbstractSqlResourceMetaData {
 	protected String getQualifiedTableName(final SqlResourceDefinition definition,
 			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
 		final PGResultSetMetaData pgMetaData = (PGResultSetMetaData) resultSetMetaData;
-		return definition.getDefaultDatabase() + "." + pgMetaData.getBaseSchemaName(colNumber) + "."
-				+ pgMetaData.getBaseTableName(colNumber);
+		return SqlResourceDefinitionUtils.getDefaultDatabase(definition) + "."
+				+ pgMetaData.getBaseSchemaName(colNumber) + "." + pgMetaData.getBaseTableName(colNumber);
 	}
 
 	/** Retrieves database-specific table name used in SQL statements. Used to build join table meta data. */
