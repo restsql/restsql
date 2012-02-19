@@ -6,9 +6,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-
 import org.restsql.core.Request.Type;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
@@ -59,32 +56,9 @@ public class Factory extends AbstractFactory {
 	}
 
 	/** Returns request logger. */
-	public static RequestLogger getRequestLogger(final HttpServletRequest request) {
-		final RequestLoggerFactory requestLoggerFactory = (RequestLoggerFactory) getInstance(
-				Config.KEY_REQUEST_LOGGER_FACTORY, Config.DEFAULT_REQUEST_LOGGER_FACTORY);
-		return requestLoggerFactory.getRequestLogger(request);
-	}
-
-	/** Returns request logger. */
-	public static RequestLogger getRequestLogger(final HttpServletRequest request,
-			final MultivaluedMap<String, String> formParams) {
-		final RequestLoggerFactory requestLoggerFactory = (RequestLoggerFactory) getInstance(
-				Config.KEY_REQUEST_LOGGER_FACTORY, Config.DEFAULT_REQUEST_LOGGER_FACTORY);
-		return requestLoggerFactory.getRequestLogger(request, formParams);
-	}
-
-	/** Returns request logger. */
-	public static RequestLogger getRequestLogger(final HttpServletRequest request, final String requestBody) {
-		final RequestLoggerFactory requestLoggerFactory = (RequestLoggerFactory) getInstance(
-				Config.KEY_REQUEST_LOGGER_FACTORY, Config.DEFAULT_REQUEST_LOGGER_FACTORY);
-		return requestLoggerFactory.getRequestLogger(request, requestBody);
-	}
-
-	/** Returns request logger. */
-	public static RequestLogger getRequestLogger(final String client, final String method, final String uri) {
-		final RequestLoggerFactory requestLoggerFactory = (RequestLoggerFactory) getInstance(
-				Config.KEY_REQUEST_LOGGER_FACTORY, Config.DEFAULT_REQUEST_LOGGER_FACTORY);
-		return requestLoggerFactory.getRequestLogger(client, method, uri);
+	public static RequestLogger getRequestLogger() {
+		return (RequestLogger) newInstance(Config.KEY_REQUEST_LOGGER,
+				Config.DEFAULT_REQUEST_LOGGER);
 	}
 
 	/** Creates SqlBuilder instance. */
@@ -159,18 +133,6 @@ public class Factory extends AbstractFactory {
 
 		public Request getRequestForChild(Type type, String sqlResource, List<NameValuePair> resIds,
 				RequestLogger requestLogger);
-	}
-
-	/** Creates request loggers. */
-	public interface RequestLoggerFactory {
-		public RequestLogger getRequestLogger(final HttpServletRequest request);
-
-		public RequestLogger getRequestLogger(final HttpServletRequest request,
-				final MultivaluedMap<String, String> formParams);
-
-		public RequestLogger getRequestLogger(final HttpServletRequest request, final String requestBody);
-
-		public RequestLogger getRequestLogger(final String client, final String method, final String uri);
 	}
 
 	/** Creates SQL Resource objects. */

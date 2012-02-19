@@ -49,6 +49,9 @@ public interface ColumnMetaData {
 	/** Returns true if column is a character string, for example char or varchar. */
 	public boolean isCharType();
 
+	/** Returns true if column is a date, time or timestamp. */
+	public boolean isDateTimeType();
+
 	/**
 	 * Returns true for foreign key columns not declared in the SQL Resource query but added by the framework. These are
 	 * required for writes to child extensions, parent extensions and and one-to-many child tables.

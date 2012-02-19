@@ -52,7 +52,7 @@ public class ResResource {
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String body,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -64,7 +64,7 @@ public class ResResource {
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1, resId2 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -76,7 +76,7 @@ public class ResResource {
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String body,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1, resId2, resId3 }, null,
 				body, requestLogger, securityContext);
 	}
@@ -87,7 +87,7 @@ public class ResResource {
 	public Response delete(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequest(Type.DELETE, resName, null, null,
 				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
 	}
@@ -96,7 +96,7 @@ public class ResResource {
 	@Path("{resName}/{resId1}")
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
 		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1 }, null, null,
 				requestLogger, securityContext);
 	}
@@ -106,7 +106,7 @@ public class ResResource {
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
 		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1, resId2 }, null, null,
 				requestLogger, securityContext);
 	}
@@ -116,7 +116,7 @@ public class ResResource {
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
 		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1, resId2, resId3 }, null,
 				null, requestLogger, securityContext);
 	}
@@ -125,7 +125,7 @@ public class ResResource {
 	@Path("{resName}")
 	public Response get(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
 		if (uriInfo.getQueryParameters().containsKey(PARAM_METADATA)) {
 			return Response.ok("Work in progress").type(MediaType.TEXT_PLAIN_TYPE).build();
 		} else if (uriInfo.getQueryParameters().containsKey(PARAM_DEFINITION)) {
@@ -176,7 +176,7 @@ public class ResResource {
 	public Response post(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, formParams);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
 		return executeRequest(Type.INSERT, resName, null, null, getNameValuePairs(formParams), null,
 				requestLogger, securityContext);
 	}
@@ -187,7 +187,7 @@ public class ResResource {
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String body,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -199,7 +199,7 @@ public class ResResource {
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1, resId2 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -211,7 +211,7 @@ public class ResResource {
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String body,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1, resId2, resId3 }, null,
 				body, requestLogger, securityContext);
 	}
@@ -222,7 +222,7 @@ public class ResResource {
 	public Response post(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequest(Type.INSERT, resName, null, null,
 				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
 	}
@@ -233,7 +233,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams, @Context final UriInfo uriInfo,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, formParams);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
 		return executeRequest(Type.UPDATE, resName, null, getNameValuePairs(uriInfo.getQueryParameters()),
 				getNameValuePairs(formParams), null, requestLogger, securityContext);
 	}
@@ -244,7 +244,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			final MultivaluedMap<String, String> formParams, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, formParams);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
 		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1 },
 				getNameValuePairs(formParams), null, requestLogger, securityContext);
 	}
@@ -255,7 +255,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -266,7 +266,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final MultivaluedMap<String, String> formParams,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, formParams);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
 		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2 },
 				getNameValuePairs(formParams), null, requestLogger, securityContext);
 	}
@@ -277,7 +277,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final String body,
 			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2 }, null, body,
 				requestLogger, securityContext);
 	}
@@ -289,7 +289,7 @@ public class ResResource {
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2, resId3 }, null,
 				body, requestLogger, securityContext);
 	}
@@ -300,7 +300,7 @@ public class ResResource {
 	public Response put(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String body, @Context final HttpServletRequest request,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = Factory.getRequestLogger(request, body);
+		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
 		return executeRequest(Type.UPDATE, resName, null, null,
 				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
 	}

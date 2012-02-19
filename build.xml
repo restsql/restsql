@@ -3,13 +3,13 @@
 	<property file="build.properties" />
 	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask" classpath="lib/jaxb-xjc.jar" />
 
-	<target name="dist" depends="compile,lib" />
+	<target name="dist" depends="compile,lib,doc,lib-doc" description="generates distribution files" />
 
-	<target name="clean">
+	<target name="clean" description="deletes output dir">
 		<delete dir="obj" failonerror="false" includeEmptyDirs="true" quiet="true" />
 	</target>
 
-	<target name="compile">
+	<target name="compile" description="compiles sources">
 		<!-- Create output dir -->
 		<mkdir dir="obj/bin" />
 
@@ -23,10 +23,12 @@
 		</copy>
 
 		<!-- Compile -->
-		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" debug="true" />
+		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" debug="true">
+			<compilerarg line="-Xlint:all" />
+		</javac>
 	</target>
 
-	<target name="compile-schema">
+	<target name="compile-schema" description="executes xjc on xml files">
 		<!-- Create output dir -->
 		<mkdir dir="obj/bin" />
 
@@ -37,7 +39,7 @@
 		</xjc>
 	</target>
 
-	<target name="lib" depends="lib-war,lib-src">
+	<target name="lib" depends="lib-war,lib-src" description="generates binary libs and war">
 		<!-- Create output dir -->
 		<mkdir dir="obj/lib" />
 
@@ -121,14 +123,36 @@
 		</jar>
 	</target>
 
-	<target name="doc">
+	<target name="lib-doc" description="generates full javadoc jar">
+		<!-- Create output dir -->
+		<mkdir dir="obj/lib" />
+
+		<!-- Create JAR -->
+		<jar destfile="obj/lib/restsql-${build.version}-javadoc.jar">
+			<fileset dir="${javadoc.destdir.full}" />
+			<fileset file="CONTRIBUTORS.txt" />
+			<fileset file="LICENSE.txt" />
+			<fileset file="README.txt" />
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Specification-Vendor" value="${manifest.vendor}" />
+				<attribute name="Specification-Title" value="${manifest.title.javadoc}" />
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="${manifest.vendor}" />
+				<attribute name="Implementation-Title" value="${manifest.title.javadoc}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="doc" description="generates javadoc">
 		<antcall target="-doc">
 			<param name="destdir" value="${javadoc.destdir.api}" />
 			<param name="packagenames" value="${javadoc.packagenames.api}" />
 		</antcall>
 		<antcall target="-doc">
-			<param name="destdir" value="${javadoc.destdir.impl}" />
-			<param name="packagenames" value="${javadoc.packagenames.impl}" />
+			<param name="destdir" value="${javadoc.destdir.full}" />
+			<param name="packagenames" value="${javadoc.packagenames.full}" />
 		</antcall>
 	</target>
 
@@ -143,5 +167,5 @@
 			<tag name="todo" scope="all" description="To do:" />
 		</javadoc>
 	</target>
-
+	
 </project>

@@ -119,38 +119,47 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		nonqueriedForeignKey = true;
 	}
 
+	@Override
 	public String getColumnLabel() {
 		return columnLabel;
 	}
 
+	@Override
 	public String getColumnName() {
 		return columnName;
 	}
 
+	@Override
 	public int getColumnNumber() {
 		return columnNumber;
 	}
 
+	@Override
 	public int getColumnType() {
 		return columnType;
 	}
 
+	@Override
 	public String getColumnTypeName() {
 		return columnTypeName;
 	}
 
+	@Override
 	public String getDatabaseName() {
 		return databaseName;
 	}
 
+	@Override
 	public String getQualifiedTableName() {
 		return qualifiedTableName;
 	}
 
+	@Override
 	public String getTableName() {
 		return tableName;
 	}
 
+	@Override
 	public boolean isCharType() {
 		boolean charType = false;
 		switch (columnType) {
@@ -169,10 +178,28 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		return charType;
 	}
 
+	@Override
+	public boolean isDateTimeType() {
+		boolean dateTimeType = false;
+		switch (columnType) {
+			case Types.TIME:
+			case Types.TIMESTAMP:
+			case Types.DATE:
+				dateTimeType = true;
+				break;
+
+			default:
+				// do nothing
+		}
+		return dateTimeType;
+	}
+
+	@Override
 	public boolean isNonqueriedForeignKey() {
 		return nonqueriedForeignKey;
 	}
 
+	@Override
 	public boolean isPrimaryKey() {
 		return primaryKey;
 	}

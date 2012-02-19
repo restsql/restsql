@@ -6,21 +6,17 @@ import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.restsql.core.Config;
 
 /**
- * Logs requests for access, error and trace logs.
+ * Logs request for troubleshooting applications. The implementation logs requests to access, error and trace logs.
  * 
  * @author Mark Sawers
  */
 public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	private static final Log accessLogger = LogFactory.getLog(Config.NAME_LOGGER_ACCESS);
-
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss,SSS");
 	private static final Log errorLogger = LogFactory.getLog(Config.NAME_LOGGER_ERROR);
 	private static final Log traceLogger = LogFactory.getLog(Config.NAME_LOGGER_TRACE);
@@ -33,115 +29,81 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	private String uri;
 
 	/**
-	 * Creates logger for service.
-	 * 
-	 * @param request servlet request
+	 * Adds a SQL statement generated during request processing. Used by the framework.
 	 */
-	public RequestLoggerImpl(final HttpServletRequest request) {
-		this(request, 1);
-	}
-
-	/**
-	 * Creates logger for service with URL encoded form params.
-	 * 
-	 * @param request servlet request
-	 * @param formParams URL encoded form params
-	 */
-	public RequestLoggerImpl(final HttpServletRequest request, final MultivaluedMap<String, String> formParams) {
-		this(request);
-		if (errorLogger.isInfoEnabled() || traceLogger.isInfoEnabled()) {
-			final StringBuffer string = new StringBuffer(300);
-			for (final String key : formParams.keySet()) {
-				if (string.length() > 0) {
-					string.append('&');
-				}
-				string.append(key);
-				string.append("=");
-				string.append(formParams.get(key).get(0));
-			}
-			requestBody = string.toString();
+	@Override
+	public void addSql(final String sql) {
+		if (sqls == null) {
+			sqls = new ArrayList<String>(requestBody == null ? 1 : 16);
 		}
+		sqls.add(sql);
 	}
 
 	/**
-	 * Creates logger for service with a request body.
-	 * 
-	 * @param request servlet request
-	 * @param requestBody an xml body
+	 * Returns list of SQL statements generated during request processing. Intended for Java API clients.
 	 */
-	public RequestLoggerImpl(final HttpServletRequest request, final String requestBody) {
-		this(request, 16);
-		this.requestBody = requestBody;
+	@Override
+	public List<String> getSql() {
+		return sqls;
 	}
 
 	/**
-	 * Creates logger for application using API.
+	 * Logs exceptional response without an exception. Used by the service or Java API client.
+	 */
+	@Override
+	public void log(final int responseCode) {
+		log(responseCode, null, null);
+	}
+
+	/**
+	 * Logs exceptional response with an exception. Used by the service or Java API client.
+	 */
+	@Override
+	public void log(final int responseCode, final Exception exception) {
+		log(responseCode, null, exception);
+	}
+
+	/**
+	 * Logs normal response. Used by the service or Java API client.
+	 */
+	@Override
+	public void log(final String responseBody) {
+		log(200, responseBody, null);
+	}
+
+	/**
+	 * Sets request attributes. Used by the service or Java API clients.
 	 * 
-	 * @param client ip or host name
+	 * @param client IP or host name
 	 * @param method HTTP method
 	 * @param uri request URI
 	 */
-	public RequestLoggerImpl(final String client, final String method, final String uri) {
+	@Override
+	public void setRequestAttributes(final String client, final String method, final String uri) {
+		setRequestAttributes(client, method, uri, null);
+	}
+
+	/**
+	 * Sets request attributes. Used by the service or Java API clients.
+	 * 
+	 * @param client IP or host name
+	 * @param method HTTP method
+	 * @param uri request URI
+	 * @param requestBody request body, e.g. XML or JSON
+	 */
+	@Override
+	public void setRequestAttributes(final String client, final String method, final String uri,
+			final String requestBody) {
 		if (accessLogger.isInfoEnabled() || errorLogger.isInfoEnabled() || traceLogger.isInfoEnabled()) {
 			startTime = new GregorianCalendar();
 			this.client = client;
 			this.method = method;
 			this.uri = uri;
 		}
-		createSqlList(1);
-	}
-
-	private RequestLoggerImpl(final HttpServletRequest request, final int sqlListSize) {
-		if (accessLogger.isInfoEnabled() || errorLogger.isInfoEnabled() || traceLogger.isInfoEnabled()) {
-			startTime = new GregorianCalendar();
-			client = request.getRemoteAddr();
-			method = request.getMethod();
-			if (request.getQueryString() == null) {
-				uri = request.getRequestURI();
-			} else {
-				uri = request.getRequestURI() + "?" + request.getQueryString();
-			}
-		}
-		createSqlList(sqlListSize);
-	}
-
-	/**
-	 * Adds sql statement.
-	 * 
-	 * @param sql sql
-	 */
-	public void addSql(final String sql) {
-		sqls.add(sql);
-	}
-
-	/**
-	 * Logs exceptional response without an exception.
-	 */
-	public void log(final int responseCode) {
-		log(responseCode, null, null);
-	}
-
-	/**
-	 * Logs exceptional response with an exception.
-	 */
-	public void log(final int responseCode, final Exception exception) {
-		log(responseCode, null, exception);
-	}
-
-	/**
-	 * Logs normal response.
-	 */
-	public void log(final String responseBody) {
-		log(200, responseBody, null);
+		this.requestBody = requestBody;
 	}
 
 	// Private utils
-
-	private void createSqlList(final int sqlListSize) {
-		if (errorLogger.isInfoEnabled() || traceLogger.isInfoEnabled()) {
-			sqls = new ArrayList<String>(sqlListSize);
-		}
-	}
 
 	private String getAccess(final int responseCode) {
 		final StringBuffer string = new StringBuffer(300);
@@ -207,7 +169,7 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 			logger.info("   request:");
 			logger.info(requestBody);
 		}
-		if (sqls.size() > 0) {
+		if (sqls != null && sqls.size() > 0) {
 			logger.info("   sql:");
 			for (final String sql : sqls) {
 				logger.info(sql);

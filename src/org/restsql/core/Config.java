@@ -30,7 +30,7 @@ public class Config {
 	public static final String DEFAULT_LOGGING_DIR = "/var/log/restsql";
 	public static final String DEFAULT_LOGGING_FACILITY = "log4j";
 	public static final String DEFAULT_REQUEST_FACTORY = "org.restsql.core.impl.RequestFactoryImpl";
-	public static final String DEFAULT_REQUEST_LOGGER_FACTORY = "org.restsql.core.impl.RequestLoggerFactoryImpl";
+	public static final String DEFAULT_REQUEST_LOGGER = "org.restsql.core.impl.RequestLoggerImpl";
 	public static final String DEFAULT_REQUEST_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_DIRECTIVE = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
@@ -52,7 +52,7 @@ public class Config {
 	public static final String KEY_LOGGING_DIR = "logging.dir";
 	public static final String KEY_LOGGING_FACILITY = "logging.facility";
 	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.RequestFactory";
-	public static final String KEY_REQUEST_LOGGER_FACTORY = "org.restsql.core.Factory.RequestLoggerFactory";
+	public static final String KEY_REQUEST_LOGGER = "org.restsql.core.RequestLogger";
 	public static final String KEY_REQUEST_USE_XML_SCHEMA = "request.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";

@@ -30,8 +30,8 @@ public class RequestFactoryImpl implements RequestFactory {
 	 * Builds request from URI. Assumes pattern
 	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&{param2}={value2}</code>.
 	 */
-	public Request getRequest(final String client, final String method, String uri) throws InvalidRequestException,
-			SqlResourceFactoryException, SqlResourceException {
+	public Request getRequest(final String client, final String method, String uri)
+			throws InvalidRequestException, SqlResourceFactoryException, SqlResourceException {
 		int elements = 0;
 		String resName = null, path, query = null;
 		List<NameValuePair> resIds = null;
@@ -86,7 +86,8 @@ public class RequestFactoryImpl implements RequestFactory {
 			}
 		}
 
-		final RequestLogger requestLogger = Factory.getRequestLogger(client, method, uri);
+		final RequestLogger requestLogger = Factory.getRequestLogger();
+		requestLogger.setRequestAttributes(client, method, uri);
 		final Request.Type type = Request.Type.fromHttpMethod(method);
 		return new RequestImpl(type, resName, resIds, params, null, requestLogger);
 	}

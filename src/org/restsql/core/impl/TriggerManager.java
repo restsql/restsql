@@ -115,7 +115,7 @@ public class TriggerManager {
 					triggerClass = (Class<Trigger>) Class.forName(triggerClassName);
 				}
 
-				final Trigger trigger = (Trigger) triggerClass.newInstance();
+				final Trigger trigger = triggerClass.newInstance();
 				addTrigger(trigger, definitions.getProperty(triggerClassName));
 			} catch (final Exception exception) {
 				Config.logger.error("Failed to load trigger " + triggerClassName, exception);

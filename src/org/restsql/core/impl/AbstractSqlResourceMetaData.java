@@ -141,7 +141,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		}
 		hierarchical = getChild() != null;
 	}
-	
+
 	// Protected methods for database-specific implementation
 
 	/**
@@ -336,6 +336,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * @throws SQLException if a database access error occurs
 	 * @throws SqlResourceException if definition is invalid
 	 */
+	@SuppressWarnings("fallthrough")
 	private void buildTablesAndColumns(final ResultSet resultSet) throws SQLException, SqlResourceException {
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 		final int columnCount = resultSetMetaData.getColumnCount();

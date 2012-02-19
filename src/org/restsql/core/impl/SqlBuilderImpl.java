@@ -183,11 +183,11 @@ public class SqlBuilderImpl implements SqlBuilder {
 						sql.getClause().append(',');
 					}
 					sql.getMain().append(column.getColumnName()); // since parameter may use column label
-					if (column.isCharType()) {
+					if (column.isCharType() || column.isDateTimeType()) {
 						sql.getClause().append('\'');
 					}
 					sql.getClause().append(param.getValue());
-					if (column.isCharType()) {
+					if (column.isCharType() || column.isDateTimeType()) {
 						sql.getClause().append('\'');
 					}
 				}
@@ -381,11 +381,11 @@ public class SqlBuilderImpl implements SqlBuilder {
 		} else {
 			sql.append(" = ");
 		}
-		if (column.isCharType()) {
+		if (column.isCharType() || column.isDateTimeType()) {
 			sql.append('\'');
 		}
 		sql.append(param.getValue());
-		if (column.isCharType()) {
+		if (column.isCharType() || column.isDateTimeType()) {
 			sql.append('\'');
 		}
 	}
