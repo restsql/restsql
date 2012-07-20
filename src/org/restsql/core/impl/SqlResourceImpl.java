@@ -19,7 +19,6 @@ import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.SqlResourceMetaData;
-import org.restsql.core.TableMetaData;
 import org.restsql.core.Trigger;
 import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder.SqlStruct;
@@ -27,7 +26,7 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
 import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 
 /**
- * Represents a SQL Resource, an queryable and updatable database "view". Loads metadata on creation and caches it.
+ * Represents a SQL Resource, a queryable and updatable database "view". Loads metadata on creation and caches it.
  * 
  * @author Mark Sawers
  */
@@ -50,18 +49,8 @@ public class SqlResourceImpl implements SqlResource {
 	}
 
 	@Override
-	public TableMetaData getChildTable() {
-		return metaData.getChild();
-	}
-
-	@Override
 	public SqlResourceDefinition getDefinition() {
 		return definition;
-	}
-
-	@Override
-	public TableMetaData getJoinTable() {
-		return metaData.getJoin();
 	}
 
 	@Override
@@ -75,49 +64,34 @@ public class SqlResourceImpl implements SqlResource {
 	}
 
 	@Override
-	public TableMetaData getParentTable() {
-		return metaData.getParent();
-	}
-
-	@Override
-	public Map<String, TableMetaData> getTables() {
-		return metaData.getTableMap();
-	}
-
-	@Override
 	public List<Trigger> getTriggers() {
 		return triggers;
 	}
 
-	@Override
-	public boolean isHierarchical() {
-		return metaData.isHierarchical();
-	}
-
 	/**
-	 * Executes query.
+	 * Executes query returning results as an object collection.
 	 * 
 	 * @param request Request object
 	 * @throws SqlResourceException if a database access error occurs
-	 * @throws TriggerException if a trigger error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<Map<String, Object>> readAsCollection(final Request request) throws SqlResourceException {
-		return (List<Map<String, Object>>) read(request, false);
+	public List<Map<String, Object>> read(final Request request) throws SqlResourceException {
+		return (List<Map<String, Object>>) execRead(request, null);
 	}
 
 	/**
-	 * Executes query.
+	 * Executes query returning results as a string.
 	 * 
 	 * @param request Request object
-	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
-	 * @return xml string
+	 * @param mediaType response format, use internet media type e.g. application/xml
+	 * @throws SqlResourceException if a database access error occurs
+	 * @return list of rows, where each row is a map of name-value pairs
 	 */
 	@Override
-	public String readAsXml(final Request request) throws SqlResourceException {
-		return (String) read(request, true);
+	public String read(final Request request, final String mediaType) throws SqlResourceException {
+		return (String) execRead(request, mediaType);
 	}
 
 	/**
@@ -138,8 +112,7 @@ public class SqlResourceImpl implements SqlResource {
 		try {
 			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			if (metaData.isHierarchical()) {
-				final Request childRequest = Factory.getRequestForChild(request.getType(), getName(), request
-						.getResourceIdentifiers(), request.getLogger());
+				final Request childRequest = Factory.getChildRequest(request);
 				if (request.getChildrenParameters() != null) {
 					// Delete, update or insert specified children
 					for (final List<NameValuePair> childRowParams : request.getChildrenParameters()) {
@@ -264,7 +237,7 @@ public class SqlResourceImpl implements SqlResource {
 		return results;
 	}
 
-	private Object read(final Request request, final boolean returnXml) throws SqlResourceException {
+	private Object execRead(final Request request, final String contentType) throws SqlResourceException {
 		TriggerManager.executeTriggers(getName(), request, true);
 
 		final Object results;
@@ -279,15 +252,15 @@ public class SqlResourceImpl implements SqlResource {
 			request.getLogger().addSql(sql);
 			final ResultSet resultSet = statement.executeQuery(sql);
 			if (metaData.isHierarchical()) {
-				if (returnXml) {
-					results = ResultsSerializer.serializeReadHierarchical(this,
+				if (contentType != null) {
+					results = Factory.getResponseSerializer(contentType).serializeReadHierarchical(this,
 							buildReadResultsHierachicalCollection(resultSet));
 				} else {
 					results = buildReadResultsHierachicalCollection(resultSet);
 				}
 			} else {
-				if (returnXml) {
-					results = ResultsSerializer.serializeReadFlat(this, resultSet);
+				if (contentType != null) {
+					results = Factory.getResponseSerializer(contentType).serializeReadFlat(this, resultSet);
 				} else {
 					results = buildReadResultsFlatCollection(resultSet);
 				}

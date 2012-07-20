@@ -13,13 +13,21 @@ public class InvalidRequestException extends SqlResourceException {
 	public static final String MESSAGE_INVALID_PARAMS = "No valid parameters found";
 	public static final String MESSAGE_LIMIT_REQUIRED = Request.PARAM_NAME_LIMIT + " parameter required";
 	public static final String MESSAGE_OFFSET_REQUIRED = Request.PARAM_NAME_OFFSET + " parameter required";
-
+	public static final String MESSAGE_READONLY_PARAM = "Column %s is read-only and may not be a query parameter or updated";
+	
 	private static final long serialVersionUID = 1L;
 
+	/** Creates exception with the provided message. */
 	public InvalidRequestException(final String message) {
 		super(message);
 	}
 
+	/** Creates exception with a formatted message and arguments. */
+	public InvalidRequestException(final String message, Object ... args) {
+		super(String.format(message, args));
+	}
+
+	/** Creates exception from a throwable. */
 	public InvalidRequestException(final Throwable cause) {
 		super(cause);
 	}

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.restsql.core.Factory;
+import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
@@ -26,21 +27,34 @@ import org.restsql.core.Request.Type;
  */
 public class RequestFactoryImpl implements RequestFactory {
 
+	@Override
+	public Request getChildRequest(final Request parentRequest) {
+		final RequestImpl childRequest = new RequestImpl(parentRequest.getHttpRequestAttributes(),
+				parentRequest.getType(), parentRequest.getSqlResource(), parentRequest
+						.getResourceIdentifiers(), null, null, parentRequest.getLogger());
+		childRequest.setParent(parentRequest);
+		return childRequest;
+	}
+
 	/**
 	 * Builds request from URI. Assumes pattern
-	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&{param2}={value2}</code>.
+	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&{param2}={value2}</code>. Used by the test harness,
+	 * Java API clients and perhaps a straight servlet implementation.
 	 */
-	public Request getRequest(final String client, final String method, String uri)
-			throws InvalidRequestException, SqlResourceFactoryException, SqlResourceException {
+	@Override
+	public Request getRequest(final HttpRequestAttributes httpAttributes) throws InvalidRequestException,
+			SqlResourceFactoryException, SqlResourceException {
 		int elements = 0;
 		String resName = null, path, query = null;
 		List<NameValuePair> resIds = null;
 		List<NameValuePair> params = null;
 
+		String uri;
 		try {
-			uri = URLDecoder.decode(uri, "UTF-8");
+			uri = URLDecoder.decode(httpAttributes.getUri(), "UTF-8");
 		} catch (final UnsupportedEncodingException exception) {
-			throw new InvalidRequestException("Problem decoding uri: " + uri + " - " + exception.getMessage());
+			throw new InvalidRequestException("Problem decoding uri: " + httpAttributes.getUri() + " - "
+					+ exception.getMessage());
 		}
 
 		final int queryIndex = uri.indexOf('?');
@@ -86,15 +100,22 @@ public class RequestFactoryImpl implements RequestFactory {
 			}
 		}
 
+		final String responseMediaType = RequestUtil.getResponseMediaType(params, httpAttributes
+				.getRequestMediaType(), httpAttributes.getResponseMediaType());
+		httpAttributes.setResponseMediaType(responseMediaType);
 		final RequestLogger requestLogger = Factory.getRequestLogger();
-		requestLogger.setRequestAttributes(client, method, uri);
-		final Request.Type type = Request.Type.fromHttpMethod(method);
-		return new RequestImpl(type, resName, resIds, params, null, requestLogger);
+		final Request.Type type = Request.Type.fromHttpMethod(httpAttributes.getMethod());
+		return new RequestImpl(httpAttributes, type, resName, resIds, params, null, requestLogger);
 	}
 
-	public Request getRequest(final Type type, final String sqlResource, final List<NameValuePair> resIds,
-			final List<NameValuePair> params, final List<List<NameValuePair>> childrenParams,
-			RequestLogger requestLogger) throws InvalidRequestException {
+	/**
+	 * Returns request object with pre-parsed data from the URI. Used by service and possibly Java API clients.
+	 */
+	@Override
+	public Request getRequest(final HttpRequestAttributes httpAttributes, final Type type,
+			final String sqlResource, final List<NameValuePair> resIds, final List<NameValuePair> params,
+			final List<List<NameValuePair>> childrenParams, final RequestLogger requestLogger)
+			throws InvalidRequestException {
 		// Verify expectations
 		if (sqlResource == null) {
 			throw new InvalidRequestException(InvalidRequestException.MESSAGE_SQLRESOURCE_REQUIRED);
@@ -113,11 +134,7 @@ public class RequestFactoryImpl implements RequestFactory {
 				break;
 			default:
 		}
-		return new RequestImpl(type, sqlResource, resIds, params, childrenParams, requestLogger);
-	}
-
-	public Request getRequestForChild(Type type, String sqlResource, List<NameValuePair> resIds,
-			RequestLogger requestLogger) {
-		return new RequestImpl(type, sqlResource, resIds, null, null, requestLogger);
+		return new RequestImpl(httpAttributes, type, sqlResource, resIds, params, childrenParams,
+				requestLogger);
 	}
 }

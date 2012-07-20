@@ -27,10 +27,10 @@ public class SqlResourceDefinitionUtils {
 	public static Table getTable(final SqlResourceDefinition definition, final ColumnMetaData column) {
 		Table target = null;
 		for (final Table table : definition.getMetadata().getTable()) {
-			if (table.getName().equals(column.getQualifiedTableName())) {
+			if (table.getName().equalsIgnoreCase(column.getQualifiedTableName())) {
 				target = table;
 				break;
-			} else if (table.getName().equals(column.getTableName())) {
+			} else if (table.getName().equalsIgnoreCase(column.getTableName())) {
 				target = table;
 				break;
 			}

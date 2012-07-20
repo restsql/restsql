@@ -124,13 +124,17 @@ public class SqlBuilderImpl implements SqlBuilder {
 
 	private void buildDeleteSqlPart(final SqlResourceMetaData metaData,
 			final List<NameValuePair> nameValuePairs, final Map<String, SqlStruct> sqls,
-			final boolean doParent) {
+			final boolean doParent) throws InvalidRequestException {
 		if (nameValuePairs != null) {
 			for (final NameValuePair nameValuePair : nameValuePairs) {
 				final List<TableMetaData> tables = getWriteTables(Request.Type.DELETE, metaData, doParent);
 				for (final TableMetaData table : tables) {
 					final ColumnMetaData column = table.getColumns().get(nameValuePair.getName());
 					if (column != null) {
+						if (column.isReadOnly()) {
+							throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
+									column.getColumnLabel());
+						}
 						final String qualifiedTableName = column.getQualifiedTableName();
 						SqlStruct sql = sqls.get(qualifiedTableName);
 						if (sql == null) {
@@ -167,6 +171,10 @@ public class SqlBuilderImpl implements SqlBuilder {
 			for (final TableMetaData table : tables) {
 				final ColumnMetaData column = table.getColumns().get(param.getName());
 				if (column != null) {
+					if (column.isReadOnly()) {
+						throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
+								column.getColumnLabel());
+					}
 					final String qualifiedTableName = column.getQualifiedTableName();
 					SqlStruct sql = sqls.get(qualifiedTableName);
 					if (sql == null) {
@@ -213,7 +221,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 
 	private void buildSelectSql(final SqlResourceMetaData metaData, final List<NameValuePair> nameValues,
 			final SqlStruct sql) throws InvalidRequestException {
-		if (nameValues != null) {
+		if (nameValues != null && nameValues.size() > 0) {
 			boolean validParamFound = false;
 			for (final NameValuePair param : nameValues) {
 				if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_LIMIT)) {
@@ -239,9 +247,14 @@ public class SqlBuilderImpl implements SqlBuilder {
 					}
 					for (final TableMetaData table : metaData.getTables()) {
 						final ColumnMetaData column = table.getColumns().get(param.getName());
-						if (column != null && !column.isNonqueriedForeignKey()) {
-							validParamFound = true;
-							setNameValue(Request.Type.SELECT, metaData, column, param, sql.getClause());
+						if (column != null) {
+							if (column.isReadOnly()) {
+								throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM, column.getColumnLabel());
+							}
+							if (!column.isNonqueriedForeignKey()) {
+								validParamFound = true;
+								setNameValue(Request.Type.SELECT, metaData, column, param, sql.getClause());
+							}
 						}
 					}
 				}
@@ -274,6 +287,10 @@ public class SqlBuilderImpl implements SqlBuilder {
 			for (final TableMetaData table : tables) {
 				final ColumnMetaData column = table.getColumns().get(param.getName());
 				if (column != null) {
+					if (column.isReadOnly()) {
+						throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
+								column.getColumnLabel());
+					}
 					if (column.isPrimaryKey()) {
 						// Add this to the res Ids - assume resIds is non null
 						resIds.add(param);

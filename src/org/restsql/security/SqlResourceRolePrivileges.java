@@ -25,17 +25,6 @@ public class SqlResourceRolePrivileges {
 		this.roleName = roleName;
 	}
 
-	public boolean hasPrivilege(Request.Type requestType) {
-		boolean authorized = false;
-		for (Privilege privilege : privileges) {
-			if (privilege.equals(requestType)) {
-				authorized = true;
-				break;
-			}
-		}
-		return authorized;
-	}
-
 	public List<Privilege> getPrivileges() {
 		return privileges;
 	}
@@ -48,8 +37,20 @@ public class SqlResourceRolePrivileges {
 		return sqlResource;
 	}
 
+	public boolean hasPrivilege(final Request.Type requestType) {
+		boolean authorized = false;
+		for (final Privilege privilege : privileges) {
+			if (privilege.equals(requestType)) {
+				authorized = true;
+				break;
+			}
+		}
+		return authorized;
+	}
+
+	@Override
 	public String toString() {
-		StringBuffer string = new StringBuffer(100);
+		final StringBuffer string = new StringBuffer(100);
 		string.append(sqlResource);
 		string.append(".");
 		for (int i = 0; i < privileges.size(); i++) {
@@ -64,7 +65,25 @@ public class SqlResourceRolePrivileges {
 	}
 
 	public enum Privilege {
-		SELECT, INSERT, UPDATE, DELETE, WILDCARD;
+		DELETE, INSERT, SELECT, UPDATE, WILDCARD;
+
+		public static Privilege fromString(final String name) {
+			if (name == null) {
+				throw new NullPointerException("Name is null");
+			} else if (name.equalsIgnoreCase(DELETE.toString())) {
+				return DELETE;
+			} else if (name.equalsIgnoreCase(SELECT.toString())) {
+				return SELECT;
+			} else if (name.equalsIgnoreCase(INSERT.toString())) {
+				return INSERT;
+			} else if (name.equalsIgnoreCase(UPDATE.toString())) {
+				return UPDATE;
+			} else if (name.equals(TOKEN_WILDCARD)) {
+				return WILDCARD;
+			} else {
+				throw new IllegalArgumentException("No enum const Privilege." + name);
+			}
+		}
 
 		public boolean equals(final Request.Type requestType) {
 			if (this == WILDCARD) {
@@ -73,33 +92,13 @@ public class SqlResourceRolePrivileges {
 				return this.ordinal() == requestType.ordinal();
 			}
 		}
-		
+
 		@Override
 		public String toString() {
 			if (this == WILDCARD) {
 				return TOKEN_WILDCARD;
 			} else {
 				return super.toString();
-			}
-		}
-
-		public static Privilege fromString(String name) {
-			if (name == null) {
-				throw new NullPointerException("Name is null");
-			}
-			if (name.equals(TOKEN_WILDCARD)) {
-				return WILDCARD;
-			} else if (name.equalsIgnoreCase(SELECT.toString())) {
-				return SELECT;
-			} else if (name.equalsIgnoreCase(INSERT.toString())) {
-				return INSERT;
-			} else if (name.equalsIgnoreCase(UPDATE.toString())) {
-				return UPDATE;
-			} else if (name.equalsIgnoreCase(DELETE.toString())) {
-				return DELETE;
-			} else {
-		        throw new IllegalArgumentException(
-			            "No enum const Privilege." + name);
 			}
 		}
 	}

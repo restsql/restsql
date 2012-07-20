@@ -35,17 +35,13 @@ public interface RequestLogger {
 	public void log(final String responseBody);
 
 	/**
-	 * Sets request attributes. Used by the service or Java API clients.
+	 * Sets request. Used by {@link Request} implementation.
 	 */
-	public void setRequestAttributes(String client, String method, String uri);
+	public void setRequest(Request request);
 
 	/**
-	 * Sets request attributes. Used by the service or Java API clients.
-	 * 
-	 * @param client IP or host name
-	 * @param method HTTP method
-	 * @param uri request URI
-	 * @param requestBody request body, e.g. XML or JSON
+	 * Sets attributes of an HTTP request. Used by service when request is unauthorized prior to restSQL {@link Request}
+	 * creation.
 	 */
-	public void setRequestAttributes(String client, String method, String uri, String requestBody);
+	public void setHttpRequestAttributes(final HttpRequestAttributes httpRequestAttributes);
 }

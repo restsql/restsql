@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 /**
@@ -17,9 +19,10 @@ import javax.ws.rs.core.Response;
 public class WadlResource {
 
 	@GET
+	@Produces(MediaType.APPLICATION_XML)
 	public Response getWadl() {
 		try {
-			return Response.seeOther(new URI("wadl/restsql.wadl")).build();
+			return Response.seeOther(new URI("wadl/restsql-wadl.xml")).build();
 		} catch (URISyntaxException shouldNeverHappen) {
 			return Response.serverError().build();
 		}

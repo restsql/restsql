@@ -1,4 +1,4 @@
-README.txt (23-Oct-2011)
+README.txt (17-July-2012)
 
 restSQL Deployment Guide
 
@@ -178,6 +178,7 @@ However, restsql uses other libraries (jersey, jdbc, logging) which need some un
 	    permission java.security.AllPermission;
 	};
 
+Note: If you receive a 500 response to any res query with the text "No suitable driver found", then the container cannot find your jdbc driver. This can usually be fixed by placing the database driver in some common server library location. This also occurs after deploying the restSQL.war to WebLogic using the console when the container is running. After a container restart, the driver is found.
 
 -------------------------------------------------------------------------------
 Installing restSQL JAR mode

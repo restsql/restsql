@@ -26,4 +26,10 @@ public class NameValuePair {
 	public String getValue() {
 		return value;
 	}
+	
+	/** Returns string representation. */
+	@Override
+	public String toString() {
+		return name + ": " + value;
+	}
 }

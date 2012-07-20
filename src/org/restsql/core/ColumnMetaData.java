@@ -61,4 +61,6 @@ public interface ColumnMetaData {
 	/** Returns true if the column is a primary key. */
 	public boolean isPrimaryKey();
 
+	/** Returns true if the column is read-only, for example derived from SQL function or a database view. */
+	public boolean isReadOnly();
 }

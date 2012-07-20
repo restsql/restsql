@@ -9,6 +9,9 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.restsql.core.Config;
+import org.restsql.core.Factory;
+import org.restsql.core.HttpRequestAttributes;
+import org.restsql.core.Request;
 
 /**
  * Logs request for troubleshooting applications. The implementation logs requests to access, error and trace logs.
@@ -21,12 +24,14 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	private static final Log errorLogger = LogFactory.getLog(Config.NAME_LOGGER_ERROR);
 	private static final Log traceLogger = LogFactory.getLog(Config.NAME_LOGGER_TRACE);
 
-	private String client;
-	private String method;
-	private String requestBody;
 	private List<String> sqls;
-	private GregorianCalendar startTime;
-	private String uri;
+	private final GregorianCalendar startTime;
+	private HttpRequestAttributes httpAttributes;
+
+	public RequestLoggerImpl() {
+		startTime = new GregorianCalendar();
+		httpAttributes = Factory.getHttpRequestAttributes("?", "?", "?", null, null, null);
+	}
 
 	/**
 	 * Adds a SQL statement generated during request processing. Used by the framework.
@@ -34,7 +39,7 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	@Override
 	public void addSql(final String sql) {
 		if (sqls == null) {
-			sqls = new ArrayList<String>(requestBody == null ? 1 : 16);
+			sqls = new ArrayList<String>(httpAttributes.getRequestBody() == null ? 1 : 16);
 		}
 		sqls.add(sql);
 	}
@@ -72,35 +77,19 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	}
 
 	/**
-	 * Sets request attributes. Used by the service or Java API clients.
-	 * 
-	 * @param client IP or host name
-	 * @param method HTTP method
-	 * @param uri request URI
+	 * Sets attributes of an HTTP request. Used by service when request is unauthorized prior to restSQL {@link Request}
+	 * creation.
 	 */
-	@Override
-	public void setRequestAttributes(final String client, final String method, final String uri) {
-		setRequestAttributes(client, method, uri, null);
+	public void setHttpRequestAttributes(final HttpRequestAttributes httpAttributes) {
+		this.httpAttributes = httpAttributes;
 	}
 
 	/**
-	 * Sets request attributes. Used by the service or Java API clients.
-	 * 
-	 * @param client IP or host name
-	 * @param method HTTP method
-	 * @param uri request URI
-	 * @param requestBody request body, e.g. XML or JSON
+	 * Sets request. Used by {@link Request} implementation.
 	 */
 	@Override
-	public void setRequestAttributes(final String client, final String method, final String uri,
-			final String requestBody) {
-		if (accessLogger.isInfoEnabled() || errorLogger.isInfoEnabled() || traceLogger.isInfoEnabled()) {
-			startTime = new GregorianCalendar();
-			this.client = client;
-			this.method = method;
-			this.uri = uri;
-		}
-		this.requestBody = requestBody;
+	public void setRequest(final Request request) {
+		setHttpRequestAttributes(request.getHttpRequestAttributes());
 	}
 
 	// Private utils
@@ -109,7 +98,7 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 		final StringBuffer string = new StringBuffer(300);
 
 		// Client
-		string.append(client);
+		string.append(httpAttributes.getClient());
 
 		// Timestamp
 		string.append(' ');
@@ -117,11 +106,11 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 
 		// Method
 		string.append(' ');
-		string.append(method);
+		string.append(httpAttributes.getMethod());
 
 		// URI
 		string.append(' ');
-		string.append(uri);
+		string.append(httpAttributes.getUri());
 
 		// Response Code
 		string.append(' ');
@@ -165,9 +154,9 @@ public class RequestLoggerImpl implements org.restsql.core.RequestLogger {
 	private void logComplete(final Log logger, final String access, final String responseBody,
 			final Exception exception) {
 		logger.info(access);
-		if (requestBody != null) {
+		if (httpAttributes.getRequestBody() != null) {
 			logger.info("   request:");
-			logger.info(requestBody);
+			logger.info(httpAttributes.getRequestBody());
 		}
 		if (sqls != null && sqls.size() > 0) {
 			logger.info("   sql:");

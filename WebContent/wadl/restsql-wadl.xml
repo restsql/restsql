@@ -32,7 +32,10 @@
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:readResponse"
 						href="Response.xsd">
-						<wadl:doc title="Read response" />
+						<wadl:doc>Read response (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Read response (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="400">
@@ -47,24 +50,30 @@
 			</wadl:method>
 			<wadl:method name="POST">
 				<wadl:doc title="Description">Creates row using URL-encoded form params or one or
-					more rows in an XML
+					more rows in an XML or JSON
 					body. For hierarchical SQL Resources, parents and children must be added in
 					separate requests.
 				</wadl:doc>
 				<wadl:request>
 					<wadl:representation mediaType="application/x-www-form-urlencoded">
-						<wadl:doc>Create request in URL-encoded form params</wadl:doc>
+						<wadl:doc>Create request (in URL-encoded form params)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/xml" element="rs:request"
 						href="Request.xsd">
-						<wadl:doc>Create request in XML format</wadl:doc>
+						<wadl:doc>Create request (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Create request (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Create response, includes number of rows created" />
+						<wadl:doc>Create response with number of rows created (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Create response with number of rows created (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="404">
@@ -77,7 +86,7 @@
 			<wadl:method name="PUT">
 				<wadl:doc title="Description">Updates rows using query params and URL-encoded form
 					params or rows
-					specified in a XML body.
+					specified in a XML or JSON body.
 					For hierarchical SQL Resources, parents and children must
 					be updated in
 					separate requests.
@@ -89,18 +98,24 @@
 							URL-encoded form params</wadl:doc>
 					</wadl:param>
 					<wadl:representation mediaType="application/x-www-form-urlencoded">
-						<wadl:doc>Update request in URL-encoded form params</wadl:doc>
+						<wadl:doc>Update request (in URL-encoded form params)</wadl:doc>
 					</wadl:representation>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
-						<wadl:doc>Update request in XML format</wadl:doc>
+					<wadl:representation mediaType="application/xml" element="rs:readResponse"
+						href="Response.xsd">
+						<wadl:doc>Updated request (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Updated request (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Update response, includes number of rows updated" />
+						<wadl:doc>Update response with number of rows updated (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Update response with number of rows updated (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="400">
@@ -124,14 +139,20 @@
 					</wadl:param>
 					<wadl:representation mediaType="application/xml" element="rs:request"
 						href="Request.xsd">
-						<wadl:doc>Delete request in XML format</wadl:doc>
+						<wadl:doc>Delete request (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Delete request (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Delete response, includes number of rows deleted" />
+						<wadl:doc>Delete response with number of rows deleted (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Delete response with number of rows deleted (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="404">
@@ -157,7 +178,10 @@
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:readResponse"
 						href="Response.xsd">
-						<wadl:doc title="Read response" />
+						<wadl:doc>Read response (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Read response (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="404">
@@ -168,19 +192,25 @@
 				</wadl:response>
 			</wadl:method>
 			<wadl:method name="POST">
-				<wadl:doc title="Description">Creates children rows using XML body for hierarchical SQL Resources.
+				<wadl:doc title="Description">Creates children rows using XML or JSON body for hierarchical SQL Resources.
 				</wadl:doc>
 				<wadl:request>
 					<wadl:representation mediaType="application/xml" element="rs:request"
 						href="Request.xsd">
-						<wadl:doc>Create request in XML format</wadl:doc>
+						<wadl:doc>Create request (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Create request (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Create response, includes number of rows created" />
+						<wadl:doc title="Create response with number of rows created (in XML)" />
+					</wadl:representation>
+					<wadl:representation mediaType="application/xml">
+						<wadl:doc title="Create response with number of rows created (in JSON)" />
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="404">
@@ -192,7 +222,7 @@
 			</wadl:method>
 			<wadl:method name="PUT">
 				<wadl:doc title="Description">Updates specific row using URL-encoded form params or multiple child
-					rows using XML body for hierarchical SQL Resources.
+					rows using XML or JSON body for hierarchical SQL Resources.
 				</wadl:doc>
 				<wadl:request>
 					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
@@ -201,18 +231,24 @@
 							URL-encoded form params</wadl:doc>
 					</wadl:param>
 					<wadl:representation mediaType="application/x-www-form-urlencoded">
-						<wadl:doc>Update request in URL-encoded form params</wadl:doc>
+						<wadl:doc>Update request (in URL-encoded form params)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/xml" element="rs:request"
 						href="Request.xsd">
-						<wadl:doc>Update request in XML format</wadl:doc>
+						<wadl:doc>Update request (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Update request (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Update response, includes number of rows updated" />
+						<wadl:doc title="Update response with number of rows updated (in XML)" />
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc title="Update response with number of rows updated (in JSON)" />
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="400">
@@ -227,19 +263,25 @@
 			</wadl:method>
 			<wadl:method name="DELETE">
 				<wadl:doc title="Description">Deletes specific row by primary key. For hierarchical SQL Resources,
-					deletes all children contained in the XML body.
+					deletes all children contained in the XML or JSON body.
 				</wadl:doc>
 				<wadl:request>
 					<wadl:representation mediaType="application/xml" element="rs:request"
 						href="Request.xsd">
-						<wadl:doc>Optional delete request for children in XML format</wadl:doc>
+						<wadl:doc>Optional delete request for children (in XML)</wadl:doc>
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc>Optional delete request for children (in JSON)</wadl:doc>
 					</wadl:representation>
 				</wadl:request>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:writeResponse"
 						href="Response.xsd">
-						<wadl:doc title="Delete response, includes number of rows deleted" />
+						<wadl:doc title="Delete response with number of rows deleted (in XML)" />
+					</wadl:representation>
+					<wadl:representation mediaType="application/json">
+						<wadl:doc title="Delete response with number of rows deleted (in JSON)" />
 					</wadl:representation>
 				</wadl:response>
 				<wadl:response status="404">

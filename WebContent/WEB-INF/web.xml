@@ -23,7 +23,7 @@
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.config.property.WebPageContentRegex</param-name>
-			<param-value>.*\.html|.*\.xsd|.*\.xsl|.*\.wadl</param-value>
+			<param-value>.*\.html|.*\.xsd|.*\.xsl|.*\.xml</param-value>
 		</init-param>
 	</filter>
 	<filter-mapping>
@@ -43,7 +43,8 @@
 		<param-value>/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
 	</context-param>
 
-	<!-- Remove security-roles, security-constraints and login-config for no authentication/authorization -->
+	<!-- Uncomment security-roles, security-constraints and login-config for authentication/authorization -->
+	<!--
 	<security-role>
 	    <role-name>all</role-name>
 	</security-role>
@@ -88,5 +89,6 @@
 		<auth-method>BASIC</auth-method>
 		<realm-name>UserDatabase</realm-name>
 	</login-config>
-
+ 	-->
+ 	
 </web-app>

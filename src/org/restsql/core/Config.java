@@ -25,13 +25,16 @@ public class Config {
 	public static final String DEFAULT_DATABASE_PASSWORD = "root";
 	public static final String DEFAULT_DATABASE_URL = "jdbc:mysql://localhost:3306/";
 	public static final String DEFAULT_DATABASE_USER = "root";
+	public static final String DEFAULT_HTTP_REQUEST_ATTRIBUTES = "org.restsql.core.impl.HttpRequestAttributesImpl";
 	public static final String DEFAULT_JAVA_LOGGING_CONFIG = "resources/properties/default-logging.properties";
 	public static final String DEFAULT_LOG4J_CONFIG = "resources/properties/default-log4j.properties";
 	public static final String DEFAULT_LOGGING_DIR = "/var/log/restsql";
 	public static final String DEFAULT_LOGGING_FACILITY = "log4j";
 	public static final String DEFAULT_REQUEST_FACTORY = "org.restsql.core.impl.RequestFactoryImpl";
 	public static final String DEFAULT_REQUEST_LOGGER = "org.restsql.core.impl.RequestLoggerImpl";
+	public static final String DEFAULT_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.impl.RequestDeserializerFactoryImpl";
 	public static final String DEFAULT_REQUEST_USE_XML_SCHEMA = "false";
+	public static final String DEFAULT_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.impl.ResponseSerializerFactoryImpl";
 	public static final String DEFAULT_RESPONSE_USE_XML_DIRECTIVE = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
@@ -46,6 +49,7 @@ public class Config {
 	public static final String KEY_DATABASE_PASSWORD = "database.password";
 	public static final String KEY_DATABASE_URL = "database.url";
 	public static final String KEY_DATABASE_USER = "database.user";
+	public static final String KEY_HTTP_REQUEST_ATTRIBUTES = "org.restsql.core.HttpRequestAttributes";
 	public static final String KEY_JAVA_LOGGING_CONFIG = "java.util.logging.config.file";
 	public static final String KEY_LOG4J_CONFIG = "log4j.configuration";
 	public static final String KEY_LOGGING_CONFIG = "logging.config";
@@ -53,7 +57,9 @@ public class Config {
 	public static final String KEY_LOGGING_FACILITY = "logging.facility";
 	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.RequestFactory";
 	public static final String KEY_REQUEST_LOGGER = "org.restsql.core.RequestLogger";
+	public static final String KEY_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.Factory.RequestDeserializerFactory";
 	public static final String KEY_REQUEST_USE_XML_SCHEMA = "request.useXmlDirective";
+	public static final String KEY_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.Factory.ResponseSerializerFactory";
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";
 	public static final String KEY_RESTSQL_PROPERTIES = "org.restsql.properties";

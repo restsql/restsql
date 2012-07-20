@@ -20,11 +20,12 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	private boolean nonqueriedForeignKey;
 	private boolean primaryKey;
 	private final String qualifiedTableName;
+	private boolean readOnly;
 	private final String tableName;
 
 	ColumnMetaDataImpl(final int columnNumber, final String databaseName, final String qualifiedTableName,
 			final String tableName, final String columnName, final String columnLabel,
-			final String columnTypeName, final int columnType) {
+			final String columnTypeName, final int columnType, final boolean readOnly) {
 		this.columnNumber = columnNumber;
 		this.databaseName = databaseName;
 		this.qualifiedTableName = qualifiedTableName;
@@ -33,6 +34,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		this.columnLabel = columnLabel;
 		this.columnTypeName = columnTypeName;
 		this.columnType = columnType;
+		this.readOnly = readOnly;
 	}
 
 	/**
@@ -41,7 +43,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	 */
 	ColumnMetaDataImpl(final String databaseName, final String sqlQualifiedTableName, final String tableName,
 			final String columnName, final String columnTypeString) {
-		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnName, columnTypeString, 0);
+		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnName, columnTypeString, 0, false);
 		if (columnTypeString.equalsIgnoreCase("BIT")) {
 			columnType = Types.BIT;
 		} else if (columnTypeString.equalsIgnoreCase("TINYINT")) {
@@ -202,6 +204,11 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	@Override
 	public boolean isPrimaryKey() {
 		return primaryKey;
+	}
+
+	@Override
+	public boolean isReadOnly() {
+		return readOnly;
 	}
 
 	void setPrimaryKey(final boolean primaryKey) {

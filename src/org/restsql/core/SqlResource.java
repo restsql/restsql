@@ -7,7 +7,7 @@ import java.util.Map;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
 /**
- * Represents an SQL Resource, an queryable and updatable database "view".
+ * Represents an SQL Resource, a queryable and updatable database "view".
  * 
  * @author Mark Sawers
  */
@@ -27,40 +27,11 @@ public interface SqlResource {
 	public String getName();
 
 	/**
-	 * Returns meta data for child table of hierarchical resource.
-	 * 
-	 * @return table meta data or null if flat resource
-	 */
-	public TableMetaData getChildTable();
-
-	/**
-	 * Returns meta data for join table of many-to-many hierarchical resource.
-	 * 
-	 * @return table meta data or null if flat resource or one-to-many hierarchical
-	 */
-	public TableMetaData getJoinTable();
-	
-	/**
 	 * Returns meta data for SQL resource.
 	 * 
 	 * @return SQL rsource meta data
 	 */
 	public SqlResourceMetaData getMetaData();
-
-	/**
-	 * Returns meta data for parent table.
-	 * 
-	 * @return table meta data
-	 */
-	public TableMetaData getParentTable();
-
-	/**
-	 * Returns meta data for all tables and columns. Includes parent, parent extensions, child and child extensions, but
-	 * not the join table.
-	 * 
-	 * @return map of table meta data by qualified table name, i.e. database.table
-	 */
-	public Map<String, TableMetaData> getTables();
 
 	/**
 	 * Returns triggers classes.
@@ -70,30 +41,23 @@ public interface SqlResource {
 	public List<Trigger> getTriggers();
 
 	/**
-	 * Returns true if resource has a parent-child structure.
-	 * 
-	 * @return true if resource has a parent-child structure
-	 */
-	public boolean isHierarchical();
-
-	/**
-	 * Executes query returning results as object collection.
+	 * Executes query returning results as an object collection.
 	 * 
 	 * @param request Request object
 	 * @throws SqlResourceException if a database access error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
-	public List<Map<String, Object>> readAsCollection(Request request)
-			throws SqlResourceException;
+	public List<Map<String, Object>> read(Request request) throws SqlResourceException;
 
 	/**
-	 * Executes query returning results as an XML string.
+	 * Executes query returning results as a string.
 	 * 
 	 * @param request Request object
+	 * @param mediaType response format, use internet media type e.g. application/xml
 	 * @throws SqlResourceException if a database access error occurs
 	 * @return list of rows, where each row is a map of name-value pairs
 	 */
-	public String readAsXml(Request request) throws SqlResourceException;
+	public String read(final Request request, final String mediaType) throws SqlResourceException;
 
 	/**
 	 * Executes insert, update or delete.
@@ -102,5 +66,5 @@ public interface SqlResource {
 	 * @return number of rows updated
 	 * @throws SqlResourceException if a database access error occurs
 	 */
-	public int write(Request request) throws SqlResourceException;
+	public int write(final Request request) throws SqlResourceException;
 }

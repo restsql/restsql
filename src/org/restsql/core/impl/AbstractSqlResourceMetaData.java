@@ -27,6 +27,7 @@ import org.restsql.core.sqlresource.Table;
 /**
  * Represents meta data for sql resource. Queries database for table and column meta data and primary and foreign keys.
  * 
+ * @todo Read-only columns do not work with PostgreSQL
  * @author Mark Sawers
  */
 public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData {
@@ -123,7 +124,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			}
 			final ResultSet resultSet = statement.executeQuery(sql);
 			resultSet.next();
-			buildTablesAndColumns(resultSet);
+			buildTablesAndColumns(resultSet, connection);
 			resultSet.close();
 			statement.close();
 			buildPrimaryKeys(connection);
@@ -193,12 +194,12 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		return definition.getQuery().getValue() + " LIMIT 1 OFFSET 0";
 	}
 
-	// Private utils
-
 	/**
 	 * Retrieves sql for querying primary keys. Hook method for buildPrimaryKeys allows database-specific overrides.
 	 */
 	protected abstract String getSqlPkQuery();
+
+	// Private utils
 
 	private void buildInvisibleForeignKeys(final Connection connection) throws SQLException {
 		final PreparedStatement statement = connection.prepareStatement(getSqlColumnsQuery());
@@ -223,9 +224,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 							// Look for a pk on the main table with the same name
 							for (final ColumnMetaData pk : mainTable.getPrimaryKeys()) {
 								if (columnName.equals(pk.getColumnName())) {
-									final ColumnMetaDataImpl fkColumn = new ColumnMetaDataImpl(table
-											.getDatabaseName(), table.getQualifiedTableName(), table
-											.getTableName(), columnName, resultSet.getString(2));
+									final ColumnMetaDataImpl fkColumn = new ColumnMetaDataImpl(
+											table.getDatabaseName(), table.getQualifiedTableName(),
+											table.getTableName(), columnName, resultSet.getString(2));
 									((TableMetaDataImpl) table).addColumn(fkColumn);
 								}
 							}
@@ -333,11 +334,12 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * Builds table and column meta data.
 	 * 
 	 * @param resultSet resultSet
+	 * @param connection database connection - used to get qualified name for read-only columns
 	 * @throws SQLException if a database access error occurs
 	 * @throws SqlResourceException if definition is invalid
 	 */
 	@SuppressWarnings("fallthrough")
-	private void buildTablesAndColumns(final ResultSet resultSet) throws SQLException, SqlResourceException {
+	private void buildTablesAndColumns(final ResultSet resultSet, Connection connection) throws SQLException, SqlResourceException {
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 		final int columnCount = resultSetMetaData.getColumnCount();
 
@@ -351,23 +353,34 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		final HashSet<String> databases = new HashSet<String>(DEFAULT_NUMBER_DATABASES);
 
 		for (int colNumber = 1; colNumber <= columnCount; colNumber++) {
-			final String databaseName = getColumnDatabaseName(definition, resultSetMetaData, colNumber);
-			databases.add(databaseName);
-			final String qualifiedTableName = getQualifiedTableName(definition, resultSetMetaData, colNumber);
-			final String tableName = getColumnTableName(definition, resultSetMetaData, colNumber);
+			final String databaseName, qualifiedTableName, tableName;
+			if (resultSetMetaData.isReadOnly(colNumber)) {
+				databaseName = SqlResourceDefinitionUtils.getDefaultDatabase(definition);
+				tableName = SqlResourceDefinitionUtils.getTable(definition, TableRole.Parent).getName();
+				qualifiedTableName = getQualifiedTableName(connection, databaseName, tableName);
+			} else {
+				databaseName = getColumnDatabaseName(definition, resultSetMetaData, colNumber);
+				databases.add(databaseName);
+				tableName = getColumnTableName(definition, resultSetMetaData, colNumber);
+				qualifiedTableName = getQualifiedTableName(definition, resultSetMetaData, colNumber);
+			}
+
 			final ColumnMetaDataImpl column = new ColumnMetaDataImpl(colNumber, databaseName,
 					qualifiedTableName, tableName, getColumnName(definition, resultSetMetaData, colNumber),
-					resultSetMetaData.getColumnLabel(colNumber), resultSetMetaData
-							.getColumnTypeName(colNumber), resultSetMetaData.getColumnType(colNumber));
+					resultSetMetaData.getColumnLabel(colNumber),
+					resultSetMetaData.getColumnTypeName(colNumber),
+					resultSetMetaData.getColumnType(colNumber), resultSetMetaData.isReadOnly(colNumber));
 
 			TableMetaDataImpl table = (TableMetaDataImpl) tableMap.get(column.getQualifiedTableName());
 			if (table == null) {
 				// Create table metadata object and add to special references
 				final Table tableDef = SqlResourceDefinitionUtils.getTable(definition, column);
 				if (tableDef == null) {
-					throw new SqlResourceException("Definition requires table element for " + column.getTableName() + ", referenced by column " + column.getColumnLabel());
+					throw new SqlResourceException("Definition requires table element for "
+							+ column.getTableName() + ", referenced by column " + column.getColumnLabel());
 				}
-				table = new TableMetaDataImpl(tableName, qualifiedTableName, databaseName, TableRole.valueOf(tableDef.getRole()));
+				table = new TableMetaDataImpl(tableName, qualifiedTableName, databaseName,
+						TableRole.valueOf(tableDef.getRole()));
 				tableMap.put(column.getQualifiedTableName(), table);
 				tables.add(table);
 
@@ -398,6 +411,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 					default: // Unknown
 				}
 			}
+
+			// Assign column to the table's
 			table.addColumn(column);
 
 			// Add column to special column lists
@@ -414,6 +429,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			}
 		}
 
+		// Determine number of databases
 		multipleDatabases = databases.size() > 1;
 	}
 }

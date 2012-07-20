@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -24,6 +25,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Factory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
+import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
@@ -32,7 +34,6 @@ import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
-import org.restsql.core.impl.ResultsSerializer;
 import org.restsql.security.SecurityFactory;
 
 /**
@@ -41,91 +42,90 @@ import org.restsql.security.SecurityFactory;
  * @author Mark Sawers
  */
 @Path("res")
-@Produces(MediaType.APPLICATION_XML)
 public class ResResource {
 	private static final String PARAM_DEFINITION = "_definition";
 	private static final String PARAM_METADATA = "_metadata";
 
 	@DELETE
 	@Path("{resName}/{resId1}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response delete(@PathParam("resName") final String resName,
-			@PathParam("resId1") final String resId1, final String body,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1 }, null, body,
-				requestLogger, securityContext);
+			@PathParam("resId1") final String resId1, final String requestBody,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1 }, null,
+				requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
 	@Path("{resName}/{resId1}/{resId2}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1, resId2 }, null, body,
-				requestLogger, securityContext);
+		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1, resId2 },
+				null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			@PathParam("resId3") final String resId3, final String body,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.DELETE, resName, new String[] { resId1, resId2, resId3 }, null,
-				body, requestLogger, securityContext);
+			@PathParam("resId3") final String resId3, final String requestBody,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1, resId2,
+				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
 	@Path("{resName}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response delete(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequest(Type.DELETE, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
+		return executeRequest(httpRequest, Type.DELETE, resName, null, null,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				acceptMediaType, securityContext);
 	}
 
 	@GET
 	@Path("{resName}/{resId1}")
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
-		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1 }, null, null,
-				requestLogger, securityContext);
+			@Context final UriInfo uriInfo, @HeaderParam("Accept") String acceptMediaType,
+			@Context final HttpServletRequest httpRequest, @Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.SELECT, resName, new String[] { resId1 },
+				getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType, securityContext);
 	}
 
 	@GET
 	@Path("{resName}/{resId1}/{resId2}")
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			@PathParam("resId2") final String resId2, @Context final HttpServletRequest request,
+			@PathParam("resId2") final String resId2, @Context final UriInfo uriInfo,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
-		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1, resId2 }, null, null,
-				requestLogger, securityContext);
+		return executeRequestParseResIds(httpRequest, Type.SELECT, resName, new String[] { resId1, resId2 },
+				getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType, securityContext);
 	}
 
 	@GET
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
-		return executeRequestParseResIds(Type.SELECT, resName, new String[] { resId1, resId2, resId3 }, null,
-				null, requestLogger, securityContext);
+			@Context final UriInfo uriInfo, @HeaderParam("Accept") String acceptMediaType,
+			@Context final HttpServletRequest httpRequest, @Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.SELECT, resName, new String[] { resId1, resId2,
+				resId3 }, getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType,
+				securityContext);
 	}
 
 	@GET
 	@Path("{resName}")
 	public Response get(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request);
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
 		if (uriInfo.getQueryParameters().containsKey(PARAM_METADATA)) {
 			return Response.ok("Work in progress").type(MediaType.TEXT_PLAIN_TYPE).build();
 		} else if (uriInfo.getQueryParameters().containsKey(PARAM_DEFINITION)) {
@@ -133,98 +133,114 @@ public class ResResource {
 				return Response.ok(Factory.getSqlResourceDefinition(resName))
 						.type(MediaType.APPLICATION_XML_TYPE).build();
 			} catch (final SqlResourceFactoryException exception) {
-				return handleException(exception, requestLogger);
+				return handleException(httpRequest, null, null, exception, null);
 			}
 		} else {
-			return executeRequest(Request.Type.SELECT, resName, null, null,
-					getNameValuePairs(uriInfo.getQueryParameters()), null, requestLogger, securityContext);
+			return executeRequest(httpRequest, Request.Type.SELECT, resName, null, null,
+					getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType,
+					securityContext);
 		}
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
-		final StringBuffer body = new StringBuffer(500);
-		body.append("<html>\n<body style=\"font-family:sans-serif\">\n");
-		body.append("<span style=\"font-weight:bold\">SQL Resources</span><br/>\n");
-		body.append("<table>\n");
+		final StringBuffer requestBody = new StringBuffer(500);
+		requestBody.append("<html>\n<requestBody style=\"font-family:sans-serif\">\n");
 		final String baseUri = uriInfo.getBaseUri().toString() + "res/";
-		for (final String resName : Factory.getSqlResourceNames()) {
-			body.append("<tr><td>");
-			body.append(resName);
-			body.append("</td><td><a href=\"");
-			body.append(baseUri);
-			body.append(resName);
-			body.append("?_limit=10&amp;_offset=0\">query</a></td>");
-			body.append("<td><a href=\"");
-			body.append(baseUri);
-			body.append(resName);
-			body.append("?_definition\">definition</a></td>");
-			body.append("<td><a href=\"");
-			body.append(baseUri);
-			body.append(resName);
-			body.append("?_metadata\">metadata</a></td>");
-			body.append("</tr>\n");
+		try {
+			List<String> resNames = Factory.getSqlResourceNames();
+			requestBody.append("<span style=\"font-weight:bold\">SQL Resources</span><br/>\n");
+			if (resNames.size() > 0) {
+				requestBody.append("<table>\n");
+				for (final String resName : resNames) {
+					requestBody.append("<tr><td>");
+					requestBody.append(resName);
+					requestBody.append("</td><td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append(resName);
+					requestBody.append("?_limit=10&amp;_offset=0\">query</a></td>");
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append(resName);
+					requestBody.append("?_definition\">definition</a></td>");
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append(resName);
+					requestBody.append("?_metadata\">metadata</a></td>");
+					requestBody.append("</tr>\n");
+				}
+			} else {
+				requestBody.append("No resource definition files found in ");
+				requestBody.append(Factory.getSqlResourcesDir());
+				requestBody
+						.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
+			}
+			requestBody.append("</table>\n</requestBody>\n</html>");
+		} catch (SqlResourceFactoryException exception) {
+			requestBody.append(exception.getMessage());
+			requestBody
+					.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
 		}
-		body.append("</table>\n</body>\n</html>");
-		return Response.ok(body.toString()).build();
+		return Response.ok(requestBody.toString()).build();
 	}
 
 	@POST
 	@Path("{resName}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response post(@PathParam("resName") final String resName,
-			final MultivaluedMap<String, String> formParams, @Context final HttpServletRequest request,
+			final MultivaluedMap<String, String> formParams,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
-		return executeRequest(Type.INSERT, resName, null, null, getNameValuePairs(formParams), null,
-				requestLogger, securityContext);
+		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
+		return executeRequest(httpRequest, Type.INSERT, resName, null, null, getNameValuePairs(formParams),
+				requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}/{resId1}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response post(@PathParam("resName") final String resName,
-			@PathParam("resId1") final String resId1, final String body,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1 }, null, body,
-				requestLogger, securityContext);
+			@PathParam("resId1") final String resId1, final String requestBody,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1 }, null,
+				requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}/{resId1}/{resId2}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1, resId2 }, null, body,
-				requestLogger, securityContext);
+		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1, resId2 },
+				null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			@PathParam("resId3") final String resId3, final String body,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.INSERT, resName, new String[] { resId1, resId2, resId3 }, null,
-				body, requestLogger, securityContext);
+			@PathParam("resId3") final String resId3, final String requestBody,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1, resId2,
+				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response post(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequest(Type.INSERT, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
+		return executeRequest(httpRequest, Type.INSERT, resName, null, null,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				acceptMediaType, securityContext);
 	}
 
 	@PUT
@@ -232,32 +248,37 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams, @Context final UriInfo uriInfo,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
-		return executeRequest(Type.UPDATE, resName, null, getNameValuePairs(uriInfo.getQueryParameters()),
-				getNameValuePairs(formParams), null, requestLogger, securityContext);
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
+		return executeRequest(httpRequest, Type.UPDATE, resName, null,
+				getNameValuePairs(uriInfo.getQueryParameters()), getNameValuePairs(formParams), requestBody,
+				requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			final MultivaluedMap<String, String> formParams, @Context final HttpServletRequest request,
+			final MultivaluedMap<String, String> formParams,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
-		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1 },
-				getNameValuePairs(formParams), null, requestLogger, securityContext);
+		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
+		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1 },
+				getNameValuePairs(formParams), requestBody, requestMediaType, acceptMediaType,
+				securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1 }, null, body,
-				requestLogger, securityContext);
+		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1 }, null,
+				requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
@@ -265,51 +286,65 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final MultivaluedMap<String, String> formParams,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, formParams);
-		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2 },
-				getNameValuePairs(formParams), null, requestLogger, securityContext);
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
+		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2 },
+				getNameValuePairs(formParams), requestBody, requestMediaType, acceptMediaType,
+				securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			@PathParam("resId2") final String resId2, final String body,
-			@Context final HttpServletRequest request, @Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2 }, null, body,
-				requestLogger, securityContext);
+			@PathParam("resId2") final String resId2, final String requestBody,
+			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
+			@Context final SecurityContext securityContext) {
+		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2 },
+				null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequestParseResIds(Type.UPDATE, resName, new String[] { resId1, resId2, resId3 }, null,
-				body, requestLogger, securityContext);
+		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2,
+				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
 	@Path("{resName}")
-	@Consumes(MediaType.APPLICATION_XML)
 	public Response put(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String body, @Context final HttpServletRequest request,
+			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		final RequestLogger requestLogger = ServiceRequestLoggerFactory.getRequestLogger(request, body);
-		return executeRequest(Type.UPDATE, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), body, requestLogger, securityContext);
+		return executeRequest(httpRequest, Type.UPDATE, resName, null, null,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				acceptMediaType, securityContext);
 	}
 
 	// Private utils
 
-	private Response executeRequest(final Request.Type requestType, final String resName,
-			SqlResource sqlResource, final List<NameValuePair> resIds, final List<NameValuePair> params,
-			final String body, final RequestLogger requestLogger, SecurityContext securityContext) {
+	/** Processes the request. The central method of this resource class. */
+	private Response executeRequest(HttpServletRequest httpRequest, final Request.Type requestType,
+			final String resName, SqlResource sqlResource, final List<NameValuePair> resIds,
+			final List<NameValuePair> params, final String requestBody, String requestMediaType,
+			String acceptMediaType, SecurityContext securityContext) {
+
+		// Determine the response media type and create http attributes structure
+		String responseMediaType = RequestUtil
+				.getResponseMediaType(params, requestMediaType, acceptMediaType);
+		final HttpRequestAttributes httpAttributes = HttpRequestHelper.getHttpRequestAttributes(httpRequest,
+				requestBody, requestMediaType, responseMediaType);
+
+		// Create logger
+		final RequestLogger requestLogger = Factory.getRequestLogger();
+		requestLogger.setHttpRequestAttributes(httpAttributes);
 
 		// Authorize
 		if (!SecurityFactory.getAuthorizer().isAuthorized(new SecurityContextAdapter(securityContext),
@@ -319,51 +354,61 @@ public class ResResource {
 			return Response.status(status).build();
 		}
 
-		// Execute request
 		try {
 			String responseBody = null;
 			if (sqlResource == null) {
 				sqlResource = Factory.getSqlResource(resName);
 			}
 
+			// Execute request
 			if (requestType.equals(Request.Type.SELECT)) {
-				final Request request = Factory.getRequest(requestType, resName, resIds, params, null,
-						requestLogger);
-				responseBody = sqlResource.readAsXml(request);
+				final Request request = Factory.getRequest(httpAttributes, requestType, resName, resIds,
+						params, null, requestLogger);
+				responseBody = sqlResource.read(request, responseMediaType);
 			} else { // INSERT, UPDATE or DELETE
 				final int rowsAffected;
-				if (body == null || body.length() == 0) {
-					final Request request = Factory.getRequest(requestType, resName, resIds, params, null,
-							requestLogger);
+				if (requestMediaType != null
+						&& !requestMediaType.equals(MediaType.APPLICATION_FORM_URLENCODED)
+						&& requestBody != null && requestBody.length() > 0) {
+					// requestBody is not null, use request processor
+					rowsAffected = Factory.getRequestDeserializer(requestMediaType).execWrite(httpAttributes,
+							requestType, resIds, sqlResource, requestBody, requestLogger);
+				} else {
+					final Request request = Factory.getRequest(httpAttributes, requestType, resName, resIds,
+							params, null, requestLogger);
 					rowsAffected = sqlResource.write(request);
-				} else { // body is not null, use xml request processor
-					rowsAffected = XmlRequestProcessor.execWrite(requestType, resIds, sqlResource, body,
-							requestLogger);
 				}
-				responseBody = ResultsSerializer.serializeWrite(rowsAffected);
+				responseBody = Factory.getResponseSerializer(responseMediaType).serializeWrite(rowsAffected);
 			}
 
+			// Log response and send it
 			requestLogger.log(responseBody);
 			final CacheControl cacheControl = new CacheControl();
 			cacheControl.setNoCache(true);
-			return Response.ok(responseBody).type(MediaType.APPLICATION_XML_TYPE).cacheControl(cacheControl)
-					.build();
+			return Response.ok(responseBody).type(responseMediaType).cacheControl(cacheControl).build();
 		} catch (final SqlResourceException exception) {
-			return handleException(exception, requestLogger);
+			return handleException(httpRequest, requestBody, requestMediaType, exception, requestLogger);
 		}
 	}
 
-	private Response executeRequestParseResIds(final Request.Type requestType, final String resName,
-			final String[] resIdValues, final List<NameValuePair> params, final String body,
-			final RequestLogger requestLogger, SecurityContext securityContext) {
+	/**
+	 * Pre-processes request, parsing resource ids into a collection, and then passing the request on to
+	 * executeRequest().
+	 */
+	private Response executeRequestParseResIds(HttpServletRequest httpRequest,
+			final Request.Type requestType, final String resName, final String[] resIdValues,
+			final List<NameValuePair> params, final String requestBody, String requestMediaType,
+			String acceptMediaType, SecurityContext securityContext) {
+		final SqlResource sqlResource;
+		final List<NameValuePair> resIds;
 		try {
-			final SqlResource sqlResource = Factory.getSqlResource(resName);
-			final List<NameValuePair> resIds = RequestUtil.getResIds(sqlResource, resIdValues);
-			return executeRequest(requestType, resName, sqlResource, resIds, params, body, requestLogger,
-					securityContext);
+			sqlResource = Factory.getSqlResource(resName);
+			resIds = RequestUtil.getResIds(sqlResource, resIdValues);
 		} catch (final SqlResourceException exception) {
-			return handleException(exception, requestLogger);
+			return handleException(httpRequest, requestBody, requestMediaType, exception, null);
 		}
+		return executeRequest(httpRequest, requestType, resName, sqlResource, resIds, params, requestBody,
+				requestMediaType, acceptMediaType, securityContext);
 	}
 
 	// Assumes no matrixing
@@ -376,7 +421,11 @@ public class ResResource {
 		return params;
 	}
 
-	private Response handleException(final SqlResourceException exception, final RequestLogger requestLogger) {
+	/**
+	 * Determines exception type, logs issue and returns appropriate http status with the exception message in the body.
+	 */
+	private Response handleException(final HttpServletRequest httpRequest, final String requestBody,
+			String requestMediaType, final SqlResourceException exception, RequestLogger requestLogger) {
 		Status status;
 		if (exception instanceof SqlResourceFactoryException) {
 			status = Status.NOT_FOUND;
@@ -384,6 +433,12 @@ public class ResResource {
 			status = Status.BAD_REQUEST;
 		} else { // exception instanceof SqlResourceException
 			status = Status.INTERNAL_SERVER_ERROR;
+		}
+		if (requestLogger == null) {
+			requestLogger = Factory.getRequestLogger();
+			final HttpRequestAttributes httpAttribs = HttpRequestHelper.getHttpRequestAttributes(httpRequest,
+					requestBody, requestMediaType, requestMediaType);
+			requestLogger.setHttpRequestAttributes(httpAttribs);
 		}
 		requestLogger.log(status.getStatusCode(), exception);
 		return Response.status(status).entity(exception.getMessage()).type(MediaType.TEXT_PLAIN).build();

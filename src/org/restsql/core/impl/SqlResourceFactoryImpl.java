@@ -18,11 +18,11 @@ import javax.xml.bind.Unmarshaller;
 
 import org.restsql.core.Config;
 import org.restsql.core.Factory;
+import org.restsql.core.Factory.SqlResourceFactory;
+import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.Trigger;
-import org.restsql.core.Factory.SqlResourceFactory;
-import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.sqlresource.ObjectFactory;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
@@ -66,18 +66,45 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 	}
 
 	/**
-	 * Returns available SQL Resource names.
+	 * Returns available SQL Resource names using the configured directory.
+	 * 
+	 * @throws SqlResourceFactoryException if the provided directory does not exist
 	 */
 	@Override
-	public List<String> getSqlResourceNames() {
-		final List<String> resNames = new ArrayList<String>();
-		getSqlResourceNames(resNames, getSqlResourcesDir(), "");
-		return resNames;
+	public List<String> getSqlResourceNames() throws SqlResourceFactoryException {
+		return getSqlResourceNames(getSqlResourcesDir());
+	}
+
+	/** Returns the configured resources directory name. */
+	@Override
+	public String getSqlResourcesDir() {
+		if (sqlResourcesDir == null) {
+			sqlResourcesDir = Config.properties.getProperty(Config.KEY_SQLRESOURCES_DIR,
+					Config.DEFAULT_SQLRESOURCES_DIR);
+			Config.logger.info("SqlResources dir is " + sqlResourcesDir);
+		}
+		return sqlResourcesDir;
 	}
 
 	/** Returns true if the resource has been loaded, i.e. requested previously. */
 	public boolean isSqlResourceLoaded(final String name) {
 		return sqlResources.containsKey(name);
+	}
+
+	// Package methods
+	
+	/**
+	 * Returns available SQL Resource names using the provided directory. Used by testing infrastructure.
+	 * 
+	 * @throws SqlResourceFactoryException if the provided directory does not exist
+	 */
+	List<String> getSqlResourceNames(final String dirName) throws SqlResourceFactoryException {
+		final List<String> resNames = new ArrayList<String>();
+		getSqlResourceNames(resNames, dirName, "");
+		if (resNames.size() == 0) {
+			Config.logger.warn("No SQL Resource definitions found in " + dirName);
+		}
+		return resNames;
 	}
 
 	// Private utils
@@ -111,34 +138,33 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 
 	/**
 	 * Scans for xml files and recursively descends subdirs.
+	 * 
+	 * @throws SqlResourceFactoryException if the provided directory does not exist
 	 */
 	private void getSqlResourceNames(final List<String> resNames, final String dirName,
-			final String packageName) {
+			final String packageName) throws SqlResourceFactoryException {
 		final File dir = new File(dirName);
-		Config.logger.info("listing files for " + dirName);
-		for (final File file : dir.listFiles()) {
-			if (file.isFile()) {
-				final int extIndex = file.getName().indexOf(".xml");
-				if (extIndex > 0) {
-					resNames.add(packageName + file.getName().substring(0, extIndex));
+		if (dir.exists()) {
+			Config.logger.info("listing files for " + dirName);
+			for (final File file : dir.listFiles()) {
+				if (file.isFile()) {
+					final int extIndex = file.getName().indexOf(".xml");
+					if (extIndex > 0) {
+						resNames.add(packageName + file.getName().substring(0, extIndex));
+					}
 				}
 			}
-		}
-		for (final File subDir : dir.listFiles()) {
-			if (subDir.isDirectory()) {
-				String subPackageName = packageName.length() == 0 ? subDir.getName() + "." : packageName
-						+ subDir.getName() + ".";
-				getSqlResourceNames(resNames, subDir.getAbsolutePath(), subPackageName);
+			for (final File subDir : dir.listFiles()) {
+				if (subDir.isDirectory()) {
+					final String subPackageName = packageName.length() == 0 ? subDir.getName() + "."
+							: packageName + subDir.getName() + ".";
+					getSqlResourceNames(resNames, subDir.getAbsolutePath(), subPackageName);
+				}
 			}
+		} else {
+			final String message = "SQL Resources directory " + dirName + " does not exist";
+			Config.logger.error(message);
+			throw new SqlResourceFactoryException(message);
 		}
-	}
-
-	private String getSqlResourcesDir() {
-		if (sqlResourcesDir == null) {
-			sqlResourcesDir = Config.properties.getProperty(Config.KEY_SQLRESOURCES_DIR,
-					Config.DEFAULT_SQLRESOURCES_DIR);
-			Config.logger.info("SqlResources dir is " + sqlResourcesDir);
-		}
-		return sqlResourcesDir;
 	}
 }
