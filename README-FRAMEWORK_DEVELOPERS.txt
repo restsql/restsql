@@ -1,4 +1,4 @@
-README_FRAMEWORK_DEVELOPERS.txt (22-Sep-2012)
+README_FRAMEWORK_DEVELOPERS.txt (23-Sep-2012)
 
 restSQL Framework Developer Guide
 
@@ -167,6 +167,14 @@ Tomcat Server Configuration
 	   c. Click Ok
 	   d. Double click on /Servers/Tomcat v7.0 Server at localhost.server
 	   e. Select Use Tomcat Installation (takes control of Tomcat installation). Deploy location says wtpwebapps.
+	5. Add a Parameter to the context.xml for th server instance to facilitate switching between MySQL and PostgreSQL.
+			<!-- 
+			<Parameter name="org.restsql.properties"
+				value="/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-postgresql.properties" override="false" />
+			 -->
+	   The default restsql properties will be restsql-test/src/resources/properties/restsql-mysql.properties.
+	   Uncomment the Parameter, publish and restart the server to start up with PostgreSQL. 
+	   
 
 Synchronizing Files
 	 1. Right-click on the server instance in the Servers view
@@ -259,6 +267,29 @@ Launch the ServiceTestRunner in debug mode.
 
 There is currently no built-in coverage analysis nor are there any performance/load test suites.
 
+
+-------------------------------------------------------------------------------
+Enabling Security
+
+By default, restSQL ships with disabled encyrption, authentication and authorization. The test harness does not support encryption however authentication and authorization may be enabled.
+
+Testing with SQL resource authorization via the Java API is enabled by uncommenting the security.privileges property in the restsql properties file.
+
+Testing SQL and Administrative resource authentication and authorization via the HTTP API is enabled by:
+	1. Uncomment security.privileges property in the restsql properties file
+	2. Uncomment the security-roles, security-constraints and login-config elements in the restsql webapp's deployment descriptor (restsql/WebContent/WEB-INF/web.xml)
+	3. Add the following entries to server's tomcat-users.xml:
+		<tomcat-users>
+			<role rolename="all"/>
+			<role rolename="limited"/>
+			<role rolename="readonly"/>
+			<role rolename="admin"/>
+			<user username="all" password="all" roles="all"/>
+			<user username="limited" password="limited" roles="limited"/>
+			<user username="readonly" password="readonly" roles="readonly"/>
+			<user username="admin" password="admin" roles="admin"/>
+		</tomcat-users>
+	
 
 -------------------------------------------------------------------------------
 Support
