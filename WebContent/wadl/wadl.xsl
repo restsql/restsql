@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
-    wadl.xsl (06-May-2011)
+    wadl.xsl (07-Sep-2012)
     
     Transforms Web Application Description Language (WADL) XML documents into HTML.
 
     Mark Sawers <mark.sawers@ipc.com>
     
+    See example_wadl.xml at http://github.com/ipcsystems/wadl-stylesheet to explore this stylesheet's capabilities
+    and the README.txt for other usage information.
+    Note that the contents of a doc element is rendered as a:
+        * hyperlink if the title attribute contains is equal to 'Example'
+        * mono-spaced font ('pre' tag) if content contains the text 'Example'
+			
     Limitations:
         * Ignores globally defined methods, referred to from a resource using a method reference element.
           Methods must be embedded in a resource element.
@@ -16,7 +22,7 @@
         * Ignores profile attribute of representation element.
         * Ignores path attribute and child link elements of param element.
 
-    Copyright (c) 2011 IPC Systems, Inc.
+    Copyright (c) 2012 IPC Systems, Inc.
 
     Parts of this work are adapted from Mark Notingham's wadl_documentation.xsl, at
         https://github.com/mnot/wadl_stylesheets.
@@ -360,6 +366,7 @@
         <xsl:if test="@title and local-name(..) != 'application'">
             <xsl:value-of select="@title"/>:
         </xsl:if>
+        <xsl:variable name="content" select="."/>
         <xsl:choose>
             <xsl:when test="@title = 'Example'">
                 <xsl:variable name="url">
@@ -375,8 +382,11 @@
                 </xsl:variable>
                 <a href="{$url}"><xsl:value-of select="$url"/></a>
             </xsl:when>
+            <xsl:when test="contains($content, 'Example')">
+               	<div style="white-space:pre-wrap"><pre><xsl:value-of select="."/></pre></div>
+            </xsl:when>
             <xsl:otherwise>
-                <xsl:value-of select="text()"/>
+               	<xsl:value-of select="$content"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:for-each>
@@ -404,18 +414,19 @@
 
 <xsl:template name="getParams">
     <tr>
-        <td><strong><xsl:value-of select="@name"/></strong></td>
+        <td style="font-weight: bold"><xsl:value-of select="@name"/></td>
             <td>
-                <xsl:if test="not(@type)">
+                <xsl:if test="not(@type) and not(@fixed)">
                     unspecified type
                 </xsl:if>
-                <xsl:call-template name="getParamType">
+                <xsl:call-template name="getHyperlinkedElement">
                     <xsl:with-param name="qname" select="@type"/>
                 </xsl:call-template>
                 <xsl:if test="@required = 'true'"><br/>(required)</xsl:if>
                 <xsl:if test="@repeating = 'true'"><br/>(repeating)</xsl:if>
                 <xsl:if test="@default"><br/>default: <tt><xsl:value-of select="@default"/></tt></xsl:if>
-                <xsl:if test="@fixed"><br/>fixed: <tt><xsl:value-of select="@fixed"/></tt></xsl:if>
+                <xsl:if test="@type and @fixed"><br/></xsl:if>
+                <xsl:if test="@fixed">fixed: <tt><xsl:value-of select="@fixed"/></tt></xsl:if>
                 <xsl:if test="wadl:option">
                     <br/>options:
                     <xsl:for-each select="wadl:option">
@@ -437,7 +448,7 @@
     </tr>
 </xsl:template>
 
-<xsl:template name="getParamType">
+<xsl:template name="getHyperlinkedElement">
     <xsl:param name="qname"/>
     <xsl:variable name="prefix" select="substring-before($qname,':')"/>
     <xsl:variable name="ns-uri" select="./namespace::*[name()=$prefix]"/>
@@ -446,11 +457,16 @@
         <xsl:when test="$ns-uri='http://www.w3.org/2001/XMLSchema' or $ns-uri='http://www.w3.org/2001/XMLSchema-instance'">
             <a href="http://www.w3.org/TR/xmlschema-2/#{$localname}"><xsl:value-of select="$localname"/></a>
         </xsl:when>
-        <xsl:otherwise>
+        <xsl:when test="$ns-uri and starts-with($ns-uri, 'http://www.w3.org/XML/') = false">
+            <a href="{$ns-uri}#{$localname}"><xsl:value-of select="$localname"/></a>
+        </xsl:when>
+        <xsl:when test="$qname">
             <xsl:value-of select="$qname"/>
-        </xsl:otherwise>
+        </xsl:when>
     </xsl:choose>
 </xsl:template>
+
+
 
 <xsl:template name="getRepresentations">
     <xsl:if test="wadl:representation">
@@ -458,49 +474,54 @@
         <table>
             <xsl:for-each select="wadl:representation">
                 <tr>
-                    <td><xsl:value-of select="@mediaType"/></td>
+                    <td style="font-weight: bold"><xsl:value-of select="@mediaType" /></td>
+			        <xsl:choose>
+	                    <xsl:when test="@href or @element">
+	                        <td>
+	                            <xsl:variable name="href" select="@href" />
+	                            <xsl:choose>
+	                                <xsl:when test="@href">
+										<xsl:variable name="localname" select="substring-after(@element, ':')"/>
+	                                    <a href="{$href}"><xsl:value-of select="$localname" /></a>
+	                                </xsl:when>
+	                                <xsl:otherwise>
+						                <xsl:call-template name="getHyperlinkedElement">
+						                    <xsl:with-param name="qname" select="@element" />
+						                </xsl:call-template>
+	                                </xsl:otherwise>
+	                            </xsl:choose>
+	                        </td>
+	                    </xsl:when>
+	                    <xsl:otherwise><td/></xsl:otherwise>
+					</xsl:choose>  
+					                  
                     <xsl:if test="wadl:doc">
                         <td>
                             <xsl:call-template name="getDoc">
-                                <xsl:with-param name="base" select="''"/>
+                                <xsl:with-param name="base" select="''" />
                             </xsl:call-template>
-                        </td>
-                    </xsl:if>
-                    <xsl:if test="@href or @element">
-                        <td>
-                            <xsl:variable name="href" select="@href"/>
-                            <xsl:choose>
-                                <xsl:when test="@href">
-                                    <a href="{$href}"><xsl:value-of select="@element"/></a>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:value-of select="@element"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
                         </td>
                     </xsl:if>
                 </tr>
                 <xsl:call-template name="getRepresentationParamBlock">
-                    <xsl:with-param name="style" select="'template'"/>
+                    <xsl:with-param name="style" select="'template'" />
                 </xsl:call-template>
         
                 <xsl:call-template name="getRepresentationParamBlock">
-                    <xsl:with-param name="style" select="'matrix'"/>
+                    <xsl:with-param name="style" select="'matrix'" />
                 </xsl:call-template>
         
                 <xsl:call-template name="getRepresentationParamBlock">
-                    <xsl:with-param name="style" select="'header'"/>
+                    <xsl:with-param name="style" select="'header'" />
                 </xsl:call-template>
         
                 <xsl:call-template name="getRepresentationParamBlock">
-                    <xsl:with-param name="style" select="'query'"/>
+                    <xsl:with-param name="style" select="'query'" />
                 </xsl:call-template>
             </xsl:for-each>
         </table>
     </xsl:if> 
-</xsl:template>
-
-<xsl:template name="getRepresentationParamBlock">
+</xsl:template><xsl:template name="getRepresentationParamBlock">
     <xsl:param name="style"/>
     <xsl:if test="wadl:param[@style=$style]">
         <tr>

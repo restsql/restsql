@@ -1,4 +1,4 @@
-README.txt (17-July-2012)
+README.txt (22-Sept-2012)
 
 restSQL Deployment Guide
 
@@ -140,16 +140,26 @@ Access http://yourhost:port/restsql for links to the effective runtime configura
 -------------------------------------------------------------------------------
 Installing restSQL WAR mode
 
-Requirements: JEE Container, JAR tool, RDBMS
+Requirements: JEE Container, RDBMS, JAR tool
 
+Properties Files: Create your two required properties files (restsql.properties and log4j.properties (or logging.properties), as above. Create your two optional privileges and triggers definitions if required. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
+
+Abbreviated Deployment for Tomcat:
+You can use this shortcut if you are using Tomcat, do not want restSQL Authentication or Authorization and Java Security Manager is disabled (the default for Tomcat). Add a Parameter entry that indicates your absolute path to your restsql.properties in your $TOMCAT_HOME/conf/context.xml, as in:
+	
+	<Parameter name="org.restsql.properties" value="/etc/opt/business/restsql/restsql.properties" override="false" />
+
+That will override the default properties location in the web.xml of the WAR.
+
+Place the unmodified WAR in the $TOMCAT/webapps directory and bounce the server, or deploy the webapp using your favorite method.
+
+Complete Deployment:
 The restsql-{version}.war contains the service and framework classes as well as dependencies. Extract it's contents to some temp area, e.g. /tmp/restsql. Use the standard jar tool that comes with your JRE/JDK. The command is jar -xf war-file-name. It extracts all contents in the current directory. The contents looks like:
     restsql/
         META-INF/
         wadl/
         WEB-INF/
         index.html
-
-Properties Files: Create your two required properties files (restsql.properties and log4j.properties (or logging.properties), as above. Create your two optional privileges and triggers definitions if required. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
 
 web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know where to load your restsql.properties. Here's an example:
 
@@ -160,7 +170,7 @@ web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know 
 
 The default deployment descriptor (web.xml) contains login config (authentication method) and security constraints (authorization declarations). See the restSQL SDK's /restsql-sdk/default/xml/web.xml for the default deployment descriptor. 
 
-Disabling Authentication and Authorization: To disable authentication/authorization, simply remove or comment out the security-constraint and login-config elements in the web.xml. 
+Disabling Authentication and Authorization: To disable authentication/authorization, simply remove or comment out the security-constraint and login-config elements in the web.xml. Security is disabled by default.
 
 Enabling Authentication and Authorization: You may use the default security constraints and login config or change it to conform to your specific roles, realm and other requirements. More information on Web Application Security using deployment descriptors is available at http://java.sun.com/javaee/6/docs/tutorial/doc/bncbe.html. Or consult your container's documentation. Authentication mechanisms (credential management, user to role assigment) are typically container-specific/proprietary. You will also need to configure a privileges properties file and reference it in the restsql properties file. See the SDK's Security configuration for instructions. 
 

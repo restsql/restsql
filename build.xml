@@ -19,6 +19,7 @@
 				<include name="**/*.properties" />
 				<include name="**/*.xml" />
 				<include name="**/*.xsd" />
+				<exclude name="resources/eclipse/*.xml" />
 			</fileset>
 		</copy>
 
