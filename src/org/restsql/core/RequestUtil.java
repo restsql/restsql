@@ -3,8 +3,11 @@ package org.restsql.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.restsql.core.NameValuePair.Operator;
 import org.restsql.core.impl.MediaTypeParser;
 
 /**
@@ -21,6 +24,19 @@ public class RequestUtil {
 		supportedMediaTypes.add("application/xml");
 	}
 
+	/** Converts short form of media type to the proper internet standard, e.g. json to application/json. */
+	public static String convertToStandardInternetMediaType(final String mediaType) {
+		if (mediaType == null) {
+			return null;
+		} else if (mediaType.equalsIgnoreCase("xml")) {
+			return "application/xml";
+		} else if (mediaType.equalsIgnoreCase("json")) {
+			return "application/json";
+		} else {
+			return mediaType;
+		}
+	}
+
 	/** Returns name-value pairs, resourceId and value, for given resource and ordered value array. */
 	public static List<NameValuePair> getResIds(final SqlResource sqlResource, final String[] values) {
 		List<NameValuePair> resIds = null;
@@ -31,7 +47,8 @@ public class RequestUtil {
 					for (final ColumnMetaData column : table.getPrimaryKeys()) {
 						for (final String value : values) {
 							if (value != null) {
-								final NameValuePair resId = new NameValuePair(column.getColumnLabel(), value);
+								final NameValuePair resId = new NameValuePair(column.getColumnLabel(), value,
+										Operator.Equals);
 								resIds.add(resId);
 							}
 						}
@@ -51,7 +68,7 @@ public class RequestUtil {
 	 * type!
 	 */
 	public static String getResponseMediaType(final List<NameValuePair> params,
-			final String requestMediaType, String acceptMediaType) {
+			final String requestMediaType, final String acceptMediaType) {
 		String responseMediaType = null;
 		if (params != null) {
 			int outputIndex = -1;
@@ -81,16 +98,50 @@ public class RequestUtil {
 		return responseMediaType;
 	}
 
-	/** Converts short form of media type to the proper internet standard, e.g. json to application/json. */
-	public static String convertToStandardInternetMediaType(String mediaType) {
-		if (mediaType == null) {
-			return null;
-		} else if (mediaType.equalsIgnoreCase("xml")) {
-			return "application/xml";
-		} else if (mediaType.equalsIgnoreCase("json")) {
-			return "application/json";
-		} else {
-			return mediaType;
+	/**
+	 * Checks for parameter list validity.
+	 * 
+	 * @throws InvalidRequestException if a parameter is included more than once unless there the operators
+	 */
+	public static void checkForInvalidMultipleParameters(List<NameValuePair> params)
+			throws InvalidRequestException {
+		if (params != null && params.size() > 0) {
+			// First organize them into a map by parameter name
+			Map<String, List<NameValuePair>> paramsByName = new HashMap<String, List<NameValuePair>>(
+					params.size());
+			for (NameValuePair param : params) {
+				List<NameValuePair> list = paramsByName.get(param.getName());
+				if (list == null) {
+					list = new ArrayList<NameValuePair>(1);
+					paramsByName.put(param.getName(), list);
+				}
+				list.add(param);
+
+			}
+
+			// Now iterate through each and look for invalid multiples
+			for (List<NameValuePair> list : paramsByName.values()) {
+				if (list.size() > 1) {
+					String name = list.get(0).getName();
+					if (list.size() == 2) {
+						Operator first = list.get(0).getOperator();
+						Operator second = list.get(1).getOperator();
+						if (first == Operator.Equals || second == Operator.Equals) {
+							throw new InvalidRequestException("Parameter " + name + " found twice");
+						} else if ((first == Operator.GreaterThan || first == Operator.GreaterThanOrEqualTo)
+								&& (second == Operator.GreaterThan || second == Operator.GreaterThanOrEqualTo)) {
+							throw new InvalidRequestException("Parameter " + name + " found twice with "
+									+ first + " and " + second + " operators");
+						} else if ((first == Operator.LessThan || first == Operator.LessThanOrEqualTo)
+								&& (second == Operator.LessThan || second == Operator.LessThanOrEqualTo)) {
+							throw new InvalidRequestException("Parameter " + name + " found twice with "
+									+ first + " and " + second + " operators");
+						}
+					} else {
+						throw new InvalidRequestException("Parameter " + name + " found " + list.size() + " times");
+					}
+				}
+			}
 		}
 	}
 }

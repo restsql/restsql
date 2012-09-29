@@ -411,12 +411,14 @@ public class ResResource {
 				requestMediaType, acceptMediaType, securityContext);
 	}
 
-	// Assumes no matrixing
+	/** Converts form or query params into a list of NameValuePairs. */
 	private List<NameValuePair> getNameValuePairs(final MultivaluedMap<String, String> formOrQueryParams) {
 		final List<NameValuePair> params = new ArrayList<NameValuePair>(formOrQueryParams.size());
 		for (final String key : formOrQueryParams.keySet()) {
-			final NameValuePair param = new NameValuePair(key, formOrQueryParams.get(key).get(0));
-			params.add(param);
+			for (final String value : formOrQueryParams.get(key)) {
+				final NameValuePair param = new NameValuePair(key, value);
+				params.add(param);
+			}
 		}
 		return params;
 	}

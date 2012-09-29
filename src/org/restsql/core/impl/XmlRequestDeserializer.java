@@ -18,6 +18,7 @@ import org.restsql.core.RequestDeserializer;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
+import org.restsql.core.NameValuePair.Operator;
 import org.restsql.core.Request.Type;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -187,7 +188,7 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 		private List<NameValuePair> parseAttributes(final Attributes attributes) {
 			final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(attributes.getLength());
 			for (int i = 0; i < attributes.getLength(); i++) {
-				final NameValuePair param = new NameValuePair(attributes.getQName(i), attributes.getValue(i));
+				final NameValuePair param = new NameValuePair(attributes.getQName(i), attributes.getValue(i), Operator.Equals);
 				nameValuePairs.add(param);
 			}
 			return nameValuePairs;

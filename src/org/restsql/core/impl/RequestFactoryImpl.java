@@ -30,8 +30,8 @@ public class RequestFactoryImpl implements RequestFactory {
 	@Override
 	public Request getChildRequest(final Request parentRequest) {
 		final RequestImpl childRequest = new RequestImpl(parentRequest.getHttpRequestAttributes(),
-				parentRequest.getType(), parentRequest.getSqlResource(), parentRequest
-						.getResourceIdentifiers(), null, null, parentRequest.getLogger());
+				parentRequest.getType(), parentRequest.getSqlResource(),
+				parentRequest.getResourceIdentifiers(), null, null, parentRequest.getLogger());
 		childRequest.setParent(parentRequest);
 		return childRequest;
 	}
@@ -100,8 +100,10 @@ public class RequestFactoryImpl implements RequestFactory {
 			}
 		}
 
-		final String responseMediaType = RequestUtil.getResponseMediaType(params, httpAttributes
-				.getRequestMediaType(), httpAttributes.getResponseMediaType());
+		RequestUtil.checkForInvalidMultipleParameters(params);
+
+		final String responseMediaType = RequestUtil.getResponseMediaType(params,
+				httpAttributes.getRequestMediaType(), httpAttributes.getResponseMediaType());
 		httpAttributes.setResponseMediaType(responseMediaType);
 		final RequestLogger requestLogger = Factory.getRequestLogger();
 		final Request.Type type = Request.Type.fromHttpMethod(httpAttributes.getMethod());
@@ -134,6 +136,8 @@ public class RequestFactoryImpl implements RequestFactory {
 				break;
 			default:
 		}
+		RequestUtil.checkForInvalidMultipleParameters(params);
+
 		return new RequestImpl(httpAttributes, type, sqlResource, resIds, params, childrenParams,
 				requestLogger);
 	}

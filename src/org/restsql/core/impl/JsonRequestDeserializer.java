@@ -18,6 +18,7 @@ import org.restsql.core.RequestDeserializer;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
+import org.restsql.core.NameValuePair.Operator;
 import org.restsql.core.Request.Type;
 
 /**
@@ -226,9 +227,9 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 		public boolean primitive(final Object value) throws ParseException, IOException {
 			NameValuePair pair;
 			if (value != null) {
-				pair = new NameValuePair(currentKey, value.toString());
+				pair = new NameValuePair(currentKey, value.toString(), Operator.Equals);
 			} else {
-				pair = new NameValuePair(currentKey, null);
+				pair = new NameValuePair(currentKey, null, Operator.Equals);
 			}
 			params.add(pair);
 			return true;

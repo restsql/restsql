@@ -9,11 +9,12 @@ import java.util.Map;
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
+import org.restsql.core.NameValuePair.Operator;
 import org.restsql.core.Request;
+import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
-import org.restsql.core.Request.Type;
 
 /**
  * Builds SQL for an operation on a SQL Resource.
@@ -249,7 +250,9 @@ public class SqlBuilderImpl implements SqlBuilder {
 						final ColumnMetaData column = table.getColumns().get(param.getName());
 						if (column != null) {
 							if (column.isReadOnly()) {
-								throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM, column.getColumnLabel());
+								throw new InvalidRequestException(
+										InvalidRequestException.MESSAGE_READONLY_PARAM,
+										column.getColumnLabel());
 							}
 							if (!column.isNonqueriedForeignKey()) {
 								validParamFound = true;
@@ -382,8 +385,14 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return tables;
 	}
 
+	/**
+	 * Adds the SQL selector for the parameter pair with an appropriate operator (=, >, <, >=, <=, or LIKE).
+	 * 
+	 * @throws InvalidRequestException if unexpected operator is found
+	 */
 	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
-			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql) {
+			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql)
+			throws InvalidRequestException {
 		if (requestType == Request.Type.SELECT) {
 			if (metaData.hasMultipleDatabases()) {
 				sql.append(column.getQualifiedTableName());
@@ -393,10 +402,30 @@ public class SqlBuilderImpl implements SqlBuilder {
 			sql.append('.');
 		}
 		sql.append(column.getColumnName()); // since parameter may use column label
-		if (containsWildcard(param.getValue())) {
+		if (param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			sql.append(" LIKE ");
 		} else {
-			sql.append(" = ");
+			switch (param.getOperator()) {
+				case Equals:
+					sql.append(" = ");
+					break;
+				case LessThan:
+					sql.append(" < ");
+					break;
+				case LessThanOrEqualTo:
+					sql.append(" <= ");
+					break;
+				case GreaterThan:
+					sql.append(" > ");
+					break;
+				case GreaterThanOrEqualTo:
+					sql.append(" >= ");
+					break;
+				default: // case Escaped
+					throw new InvalidRequestException(
+							"SqlBuilder.setNameValue() found unexpected operator of type "
+									+ param.getOperator());
+			}
 		}
 		if (column.isCharType() || column.isDateTimeType()) {
 			sql.append('\'');
