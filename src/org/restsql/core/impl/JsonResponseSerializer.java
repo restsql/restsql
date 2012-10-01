@@ -95,7 +95,13 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			}
 			string.append(JsonUtil.quote(name));
 			string.append(": ");
-			string.append(JsonUtil.quote(value.toString()));
+			if (value instanceof Number) {
+				string.append(value);
+			} else if (value instanceof Boolean) {
+				string.append(value);
+			} else {
+				string.append(JsonUtil.quote(value.toString()));
+			}
 		}
 	}
 
