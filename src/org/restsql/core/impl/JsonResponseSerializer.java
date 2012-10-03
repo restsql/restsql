@@ -80,7 +80,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	public String serializeWrite(final int rowsAffected) {
 		final StringBuilder string = new StringBuilder(250);
 		string.append("{ ");
-		appendNameValuePair(true, string, "rowsAffected", String.valueOf(rowsAffected));
+		appendNameValuePair(true, string, "rowsAffected", Integer.valueOf(rowsAffected));
 		string.append(" }");
 		return string.toString();
 	}
@@ -95,7 +95,13 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			}
 			string.append(JsonUtil.quote(name));
 			string.append(": ");
-			string.append(JsonUtil.quote(value.toString()));
+			if (value instanceof Number) {
+				string.append(value); 
+			} else if (value instanceof Boolean) {
+				string.append(value);
+			} else {
+				string.append(JsonUtil.quote(value.toString()));
+			}
 		}
 	}
 
