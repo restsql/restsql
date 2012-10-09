@@ -14,7 +14,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
@@ -23,6 +22,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.HttpRequestAttributes;
@@ -383,9 +383,20 @@ public class ResResource {
 
 			// Log response and send it
 			requestLogger.log(responseBody);
-			final CacheControl cacheControl = new CacheControl();
-			cacheControl.setNoCache(true);
-			return Response.ok(responseBody).type(responseMediaType).cacheControl(cacheControl).build();
+
+			// Get cache control
+
+			String cacheControl = Config.properties.getProperty(Config.KEY_HTTP_CACHE_CONTROL,
+					Config.DEFAULT_HTTP_CACHE_CONTROL);
+			if (sqlResource.getDefinition().getHttp() != null
+					&& sqlResource.getDefinition().getHttp().getResponse() != null) {
+				cacheControl = sqlResource.getDefinition().getHttp().getResponse().getCacheControl();
+			}
+
+			// Send the response
+			return Response.ok(responseBody).type(responseMediaType).header("Cache-Control", cacheControl)
+					.build();
+
 		} catch (final SqlResourceException exception) {
 			return handleException(httpRequest, requestBody, requestMediaType, exception, requestLogger);
 		}

@@ -8,7 +8,6 @@ package org.restsql.core;
  */
 public interface HttpRequestAttributes {
 	public static final String DEFAULT_MEDIA_TYPE = "application/xml";
-	public static final String JSON_MEDIA_TYPE = "application/json";
 
 	/** Returns client IP or hostname. */
 	public String getClient();

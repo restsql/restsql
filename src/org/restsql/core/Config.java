@@ -25,6 +25,7 @@ public class Config {
 	public static final String DEFAULT_DATABASE_PASSWORD = "root";
 	public static final String DEFAULT_DATABASE_URL = "jdbc:mysql://localhost:3306/";
 	public static final String DEFAULT_DATABASE_USER = "root";
+	public static final String DEFAULT_HTTP_CACHE_CONTROL = "no-cache, no-transform";
 	public static final String DEFAULT_HTTP_REQUEST_ATTRIBUTES = "org.restsql.core.impl.HttpRequestAttributesImpl";
 	public static final String DEFAULT_JAVA_LOGGING_CONFIG = "resources/properties/default-logging.properties";
 	public static final String DEFAULT_LOG4J_CONFIG = "resources/properties/default-log4j.properties";
@@ -39,16 +40,17 @@ public class Config {
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
 	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.SqlBuilderImpl";
-
 	public static final String DEFAULT_SQL_RESOURCE_FACTORY = "org.restsql.core.impl.SqlResourceFactoryImpl";
 	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.SqlResourceMetaDataMySql";
 	public static final String DEFAULT_SQLRESOURCES_DIR = "/resources/xml/sqlresources";
+
 	public static final String KEY_AUTHORIZER = "org.restsql.security.Authorizer";
 	public static final String KEY_CONNECTION_FACTORY = "org.restsql.core.Factory.Connection";
 	public static final String KEY_DATABASE_DRIVER_CLASSNAME = "database.driverClassName";
 	public static final String KEY_DATABASE_PASSWORD = "database.password";
 	public static final String KEY_DATABASE_URL = "database.url";
 	public static final String KEY_DATABASE_USER = "database.user";
+	public static final String KEY_HTTP_CACHE_CONTROL = "http.response.cacheControl";
 	public static final String KEY_HTTP_REQUEST_ATTRIBUTES = "org.restsql.core.HttpRequestAttributes";
 	public static final String KEY_JAVA_LOGGING_CONFIG = "java.util.logging.config.file";
 	public static final String KEY_LOG4J_CONFIG = "log4j.configuration";

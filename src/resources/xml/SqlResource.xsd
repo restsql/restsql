@@ -17,6 +17,7 @@
 			<element name="validatedAttribute" type="rs:ValidatedAttribute" maxOccurs="unbounded"
 				minOccurs="0">
 			</element>
+			<element name="http" type="rs:HttpConfig" maxOccurs="1" minOccurs="0"></element>
 		</sequence>
 	</complexType>
 
@@ -75,5 +76,19 @@
 				</restriction>
 			</simpleType>
 		</attribute>
+	</complexType>
+
+	<complexType name="HttpConfig">
+		<sequence>
+			<element name="response" type="rs:HttpResponse" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+
+	<complexType name="HttpResponse">
+		<attribute name="cacheControl" type="string" use="optional">
+			<annotation>
+				<documentation>Overrides system default in restsql.properties.
+Use the RFC 2616, Section 14.9 format: {cache-directive}, {cache-directive}, ...</documentation>
+			</annotation></attribute>
 	</complexType>
 </schema>

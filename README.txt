@@ -1,4 +1,4 @@
-README.txt (22-Sept-2012)
+README.txt (09-Oct-2012)
 
 restSQL Deployment Guide
 
@@ -55,8 +55,9 @@ The general restsql.properties contains the following configurations:
     3. Security								(optional)
     4. Triggers                             (optional)
     5. XML                                  (optional)
-    6. Database                             (required)
-    7. Implementation classes               (optional)
+    6. HTTP									(optional)
+    7. Database                             (required)
+    8. Implementation classes               (optional)
 
 Logging configuration example:
 
@@ -74,6 +75,17 @@ The location of SQL Resource definitions is critical. An example:
 	# sqlresources.dir=/absolute/path
 	sqlresources.dir=/etc/opt/business/restsql/sqlresources
 
+The Security configuration is optional. Here is an example:
+	# security.privileges=/absolute/path
+	security.privileges=/etc/opt/business/restsql/privileges.properties
+
+The Triggers configuration is optional. Here is an example:
+
+	# triggers.classpath=/absolute/path
+	# triggers.definition=/absolute/path
+	triggers.classpath=/etc/opt/business/restsql/triggers
+	triggers.definition=/etc/opt/business/restsql/triggers.properties
+
 The XML configuration is optional. The defaults are:
 
     # request.useXmlSchema=[true, false]
@@ -85,16 +97,9 @@ The XML configuration is optional. The defaults are:
 
 The default settings indicate that request documents may be sent without schema references. Likewise response documents are sent without the xml directive (<?xml version="1.0" encoding="UTF-8"?>) and without schema references. 
 
-The Security configuration is optional. Here is an example:
-	# security.privileges=/absolute/path
-	security.privileges=/etc/opt/business/restsql/privileges.properties
-
-The Triggers configuration is optional. Here is an example:
-
-	# triggers.classpath=/absolute/path
-	# triggers.definition=/absolute/path
-	triggers.classpath=/etc/opt/business/restsql/triggers
-	triggers.definition=/etc/opt/business/restsql/triggers.properties
+The HTTP configuration is optional. The defaults are:
+	# http.response.cacheControl={cache-directive}, {cache-directive}, ...
+	http.response.cacheControl=no-cache, no-transform
 
 Database configuration is required. Here is an example for a database with built-in support:
 
@@ -132,7 +137,7 @@ Implementation classes configuration is optional. The defaults are:
 	org.restsql.core.Factory.RequestLoggerFactory=org.restsql.core.impl.RequestLoggerFactoryImpl
 	org.restsql.core.Factory.SqlResourceFactory=org.restsql.core.impl.SqlResourceFactoryImpl
 
-See the SDK for more detail on Logging, Security and Trigger configuration.
+See the SDK for more detail on Logging, Security, Trigger and HTTP configuration.
 
 Access http://yourhost:port/restsql for links to the effective runtime configuration.
 

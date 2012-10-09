@@ -2,3 +2,4 @@ restSQL Project Contributors
 
 Mark Sawers <mark.sawers@restsql.org>
 Acshi Haggenmiller <acshikh@gmail.com>
+Dan Moore <dan.moore@8z.com>

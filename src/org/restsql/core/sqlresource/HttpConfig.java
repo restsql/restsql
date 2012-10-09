@@ -10,57 +10,60 @@ package org.restsql.core.sqlresource;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 
 
 /**
- * <p>Java class for Query complex type.
+ * <p>Java class for HttpConfig complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Query">
- *   &lt;simpleContent>
- *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
- *     &lt;/extension>
- *   &lt;/simpleContent>
+ * &lt;complexType name="HttpConfig">
+ *   &lt;complexContent>
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;sequence>
+ *         &lt;element name="response" type="{http://restsql.org/schema}HttpResponse"/>
+ *       &lt;/sequence>
+ *     &lt;/restriction>
+ *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Query", propOrder = {
-    "value"
+@XmlType(name = "HttpConfig", propOrder = {
+    "response"
 })
-public class Query {
+public class HttpConfig {
 
-    @XmlValue
-    protected String value;
+    @XmlElement(required = true)
+    protected HttpResponse response;
 
     /**
-     * Gets the value of the value property.
+     * Gets the value of the response property.
      * 
      * @return
      *     possible object is
-     *     {@link String }
+     *     {@link HttpResponse }
      *     
      */
-    public String getValue() {
-        return value;
+    public HttpResponse getResponse() {
+        return response;
     }
 
     /**
-     * Sets the value of the value property.
+     * Sets the value of the response property.
      * 
      * @param value
      *     allowed object is
-     *     {@link String }
+     *     {@link HttpResponse }
      *     
      */
-    public void setValue(String value) {
-        this.value = value;
+    public void setResponse(HttpResponse value) {
+        this.response = value;
     }
 
 }

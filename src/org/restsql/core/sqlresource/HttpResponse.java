@@ -10,57 +10,56 @@ package org.restsql.core.sqlresource;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
 
 
 /**
- * <p>Java class for Query complex type.
+ * <p>Java class for HttpResponse complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Query">
- *   &lt;simpleContent>
- *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
- *     &lt;/extension>
- *   &lt;/simpleContent>
+ * &lt;complexType name="HttpResponse">
+ *   &lt;complexContent>
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       &lt;attribute name="cacheControl" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *     &lt;/restriction>
+ *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Query", propOrder = {
-    "value"
-})
-public class Query {
+@XmlType(name = "HttpResponse")
+public class HttpResponse {
 
-    @XmlValue
-    protected String value;
+    @XmlAttribute(name = "cacheControl")
+    protected String cacheControl;
 
     /**
-     * Gets the value of the value property.
+     * Gets the value of the cacheControl property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getValue() {
-        return value;
+    public String getCacheControl() {
+        return cacheControl;
     }
 
     /**
-     * Sets the value of the value property.
+     * Sets the value of the cacheControl property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setValue(String value) {
-        this.value = value;
+    public void setCacheControl(String value) {
+        this.cacheControl = value;
     }
 
 }
