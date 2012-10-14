@@ -10,9 +10,6 @@ package org.restsql.core;
  */
 public interface ColumnMetaData {
 
-	/** Returns database name. */
-	public String getDatabaseName();
-
 	/**
 	 * Returns column label, a string identified in double quotes after columns in the select clause in the SQL Resource
 	 * definition query.
@@ -35,6 +32,16 @@ public interface ColumnMetaData {
 
 	/** Returns column type name as given by the database JDBC driver. */
 	public String getColumnTypeName();
+
+	/** Returns database name. */
+	public String getDatabaseName();
+
+	/**
+	 * Returns fully qualified column name in database-specific form for use in SQL statements. MySQL uses the form
+	 * <code>database.table.column</code>, for example <code>sakila.film.film_id</code>. PostgreSQL uses the form
+	 * <code>database.schema.table.column</code>, for example <code>sakila.public.film.film_id</code>.
+	 */
+	public String getQualifiedColumnName();
 
 	/**
 	 * Returns fully qualified table name in database-specific form for use in SQL statements. MySQL uses the form

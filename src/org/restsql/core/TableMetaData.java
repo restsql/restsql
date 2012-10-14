@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public interface TableMetaData {
 
-	/** Returns map of column meta data, keyed by the column label. */
+	/** Returns map of column meta data, keyed by the column label (the alias if provided, otherwise the name). */
 	public Map<String, ColumnMetaData> getColumns();
 
 	/** Returns database name. */

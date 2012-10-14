@@ -225,7 +225,9 @@ You only need to change the bottom of the file. The defaults are:
 		log4j.logger.org.restsql.error=INFO, ERROR
 		log4j.logger.org.restsql.trace=INFO, TRACE
 
-The internal log may be set to DEBUG to reveal more detail (but not much). Setting DEBUG on the access, error and trace will have no effect. Setting them to WARN or above would disable them. Changes require restart.
+The internal log may be set to DEBUG to reveal more detail, which is generally just executed SQL. Logged SQL is useful when executing the JUnit test harness. The SQL is by default available in the trace and error logs using the http service as well as the service test harness.
+
+Setting DEBUG on the access, error and trace will have no effect. Setting them to WARN or above would disable them. Changes require restart.
 
 Logs by default are sent to /var/log/restsql and use a daily rolling file appender.
 

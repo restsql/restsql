@@ -226,7 +226,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 								if (columnName.equals(pk.getColumnName())) {
 									final ColumnMetaDataImpl fkColumn = new ColumnMetaDataImpl(
 											table.getDatabaseName(), table.getQualifiedTableName(),
-											table.getTableName(), columnName, resultSet.getString(2));
+											table.getTableName(), columnName, pk.getColumnLabel(), resultSet.getString(2), this);
 									((TableMetaDataImpl) table).addColumn(fkColumn);
 								}
 							}
@@ -279,8 +279,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				statement.setString(2, tableName);
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
+					String columnName = resultSet.getString(1);
 					final ColumnMetaDataImpl column = new ColumnMetaDataImpl(databaseName,
-							qualifiedTableName, tableName, resultSet.getString(1), resultSet.getString(2));
+							qualifiedTableName, tableName, columnName, columnName, resultSet.getString(2), this);
 					((TableMetaDataImpl) joinTable).addColumn(column);
 				}
 			} catch (final SQLException exception) {
@@ -369,7 +370,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 					qualifiedTableName, tableName, getColumnName(definition, resultSetMetaData, colNumber),
 					resultSetMetaData.getColumnLabel(colNumber),
 					resultSetMetaData.getColumnTypeName(colNumber),
-					resultSetMetaData.getColumnType(colNumber), resultSetMetaData.isReadOnly(colNumber));
+					resultSetMetaData.getColumnType(colNumber), resultSetMetaData.isReadOnly(colNumber), this);
 
 			TableMetaDataImpl table = (TableMetaDataImpl) tableMap.get(column.getQualifiedTableName());
 			if (table == null) {

@@ -96,7 +96,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 				} else {
 					sql.getClause().append(", ");
 				}
-				sql.getClause().append(column.getColumnName());
+				sql.getClause().append(column.getQualifiedColumnName());
 			}
 		}
 		return firstColumn;
@@ -394,14 +394,10 @@ public class SqlBuilderImpl implements SqlBuilder {
 			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql)
 			throws InvalidRequestException {
 		if (requestType == Request.Type.SELECT) {
-			if (metaData.hasMultipleDatabases()) {
-				sql.append(column.getQualifiedTableName());
-			} else {
-				sql.append(column.getTableName());
-			}
-			sql.append('.');
+			sql.append(column.getQualifiedColumnName());
+		} else {
+			sql.append(column.getColumnName());
 		}
-		sql.append(column.getColumnName()); // since parameter may use column label
 		if (param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			sql.append(" LIKE ");
 		} else {

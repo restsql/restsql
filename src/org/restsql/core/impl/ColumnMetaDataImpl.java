@@ -4,6 +4,7 @@ package org.restsql.core.impl;
 import java.sql.Types;
 
 import org.restsql.core.ColumnMetaData;
+import org.restsql.core.SqlResourceMetaData;
 
 /**
  * Represents column (field) metadata.
@@ -19,13 +20,16 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	private final String databaseName;
 	private boolean nonqueriedForeignKey;
 	private boolean primaryKey;
+	private String qualifiedColumnName;
 	private final String qualifiedTableName;
 	private boolean readOnly;
+	private SqlResourceMetaData sqlResourceMetadata;
 	private final String tableName;
 
 	ColumnMetaDataImpl(final int columnNumber, final String databaseName, final String qualifiedTableName,
 			final String tableName, final String columnName, final String columnLabel,
-			final String columnTypeName, final int columnType, final boolean readOnly) {
+			final String columnTypeName, final int columnType, final boolean readOnly,
+			SqlResourceMetaData sqlResourceMetaData) {
 		this.columnNumber = columnNumber;
 		this.databaseName = databaseName;
 		this.qualifiedTableName = qualifiedTableName;
@@ -35,6 +39,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		this.columnTypeName = columnTypeName;
 		this.columnType = columnType;
 		this.readOnly = readOnly;
+		this.sqlResourceMetadata = sqlResourceMetaData;
 	}
 
 	/**
@@ -42,8 +47,9 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	 * child extensions, parent extensions and child tables.
 	 */
 	ColumnMetaDataImpl(final String databaseName, final String sqlQualifiedTableName, final String tableName,
-			final String columnName, final String columnTypeString) {
-		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnName, columnTypeString, 0, false);
+			final String columnName, final String columnLabel, final String columnTypeString, SqlResourceMetaData sqlResourceMetaData) {
+		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnLabel, columnTypeString, 0,
+				false, sqlResourceMetaData);
 		if (columnTypeString.equalsIgnoreCase("BIT")) {
 			columnType = Types.BIT;
 		} else if (columnTypeString.equalsIgnoreCase("TINYINT")) {
@@ -149,6 +155,22 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	@Override
 	public String getDatabaseName() {
 		return databaseName;
+	}
+
+	@Override
+	public String getQualifiedColumnName() {
+		if (qualifiedColumnName == null) {
+			StringBuilder name = new StringBuilder(100);
+			if (sqlResourceMetadata.hasMultipleDatabases()) {
+				name.append(getQualifiedTableName());
+			} else {
+				name.append(getTableName());
+			}
+			name.append('.');
+			name.append(getColumnName());
+			qualifiedColumnName = name.toString();
+		}
+		return qualifiedColumnName;
 	}
 
 	@Override
