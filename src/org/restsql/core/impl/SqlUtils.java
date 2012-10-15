@@ -26,19 +26,29 @@ class SqlUtils {
 
 	static Object getObjectByColumnLabel(final ColumnMetaData column, final ResultSet resultSet)
 			throws SQLException {
+		Object value = null;
 		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
-			return new Integer(resultSet.getInt(column.getColumnLabel()));
+			value = new Integer(resultSet.getInt(column.getColumnLabel()));
+			if (resultSet.wasNull()) {
+				value = null;
+			}
 		} else {
-			return resultSet.getObject(column.getColumnLabel());
+			value = resultSet.getObject(column.getColumnLabel());
 		}
+		return value;
 	}
 
 	static Object getObjectByColumnNumber(final ColumnMetaData column, final ResultSet resultSet)
 			throws SQLException {
+		Object value = null;
 		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
-			return new Integer(resultSet.getInt(column.getColumnNumber()));
+			value = new Integer(resultSet.getInt(column.getColumnNumber()));
+			if (resultSet.wasNull()) {
+				value = null;
+			}
 		} else {
-			return resultSet.getObject(column.getColumnNumber());
+			value = resultSet.getObject(column.getColumnNumber());
 		}
+		return value;
 	}
 }

@@ -21,7 +21,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	public String getSupportedMediaType() {
 		return "application/json";
 	}
-	
+
 	/**
 	 * Converts flat select results to a JSON array.
 	 * 
@@ -29,6 +29,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	 * @param resultSet results
 	 * @return JSON string
 	 */
+	@Override
 	public String serializeReadFlat(final SqlResource sqlResource, final ResultSet resultSet)
 			throws SQLException {
 		final StringBuilder string = new StringBuilder(1000);
@@ -41,12 +42,12 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			rowCount++;
 			string.append("\n\t\t{ ");
 			final List<ColumnMetaData> columns = sqlResource.getMetaData().getAllReadColumns();
-			final int columnSize = columns.size();
-			for (int i = 0; i < columnSize; i++) {
-				final ColumnMetaData column = columns.get(i);
+			boolean firstPair = true;
+			for (ColumnMetaData column : columns) {
 				if (!column.isNonqueriedForeignKey()) {
-					appendNameValuePair(i == 0, string, column.getColumnLabel(), SqlUtils
-							.getObjectByColumnNumber(column, resultSet));
+					appendNameValuePair(firstPair, string, column.getColumnLabel(),
+							SqlUtils.getObjectByColumnNumber(column, resultSet));
+					firstPair = false;
 				}
 			}
 			string.append(" }");
@@ -63,6 +64,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	 * @param results results
 	 * @return JSON string
 	 */
+	@Override
 	public String serializeReadHierarchical(final SqlResource sqlResource,
 			final List<Map<String, Object>> results) {
 		final StringBuilder string = new StringBuilder(results.size() * 100);
@@ -77,6 +79,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	 * 
 	 * @param rowsAffected rows affected
 	 */
+	@Override
 	public String serializeWrite(final int rowsAffected) {
 		final StringBuilder string = new StringBuilder(250);
 		string.append("{ ");
@@ -85,27 +88,25 @@ public class JsonResponseSerializer implements ResponseSerializer {
 		return string.toString();
 	}
 
-	// Private utils
+	// Package level utils (for testability)
 
-	private void appendNameValuePair(final boolean firstPair, final StringBuilder string, final String name,
+	void appendNameValuePair(final boolean firstPair, final StringBuilder string, final String name,
 			final Object value) {
-		if (value != null) {
-			if (!firstPair) {
-				string.append(", ");
-			}
-			string.append(JsonUtil.quote(name));
-			string.append(": ");
-			if (value instanceof Number) {
-				string.append(value); 
-			} else if (value instanceof Boolean) {
-				string.append(value);
-			} else {
-				string.append(JsonUtil.quote(value.toString()));
-			}
+		if (!firstPair) {
+			string.append(", ");
+		}
+		string.append(JsonUtil.quote(name));
+		string.append(": ");
+		if (value == null || value instanceof Number || value instanceof Boolean) {
+			string.append(value);
+		} else {
+			string.append(JsonUtil.quote(value.toString()));
 		}
 	}
 
-	private void appendReadDocEnd(final StringBuilder string, boolean emptyResults) {
+	// Private utils
+
+	private void appendReadDocEnd(final StringBuilder string, final boolean emptyResults) {
 		if (emptyResults) {
 			string.append("] }");
 		} else {
@@ -135,12 +136,12 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			}
 
 			// Do parent attribute columns
-			int columnNumber = 0;
+			boolean firstPair = true;
 			for (final String columnLabel : row.keySet()) {
-				columnNumber++;
 				final Object value = row.get(columnLabel);
 				if (!(value instanceof List<?>)) {
-					appendNameValuePair(columnNumber == 1, string, columnLabel, value);
+					appendNameValuePair(firstPair, string, columnLabel, value);
+					firstPair = false;
 				} else {
 					childRows = (List<Map<String, Object>>) value;
 				}

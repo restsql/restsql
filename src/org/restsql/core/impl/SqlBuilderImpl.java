@@ -353,10 +353,12 @@ public class SqlBuilderImpl implements SqlBuilder {
 
 	private boolean containsWildcard(final String value) {
 		boolean contains = false;
-		final int index = value.indexOf("%");
-		contains = index > -1;
-		if (index > 0 && value.charAt(index - 1) == '\\') {
-			contains = false; // wildcard escaped, literal value desired
+		if (value != null) {
+			final int index = value.indexOf("%");
+			contains = index > -1;
+			if (index > 0 && value.charAt(index - 1) == '\\') {
+				contains = false; // wildcard escaped, literal value desired
+			}
 		}
 		return contains;
 	}
@@ -393,11 +395,14 @@ public class SqlBuilderImpl implements SqlBuilder {
 	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
 			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql)
 			throws InvalidRequestException {
+		// Append the name
 		if (requestType == Request.Type.SELECT) {
 			sql.append(column.getQualifiedColumnName());
 		} else {
 			sql.append(column.getColumnName());
 		}
+		
+		// Append the operator
 		if (param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			sql.append(" LIKE ");
 		} else {
@@ -423,11 +428,14 @@ public class SqlBuilderImpl implements SqlBuilder {
 									+ param.getOperator());
 			}
 		}
-		if (column.isCharType() || column.isDateTimeType()) {
+		
+		// Append the value
+		String value = param.getValue();
+		if ((value != null) && (column.isCharType() || column.isDateTimeType())) {
 			sql.append('\'');
 		}
 		sql.append(param.getValue());
-		if (column.isCharType() || column.isDateTimeType()) {
+		if ((value != null) && (column.isCharType() || column.isDateTimeType())) {
 			sql.append('\'');
 		}
 	}
