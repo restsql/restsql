@@ -53,11 +53,8 @@ public interface ColumnMetaData {
 	/** Returns table name. */
 	public String getTableName();
 
-	/** Returns true if column is a character string, for example char or varchar. */
-	public boolean isCharType();
-
-	/** Returns true if column is a date, time or timestamp. */
-	public boolean isDateTimeType();
+	/** Returns true if column is a character string or date, time or timestamp. */
+	public boolean isCharOrDateTimeType();
 
 	/**
 	 * Returns true for foreign key columns not declared in the SQL Resource query but added by the framework. These are

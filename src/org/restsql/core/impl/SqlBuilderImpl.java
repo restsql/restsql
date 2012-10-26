@@ -22,6 +22,7 @@ import org.restsql.core.TableMetaData;
  * @author Mark Sawers
  * @todo optimize - save sql or change to prepared statement?
  * @todo handle parameter string escaping
+ * @todo handle wildcard escaping
  */
 public class SqlBuilderImpl implements SqlBuilder {
 	private static final int DEFAULT_DELETE_SIZE = 100;
@@ -192,11 +193,11 @@ public class SqlBuilderImpl implements SqlBuilder {
 						sql.getClause().append(',');
 					}
 					sql.getMain().append(column.getColumnName()); // since parameter may use column label
-					if (column.isCharType() || column.isDateTimeType()) {
+					if (column.isCharOrDateTimeType()) {
 						sql.getClause().append('\'');
 					}
 					sql.getClause().append(param.getValue());
-					if (column.isCharType() || column.isDateTimeType()) {
+					if (column.isCharOrDateTimeType()) {
 						sql.getClause().append('\'');
 					}
 				}
@@ -356,9 +357,6 @@ public class SqlBuilderImpl implements SqlBuilder {
 		if (value != null) {
 			final int index = value.indexOf("%");
 			contains = index > -1;
-			if (index > 0 && value.charAt(index - 1) == '\\') {
-				contains = false; // wildcard escaped, literal value desired
-			}
 		}
 		return contains;
 	}
@@ -388,9 +386,9 @@ public class SqlBuilderImpl implements SqlBuilder {
 	}
 
 	/**
-	 * Adds the SQL selector for the parameter pair with an appropriate operator (=, >, <, >=, <=, or LIKE).
+	 * Adds the SQL selector for the parameter pair with an appropriate operator (=, >, <, >=, <=, LIKE or IN).
 	 * 
-	 * @throws InvalidRequestException if unexpected operator is found
+	 * @throws InvalidRequestException if unexpected operator is found (Escaped is only for internal use)
 	 */
 	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
 			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql)
@@ -401,7 +399,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		} else {
 			sql.append(column.getColumnName());
 		}
-		
+
 		// Append the operator
 		if (param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			sql.append(" LIKE ");
@@ -409,6 +407,9 @@ public class SqlBuilderImpl implements SqlBuilder {
 			switch (param.getOperator()) {
 				case Equals:
 					sql.append(" = ");
+					break;
+				case In:
+					sql.append(" IN ");
 					break;
 				case LessThan:
 					sql.append(" < ");
@@ -428,15 +429,32 @@ public class SqlBuilderImpl implements SqlBuilder {
 									+ param.getOperator());
 			}
 		}
-		
+
 		// Append the value
-		String value = param.getValue();
-		if ((value != null) && (column.isCharType() || column.isDateTimeType())) {
+		if (param.getOperator() == Operator.In) {
+			sql.append("(");
+			boolean firstValue = true;
+			for (String value : param.getInValues()) {
+				if (!firstValue){
+					sql.append(",");
+				}
+				appendValue(sql, value, column.isCharOrDateTimeType());
+				firstValue = false;
+			}
+			sql.append(")");
+		} else {
+			appendValue(sql, param.getValue(), column.isCharOrDateTimeType());
+		}
+	}
+
+	private void appendValue(final StringBuffer sql, final String value, final boolean charOrDateTimeType) {
+		if ((value != null) && charOrDateTimeType) {
 			sql.append('\'');
 		}
-		sql.append(param.getValue());
-		if ((value != null) && (column.isCharType() || column.isDateTimeType())) {
+		sql.append(value);
+		if ((value != null) && charOrDateTimeType) {
 			sql.append('\'');
 		}
 	}
+
 }

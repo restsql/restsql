@@ -184,8 +184,8 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	}
 
 	@Override
-	public boolean isCharType() {
-		boolean charType = false;
+	public boolean isCharOrDateTimeType() {
+		boolean charOrDateTimeType = false;
 		switch (columnType) {
 			case Types.CHAR:
 			case Types.NCHAR:
@@ -193,29 +193,17 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 			case Types.NVARCHAR:
 			case Types.LONGVARCHAR:
 			case Types.LONGNVARCHAR:
-				charType = true;
-				break;
-
-			default:
-				// do nothing
-		}
-		return charType;
-	}
-
-	@Override
-	public boolean isDateTimeType() {
-		boolean dateTimeType = false;
-		switch (columnType) {
 			case Types.TIME:
 			case Types.TIMESTAMP:
 			case Types.DATE:
-				dateTimeType = true;
+			case Types.OTHER:	// postgresql driver returns this for char-type enums
+				charOrDateTimeType = true;
 				break;
 
 			default:
 				// do nothing
 		}
-		return dateTimeType;
+		return charOrDateTimeType;
 	}
 
 	@Override

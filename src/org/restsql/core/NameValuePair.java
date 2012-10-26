@@ -1,6 +1,10 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 /**
  * Encapsulates name and value for collections of request identifiers and parameters. Also models the operator for
  * parameters.
@@ -9,9 +13,32 @@ package org.restsql.core;
  * @see Request
  */
 public class NameValuePair {
+
+	/** Parses list of comma separated values from a string. */
+	public static List<String> parseInValues(final String value) {
+		List<String> list = new ArrayList<String>();
+		String values = value.substring(1, value.length() - 1);
+		StringTokenizer tokenizer = new StringTokenizer(values, ",");
+		String lastValue = null;
+		while (tokenizer.hasMoreTokens()) {
+			String token = tokenizer.nextToken();
+			if (lastValue != null && lastValue.charAt(lastValue.length() - 1) == '\\') {
+				// Was an escaped delimiter so strip escape and append this token to it
+				String newValue = lastValue.substring(0, lastValue.length() - 1) + "," + token;
+				list.set(list.size() - 1, newValue);
+				lastValue = newValue;
+			} else {
+				list.add(token);
+				lastValue = token;
+			}
+		}
+		
+		return list;
+	}
+
 	/**
-	 * Parses operator from beginning of value (<, <=, > or >=). If an escaped comparison operator is found, it removes
-	 * the escape character. If no operator is found, it returns Equal.
+	 * Parses operator from beginning of value (<, <=, > or >=) or enclosing brackets for the In operator. If an escaped
+	 * comparison operator is found, it returns Escaped operator. If no operator is found, it returns Equal.
 	 */
 	public static Operator parseOperatorFromValue(final String value) {
 		Operator operator = Operator.Equals;
@@ -27,7 +54,10 @@ public class NameValuePair {
 			} else {
 				operator = Operator.GreaterThan;
 			}
-		} else if (value.charAt(0) == '\\' && (value.charAt(1) == '<' || value.charAt(1) == '>')) {
+		} else if (value.charAt(0) == '(' && value.charAt(value.length() - 1) == ')') {
+			operator = Operator.In;
+		} else if (value.charAt(0) == '\\' && value.length() > 2
+				&& (value.charAt(1) == '<' || value.charAt(1) == '>' || value.charAt(1) == '(')) {
 			operator = Operator.Escaped;
 		}
 		return operator;
@@ -47,11 +77,12 @@ public class NameValuePair {
 			case GreaterThanOrEqualTo:
 				return value.substring(2);
 
-			default: // case Equals
+			default: // case Equals, In
 				return value;
 		}
 	}
 
+	private List<String> inValues;
 	private final String name, value;
 	private Operator operator;
 
@@ -62,6 +93,8 @@ public class NameValuePair {
 		this.value = stripOperatorFromValue(this.operator, value);
 		if (this.operator == Operator.Escaped) {
 			this.operator = Operator.Equals;
+		} else if (this.operator == Operator.In) {
+			this.inValues = parseInValues(this.value);
 		}
 	}
 
@@ -70,6 +103,11 @@ public class NameValuePair {
 		this.name = name;
 		this.value = value;
 		this.operator = Operator.Equals;
+	}
+
+	/** Returns the In list values. **/
+	public List<String> getInValues() {
+		return inValues;
 	}
 
 	/** Returns name. */
@@ -94,6 +132,6 @@ public class NameValuePair {
 
 	/** Represents all operations for parameters. Note Escaped is for internal use only. */
 	public static enum Operator {
-		Equals, Escaped, LessThan, LessThanOrEqualTo, GreaterThan, GreaterThanOrEqualTo;
+		Equals, Escaped, In, LessThan, LessThanOrEqualTo, GreaterThan, GreaterThanOrEqualTo;
 	}
 }
