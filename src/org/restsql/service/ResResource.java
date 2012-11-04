@@ -50,22 +50,22 @@ public class ResResource {
 	@Path("{resName}/{resId1}")
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String requestBody,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1 }, null,
-				requestBody, requestMediaType, acceptMediaType, securityContext);
+				requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
 	@Path("{resName}/{resId1}/{resId2}")
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1, resId2 },
-				null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
@@ -73,21 +73,21 @@ public class ResResource {
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String requestBody,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.DELETE, resName, new String[] { resId1, resId2,
-				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				resId3 }, null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@DELETE
 	@Path("{resName}")
 	public Response delete(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequest(httpRequest, Type.DELETE, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, contentMediaType,
 				acceptMediaType, securityContext);
 	}
 
@@ -190,34 +190,34 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response post(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
 		return executeRequest(httpRequest, Type.INSERT, resName, null, null, getNameValuePairs(formParams),
-				requestBody, requestMediaType, acceptMediaType, securityContext);
+				requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}/{resId1}")
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String requestBody,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1 }, null,
-				requestBody, requestMediaType, acceptMediaType, securityContext);
+				requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}/{resId1}/{resId2}")
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1, resId2 },
-				null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
@@ -225,21 +225,21 @@ public class ResResource {
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String requestBody,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.INSERT, resName, new String[] { resId1, resId2,
-				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				resId3 }, null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@POST
 	@Path("{resName}")
 	public Response post(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequest(httpRequest, Type.INSERT, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, contentMediaType,
 				acceptMediaType, securityContext);
 	}
 
@@ -248,13 +248,13 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams, @Context final UriInfo uriInfo,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
 		return executeRequest(httpRequest, Type.UPDATE, resName, null,
 				getNameValuePairs(uriInfo.getQueryParameters()), getNameValuePairs(formParams), requestBody,
-				requestMediaType, acceptMediaType, securityContext);
+				contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
@@ -262,23 +262,23 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			final MultivaluedMap<String, String> formParams,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
 		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1 },
-				getNameValuePairs(formParams), requestBody, requestMediaType, acceptMediaType,
+				getNameValuePairs(formParams), requestBody, contentMediaType, acceptMediaType,
 				securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}")
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1 }, null,
-				requestBody, requestMediaType, acceptMediaType, securityContext);
+				requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
@@ -286,12 +286,12 @@ public class ResResource {
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final MultivaluedMap<String, String> formParams,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		final String requestBody = HttpRequestHelper.getRequestBodyFromFormParams(formParams);
 		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2 },
-				getNameValuePairs(formParams), requestBody, requestMediaType, acceptMediaType,
+				getNameValuePairs(formParams), requestBody, contentMediaType, acceptMediaType,
 				securityContext);
 	}
 
@@ -299,32 +299,32 @@ public class ResResource {
 	@Path("{resName}/{resId1}/{resId2}")
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final String requestBody,
-			@HeaderParam("Content-Type") String requestMediaType,
+			@HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2 },
-				null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequestParseResIds(httpRequest, Type.UPDATE, resName, new String[] { resId1, resId2,
-				resId3 }, null, requestBody, requestMediaType, acceptMediaType, securityContext);
+				resId3 }, null, requestBody, contentMediaType, acceptMediaType, securityContext);
 	}
 
 	@PUT
 	@Path("{resName}")
 	public Response put(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
-			final String requestBody, @HeaderParam("Content-Type") String requestMediaType,
+			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
 		return executeRequest(httpRequest, Type.UPDATE, resName, null, null,
-				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, requestMediaType,
+				getNameValuePairs(uriInfo.getQueryParameters()), requestBody, contentMediaType,
 				acceptMediaType, securityContext);
 	}
 
@@ -333,10 +333,11 @@ public class ResResource {
 	/** Processes the request. The central method of this resource class. */
 	private Response executeRequest(HttpServletRequest httpRequest, final Request.Type requestType,
 			final String resName, SqlResource sqlResource, final List<NameValuePair> resIds,
-			final List<NameValuePair> params, final String requestBody, String requestMediaType,
+			final List<NameValuePair> params, final String requestBody, String contentMediaType,
 			String acceptMediaType, SecurityContext securityContext) {
 
-		// Determine the response media type and create http attributes structure
+		// Determine the media types and create http attributes structure
+		String requestMediaType = RequestUtil.getRequestMediaType(contentMediaType);
 		String responseMediaType = RequestUtil
 				.getResponseMediaType(params, requestMediaType, acceptMediaType);
 		final HttpRequestAttributes httpAttributes = HttpRequestHelper.getHttpRequestAttributes(httpRequest,
@@ -408,7 +409,7 @@ public class ResResource {
 	 */
 	private Response executeRequestParseResIds(HttpServletRequest httpRequest,
 			final Request.Type requestType, final String resName, final String[] resIdValues,
-			final List<NameValuePair> params, final String requestBody, String requestMediaType,
+			final List<NameValuePair> params, final String requestBody, String contentMediaType,
 			String acceptMediaType, SecurityContext securityContext) {
 		final SqlResource sqlResource;
 		final List<NameValuePair> resIds;
@@ -416,10 +417,10 @@ public class ResResource {
 			sqlResource = Factory.getSqlResource(resName);
 			resIds = RequestUtil.getResIds(sqlResource, resIdValues);
 		} catch (final SqlResourceException exception) {
-			return handleException(httpRequest, requestBody, requestMediaType, exception, null);
+			return handleException(httpRequest, requestBody, contentMediaType, exception, null);
 		}
 		return executeRequest(httpRequest, requestType, resName, sqlResource, resIds, params, requestBody,
-				requestMediaType, acceptMediaType, securityContext);
+				contentMediaType, acceptMediaType, securityContext);
 	}
 
 	/** Converts form or query params into a list of NameValuePairs. */

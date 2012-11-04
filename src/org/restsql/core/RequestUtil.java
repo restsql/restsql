@@ -20,6 +20,7 @@ public class RequestUtil {
 
 	// Note that the default media type, application/xml, must be the **LAST** one added!
 	static {
+		supportedMediaTypes.add("application/x-www-form-urlencoded");
 		supportedMediaTypes.add("application/json");
 		supportedMediaTypes.add("application/xml");
 	}
@@ -59,6 +60,22 @@ public class RequestUtil {
 		return resIds;
 	}
 
+	/** Returns best match for Content-Type header or the original media type if it doesn't match. */
+	public static String getRequestMediaType(final String contentMediaType) {
+		String requestMediaType = null;
+		if (contentMediaType != null && contentMediaType.length() > 0) {
+			try {
+				requestMediaType = MediaTypeParser.bestMatch(supportedMediaTypes, contentMediaType);
+				if (requestMediaType == null || requestMediaType.length() == 0) {
+					requestMediaType = contentMediaType;
+				}
+			} catch (Exception exception) {
+				requestMediaType = contentMediaType;
+			}
+		}
+		return requestMediaType;
+	}
+
 	/**
 	 * Determines content type from parameters, and removing the output param if present. If it is not present then uses
 	 * the accept media type. The accept media type can be single mime-type or an Accept header string with multiple
@@ -86,8 +103,11 @@ public class RequestUtil {
 			}
 		}
 		if (responseMediaType == null) {
-			if (acceptMediaType != null) {
+			if (acceptMediaType != null && acceptMediaType.length() > 0) {
 				responseMediaType = MediaTypeParser.bestMatch(supportedMediaTypes, acceptMediaType);
+				if (responseMediaType == null || responseMediaType.length() == 0) {
+					responseMediaType = acceptMediaType;
+				}
 			} else if (requestMediaType == null
 					|| requestMediaType.equals("application/x-www-form-urlencoded")) {
 				responseMediaType = HttpRequestAttributes.DEFAULT_MEDIA_TYPE;
@@ -138,7 +158,8 @@ public class RequestUtil {
 									+ first + " and " + second + " operators");
 						}
 					} else {
-						throw new InvalidRequestException("Parameter " + name + " found " + list.size() + " times");
+						throw new InvalidRequestException("Parameter " + name + " found " + list.size()
+								+ " times");
 					}
 				}
 			}
