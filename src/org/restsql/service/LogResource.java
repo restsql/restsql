@@ -12,8 +12,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Config;
 
@@ -33,7 +33,7 @@ public class LogResource {
 	@Produces(MediaType.TEXT_HTML)
 	public Response getLogList(@Context final UriInfo uriInfo) {
 		String baseUri = uriInfo.getBaseUri().toString() + "log/";
-		final StringBuffer body = new StringBuffer(500);
+		final StringBuilder body = new StringBuilder(500);
 		body.append("<html>\n<body style=\"font-family:sans-serif\">\n");
 		body.append("<span style=\"font-weight:bold\">Current Logs</span><br/>");
 		appendCurrentLogAnchor(body, baseUri, "access");
@@ -97,7 +97,7 @@ public class LogResource {
 
 	// Private utils
 
-	private void appendCurrentLogAnchor(StringBuffer body, String baseUri, String log) {
+	private void appendCurrentLogAnchor(StringBuilder body, String baseUri, String log) {
 		body.append("<a href=\"");
 		body.append(baseUri);
 		body.append(log);

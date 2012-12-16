@@ -1,18 +1,88 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.service;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Factory;
+import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.HttpRequestAttributes;
+import org.restsql.core.InvalidRequestException;
+import org.restsql.core.RequestLogger;
+import org.restsql.core.SqlResourceException;
 
 /**
- * Creates {@link HttpRequestAttributes} and request body strings from form params.
+ * Contains service utilities.
  * 
  * @author Mark Sawers
  */
 public class HttpRequestHelper {
+
+	/** Builds HTML page with SQL Resources and actions for each. Used for /restsql/res and /restsql/conf. */
+	public static StringBuffer buildSqlResourceListing(final UriInfo uriInfo) {
+		final StringBuffer requestBody = new StringBuffer(500);
+		requestBody.append("<html>\n<body style=\"font-family:sans-serif\">\n");
+		final String baseUri = uriInfo.getBaseUri().toString();
+		try {
+			final List<String> resNames = Factory.getSqlResourceNames();
+			requestBody.append("<span style=\"font-weight:bold\">SQL Resources</span><br/>\n");
+			if (resNames.size() > 0) {
+				requestBody.append("<table>\n");
+				for (final String resName : resNames) {
+					requestBody.append("<tr><td>");
+					requestBody.append(resName);
+					requestBody.append("</td>");
+
+					// Query
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append("res/");
+					requestBody.append(resName);
+					requestBody.append("?_limit=10&amp;_offset=0\">query</a></td>");
+					
+					// Definition
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append("conf/definition/");
+					requestBody.append(resName);
+					requestBody.append("\">definition</a></td>");
+
+					// Metadata
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append("conf/metadata/");
+					requestBody.append(resName);
+					requestBody.append("\">metadata</a></td>");
+
+					// Reload
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append("conf/reload/");
+					requestBody.append(resName);
+					requestBody.append("\">reload</a></td>");
+
+					requestBody.append("</tr>\n");
+				}
+			} else {
+				requestBody.append("No resource definition files found in ");
+				requestBody.append(Factory.getSqlResourcesDir());
+				requestBody
+						.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
+			}
+			requestBody.append("</table>\n</body>\n</html>");
+		} catch (final SqlResourceFactoryException exception) {
+			requestBody.append(exception.getMessage());
+			requestBody
+					.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
+		}
+		return requestBody;
+	}
 
 	/**
 	 * Creates attributes helper object from http request with a request body.
@@ -52,5 +122,28 @@ public class HttpRequestHelper {
 			string.append(formParams.get(key).get(0));
 		}
 		return string.toString();
+	}
+
+	/**
+	 * Determines exception type, logs issue and returns appropriate http status with the exception message in the body.
+	 */
+	public static Response handleException(final HttpServletRequest httpRequest, final String requestBody,
+			final String requestMediaType, final SqlResourceException exception, RequestLogger requestLogger) {
+		Status status;
+		if (exception instanceof SqlResourceFactoryException) {
+			status = Status.NOT_FOUND;
+		} else if (exception instanceof InvalidRequestException) {
+			status = Status.BAD_REQUEST;
+		} else { // exception instanceof SqlResourceException
+			status = Status.INTERNAL_SERVER_ERROR;
+		}
+		if (requestLogger == null) {
+			requestLogger = Factory.getRequestLogger();
+			final HttpRequestAttributes httpAttribs = getHttpRequestAttributes(httpRequest, requestBody,
+					requestMediaType, requestMediaType);
+			requestLogger.setHttpRequestAttributes(httpAttribs);
+		}
+		requestLogger.log(status.getStatusCode(), exception);
+		return Response.status(status).entity(exception.getMessage()).type(MediaType.TEXT_PLAIN).build();
 	}
 }

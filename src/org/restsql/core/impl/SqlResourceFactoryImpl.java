@@ -27,7 +27,8 @@ import org.restsql.core.sqlresource.ObjectFactory;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
 /**
- * Manages SQL Resource construction.
+ * Manages SQL Resource construction. Loads definitions from XML files in the directory <code>sqlresources.dir</code> on
+ * first request. Use {@link #reloadSqlResource(String)} to refresh with the latest definition.
  * 
  * @author Mark Sawers
  */
@@ -91,8 +92,19 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 		return sqlResources.containsKey(name);
 	}
 
+	/**
+	 * Reloads definition using the current file. Note this operation is not thread safe and should be run in
+	 * development mode only.
+	 */
+	@Override
+	public void reloadSqlResource(final String resName) throws SqlResourceFactoryException,
+			SqlResourceException {
+		sqlResources.remove(resName);
+		getSqlResource(resName);
+	}
+
 	// Package methods
-	
+
 	/**
 	 * Returns available SQL Resource names using the provided directory. Used by testing infrastructure.
 	 * 

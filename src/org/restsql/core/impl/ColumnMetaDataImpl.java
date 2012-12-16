@@ -3,6 +3,10 @@ package org.restsql.core.impl;
 
 import java.sql.Types;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.SqlResourceMetaData;
 
@@ -10,26 +14,57 @@ import org.restsql.core.SqlResourceMetaData;
  * Represents column (field) metadata.
  * 
  * @author Mark Sawers
+ * @todo remove circular dependency with SqlResourceMetaData in buildQualifiedColumnName()
  */
+@XmlType(name = "ColumnMetaData", namespace = "http://restsql.org/schema")
 public class ColumnMetaDataImpl implements ColumnMetaData {
-	private final String columnLabel;
-	private final String columnName;
-	private final int columnNumber;
+	@XmlAttribute(required = true)
+	private String columnLabel;
+
+	@XmlAttribute(required = true)
+	private String columnName;
+
+	@XmlAttribute(required = true)
+	private int columnNumber;
+
+	@XmlAttribute(required = true)
 	private int columnType;
-	private final String columnTypeName;
-	private final String databaseName;
+
+	@XmlAttribute(required = true)
+	private String columnTypeName;
+
+	@XmlAttribute(required = true)
+	private String databaseName;
+
+	@XmlAttribute
 	private boolean nonqueriedForeignKey;
+
+	@XmlAttribute
 	private boolean primaryKey;
+
+	@XmlAttribute(required = true)
 	private String qualifiedColumnName;
-	private final String qualifiedTableName;
+
+	@XmlAttribute(required = true)
+	private String qualifiedTableName;
+
+	@XmlAttribute
 	private boolean readOnly;
-	private SqlResourceMetaData sqlResourceMetadata;
-	private final String tableName;
+
+	@XmlTransient
+	private SqlResourceMetaData sqlResourceMetadata; // evil circular dependency - what was I thinking?
+
+	@XmlAttribute(required = true)
+	private String tableName;
+
+	// No-arg ctor required for JAXB
+	public ColumnMetaDataImpl() {
+	}
 
 	ColumnMetaDataImpl(final int columnNumber, final String databaseName, final String qualifiedTableName,
 			final String tableName, final String columnName, final String columnLabel,
 			final String columnTypeName, final int columnType, final boolean readOnly,
-			SqlResourceMetaData sqlResourceMetaData) {
+			final SqlResourceMetaData sqlResourceMetaData) {
 		this.columnNumber = columnNumber;
 		this.databaseName = databaseName;
 		this.qualifiedTableName = qualifiedTableName;
@@ -39,7 +74,8 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		this.columnTypeName = columnTypeName;
 		this.columnType = columnType;
 		this.readOnly = readOnly;
-		this.sqlResourceMetadata = sqlResourceMetaData;
+		sqlResourceMetadata = sqlResourceMetaData;
+		buildQualifiedColumnName();
 	}
 
 	/**
@@ -47,7 +83,8 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	 * child extensions, parent extensions and child tables.
 	 */
 	ColumnMetaDataImpl(final String databaseName, final String sqlQualifiedTableName, final String tableName,
-			final String columnName, final String columnLabel, final String columnTypeString, SqlResourceMetaData sqlResourceMetaData) {
+			final String columnName, final String columnLabel, final String columnTypeString,
+			final SqlResourceMetaData sqlResourceMetaData) {
 		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnLabel, columnTypeString, 0,
 				false, sqlResourceMetaData);
 		if (columnTypeString.equalsIgnoreCase("BIT")) {
@@ -159,17 +196,6 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 
 	@Override
 	public String getQualifiedColumnName() {
-		if (qualifiedColumnName == null) {
-			StringBuilder name = new StringBuilder(100);
-			if (sqlResourceMetadata.hasMultipleDatabases()) {
-				name.append(getQualifiedTableName());
-			} else {
-				name.append(getTableName());
-			}
-			name.append('.');
-			name.append(getColumnName());
-			qualifiedColumnName = name.toString();
-		}
 		return qualifiedColumnName;
 	}
 
@@ -196,7 +222,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 			case Types.TIME:
 			case Types.TIMESTAMP:
 			case Types.DATE:
-			case Types.OTHER:	// postgresql driver returns this for char-type enums
+			case Types.OTHER: // postgresql driver returns this for char-type enums
 				charOrDateTimeType = true;
 				break;
 
@@ -223,5 +249,17 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 
 	void setPrimaryKey(final boolean primaryKey) {
 		this.primaryKey = primaryKey;
+	}
+
+	private void buildQualifiedColumnName() {
+		final StringBuilder name = new StringBuilder(100);
+		if (sqlResourceMetadata.hasMultipleDatabases()) {
+			name.append(getQualifiedTableName());
+		} else {
+			name.append(getTableName());
+		}
+		name.append('.');
+		name.append(getColumnName());
+		qualifiedColumnName = name.toString();
 	}
 }

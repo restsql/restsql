@@ -24,9 +24,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Config;
 import org.restsql.core.Factory;
-import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.HttpRequestAttributes;
-import org.restsql.core.InvalidRequestException;
 import org.restsql.core.NameValuePair;
 import org.restsql.core.Request;
 import org.restsql.core.Request.Type;
@@ -43,8 +41,6 @@ import org.restsql.security.SecurityFactory;
  */
 @Path("res")
 public class ResResource {
-	private static final String PARAM_DEFINITION = "_definition";
-	private static final String PARAM_METADATA = "_metadata";
 
 	@DELETE
 	@Path("{resName}/{resId1}")
@@ -126,62 +122,14 @@ public class ResResource {
 	public Response get(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
-		if (uriInfo.getQueryParameters().containsKey(PARAM_METADATA)) {
-			return Response.ok("Work in progress").type(MediaType.TEXT_PLAIN_TYPE).build();
-		} else if (uriInfo.getQueryParameters().containsKey(PARAM_DEFINITION)) {
-			try {
-				return Response.ok(Factory.getSqlResourceDefinition(resName))
-						.type(MediaType.APPLICATION_XML_TYPE).build();
-			} catch (final SqlResourceFactoryException exception) {
-				return handleException(httpRequest, null, null, exception, null);
-			}
-		} else {
-			return executeRequest(httpRequest, Request.Type.SELECT, resName, null, null,
-					getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType,
-					securityContext);
-		}
+		return executeRequest(httpRequest, Request.Type.SELECT, resName, null, null,
+				getNameValuePairs(uriInfo.getQueryParameters()), null, null, acceptMediaType, securityContext);
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
-		final StringBuffer requestBody = new StringBuffer(500);
-		requestBody.append("<html>\n<requestBody style=\"font-family:sans-serif\">\n");
-		final String baseUri = uriInfo.getBaseUri().toString() + "res/";
-		try {
-			List<String> resNames = Factory.getSqlResourceNames();
-			requestBody.append("<span style=\"font-weight:bold\">SQL Resources</span><br/>\n");
-			if (resNames.size() > 0) {
-				requestBody.append("<table>\n");
-				for (final String resName : resNames) {
-					requestBody.append("<tr><td>");
-					requestBody.append(resName);
-					requestBody.append("</td><td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append(resName);
-					requestBody.append("?_limit=10&amp;_offset=0\">query</a></td>");
-					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append(resName);
-					requestBody.append("?_definition\">definition</a></td>");
-					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append(resName);
-					requestBody.append("?_metadata\">metadata</a></td>");
-					requestBody.append("</tr>\n");
-				}
-			} else {
-				requestBody.append("No resource definition files found in ");
-				requestBody.append(Factory.getSqlResourcesDir());
-				requestBody
-						.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
-			}
-			requestBody.append("</table>\n</requestBody>\n</html>");
-		} catch (SqlResourceFactoryException exception) {
-			requestBody.append(exception.getMessage());
-			requestBody
-					.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
-		}
+		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
 		return Response.ok(requestBody.toString()).build();
 	}
 
@@ -399,7 +347,8 @@ public class ResResource {
 					.build();
 
 		} catch (final SqlResourceException exception) {
-			return handleException(httpRequest, requestBody, requestMediaType, exception, requestLogger);
+			return HttpRequestHelper.handleException(httpRequest, requestBody, requestMediaType, exception,
+					requestLogger);
 		}
 	}
 
@@ -417,7 +366,8 @@ public class ResResource {
 			sqlResource = Factory.getSqlResource(resName);
 			resIds = RequestUtil.getResIds(sqlResource, resIdValues);
 		} catch (final SqlResourceException exception) {
-			return handleException(httpRequest, requestBody, contentMediaType, exception, null);
+			return HttpRequestHelper.handleException(httpRequest, requestBody, contentMediaType, exception,
+					null);
 		}
 		return executeRequest(httpRequest, requestType, resName, sqlResource, resIds, params, requestBody,
 				contentMediaType, acceptMediaType, securityContext);
@@ -433,28 +383,5 @@ public class ResResource {
 			}
 		}
 		return params;
-	}
-
-	/**
-	 * Determines exception type, logs issue and returns appropriate http status with the exception message in the body.
-	 */
-	private Response handleException(final HttpServletRequest httpRequest, final String requestBody,
-			String requestMediaType, final SqlResourceException exception, RequestLogger requestLogger) {
-		Status status;
-		if (exception instanceof SqlResourceFactoryException) {
-			status = Status.NOT_FOUND;
-		} else if (exception instanceof InvalidRequestException) {
-			status = Status.BAD_REQUEST;
-		} else { // exception instanceof SqlResourceException
-			status = Status.INTERNAL_SERVER_ERROR;
-		}
-		if (requestLogger == null) {
-			requestLogger = Factory.getRequestLogger();
-			final HttpRequestAttributes httpAttribs = HttpRequestHelper.getHttpRequestAttributes(httpRequest,
-					requestBody, requestMediaType, requestMediaType);
-			requestLogger.setHttpRequestAttributes(httpAttribs);
-		}
-		requestLogger.log(status.getStatusCode(), exception);
-		return Response.status(status).entity(exception.getMessage()).type(MediaType.TEXT_PLAIN).build();
 	}
 }

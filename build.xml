@@ -23,7 +23,6 @@
 			</fileset>
 		</copy>
 
-		<!-- Compile -->
 		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" debug="true">
 			<compilerarg line="-Xlint:all" />
 		</javac>
@@ -38,6 +37,14 @@
 			<depends file="src/resources/xml/SqlResource.xsd" />
 			<produces dir="obj/bin" />
 		</xjc>
+	</target>
+
+	<target name="generate-schema" description="executes jxc on java files">
+		<java classpath="lib/jaxb-xjc.jar" classname="com.sun.tools.jxc.SchemaGenerator">
+			<arg line="-classpath obj/bin;${compile.classpath} -d src/resources/xml src/org/restsql/core/impl/AbstractSqlResourceMetaData.java" />
+		</java>
+		<move file="src/resources/xml/schema1.xsd" tofile="src/resources/xml/SqlResourceMetaData.xsd" />
+		<echo message="PLEASE MANUALLY CHANGE XML TYPE TO CONCRETE !!!" /> 
 	</target>
 
 	<target name="lib" depends="lib-war,lib-src" description="generates binary libs and war">
@@ -168,5 +175,5 @@
 			<tag name="todo" scope="all" description="To do:" />
 		</javadoc>
 	</target>
-	
+
 </project>

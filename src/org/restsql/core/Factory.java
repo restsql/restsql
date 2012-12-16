@@ -165,7 +165,7 @@ public class Factory extends AbstractFactory {
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
 		return sqlResourceFactory.getSqlResourcesDir();
 	}
-	
+
 	/**
 	 * Returns available SQL Resource names.
 	 * 
@@ -175,6 +175,20 @@ public class Factory extends AbstractFactory {
 		final SqlResourceFactory sqlResourceFactory = (SqlResourceFactory) getInstance(
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
 		return sqlResourceFactory.getSqlResourceNames();
+	}
+	
+	/**
+	 * Reloads definition from the source. This operation is not thread safe and should be run in development mode
+	 * only.
+	 * 
+	 * @param resName resource name
+	 * @throws SqlResourceFactoryException if the definition could not be marshalled
+	 * @throws SqlResourceException if a database error occurs while collecting metadata
+	 */
+	public static void reloadSqlResource(final String resName) throws SqlResourceFactoryException, SqlResourceException {
+		final SqlResourceFactory sqlResourceFactory = (SqlResourceFactory) getInstance(
+				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
+		sqlResourceFactory.reloadSqlResource(resName);
 	}
 
 	// Factory Interfaces
@@ -219,6 +233,9 @@ public class Factory extends AbstractFactory {
 		public List<String> getSqlResourceNames() throws SqlResourceFactoryException;
 
 		public String getSqlResourcesDir();
+
+		public void reloadSqlResource(String resName) throws SqlResourceFactoryException,
+				SqlResourceException;
 	}
 
 	/** Indicates an error in creating a SQL Resource object from a definition. */

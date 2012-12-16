@@ -10,6 +10,7 @@
 		<wadl:include href="Request.xsd" />
 		<wadl:include href="Response.xsd" />
 		<wadl:include href="SqlResource.xsd" />
+		<wadl:include href="SqlResourceMetaData.xsd" />
 	</wadl:grammars>
 	<wadl:resources base="/restsql/">
 		<wadl:resource path="res/{resName}">
@@ -50,16 +51,17 @@
 			</wadl:method>
 			<wadl:method name="POST">
 				<wadl:doc title="Description">Creates row using URL-encoded form params or one or
-					more rows in an XML or JSON
+					more rows in an XML
+					or JSON
 					body. For hierarchical SQL Resources, parents and children must be added in
-					separate requests.
+					separate
+					requests.
 				</wadl:doc>
 				<wadl:request>
 					<wadl:representation mediaType="application/x-www-form-urlencoded">
 						<wadl:doc>Create request (in URL-encoded form params)</wadl:doc>
 					</wadl:representation>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
+					<wadl:representation mediaType="application/xml" element="rs:request" href="Request.xsd">
 						<wadl:doc>Create request (in XML)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/json">
@@ -88,7 +90,8 @@
 					params or rows
 					specified in a XML or JSON body.
 					For hierarchical SQL Resources, parents and children must
-					be updated in
+					be
+					updated in
 					separate requests.
 				</wadl:doc>
 				<wadl:request>
@@ -137,8 +140,7 @@
 						required="false">
 						<wadl:doc>Attribute values with which to filter delete set</wadl:doc>
 					</wadl:param>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
+					<wadl:representation mediaType="application/xml" element="rs:request" href="Request.xsd">
 						<wadl:doc>Delete request (in XML)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/json">
@@ -164,8 +166,10 @@
 			</wadl:method>
 		</wadl:resource>
 		<wadl:resource path="res/{resName}/{resId}">
-			<wadl:param name="resId" type="any-scalar" style="template" required="true"
-				repeating="true">
+			<wadl:param name="resName" type="xs:string" style="template" required="true">
+				<wadl:doc>SQL Resource name</wadl:doc>
+			</wadl:param>
+			<wadl:param name="resId" type="any-scalar" style="template" required="true" repeating="true">
 				<wadl:doc>Primary key value. Multiple values allowed for multi-valued primary key.</wadl:doc>
 			</wadl:param>
 			<wadl:method name="GET">
@@ -192,11 +196,11 @@
 				</wadl:response>
 			</wadl:method>
 			<wadl:method name="POST">
-				<wadl:doc title="Description">Creates children rows using XML or JSON body for hierarchical SQL Resources.
+				<wadl:doc title="Description">Creates children rows using XML or JSON body for hierarchical SQL
+					Resources.
 				</wadl:doc>
 				<wadl:request>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
+					<wadl:representation mediaType="application/xml" element="rs:request" href="Request.xsd">
 						<wadl:doc>Create request (in XML)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/json">
@@ -228,13 +232,13 @@
 					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
 						required="false">
 						<wadl:doc>Attribute values with which to filter update set. Use only with
-							URL-encoded form params</wadl:doc>
+							URL-encoded form
+							params</wadl:doc>
 					</wadl:param>
 					<wadl:representation mediaType="application/x-www-form-urlencoded">
 						<wadl:doc>Update request (in URL-encoded form params)</wadl:doc>
 					</wadl:representation>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
+					<wadl:representation mediaType="application/xml" element="rs:request" href="Request.xsd">
 						<wadl:doc>Update request (in XML)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/json">
@@ -266,8 +270,7 @@
 					deletes all children contained in the XML or JSON body.
 				</wadl:doc>
 				<wadl:request>
-					<wadl:representation mediaType="application/xml" element="rs:request"
-						href="Request.xsd">
+					<wadl:representation mediaType="application/xml" element="rs:request" href="Request.xsd">
 						<wadl:doc>Optional delete request for children (in XML)</wadl:doc>
 					</wadl:representation>
 					<wadl:representation mediaType="application/json">
@@ -293,17 +296,75 @@
 			</wadl:method>
 		</wadl:resource>
 		<wadl:resource path="conf">
-			<wadl:method name="GET">
-				<wadl:doc title="Description">Returns general framework configuration</wadl:doc>
-				<wadl:response>
-					<wadl:representation mediaType="text/plain" />
-				</wadl:response>
-			</wadl:method>
+			<wadl:resource path="system">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns general restSQL framework configuration</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
 			<wadl:resource path="log">
 				<wadl:method name="GET">
 					<wadl:doc title="Description">Returns logging configuration</wadl:doc>
 					<wadl:response>
 						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+			<wadl:resource path="definition/{resName}">
+				<wadl:param name="resName" type="xs:string" style="template" required="true">
+					<wadl:doc>SQL Resource name</wadl:doc>
+				</wadl:param>
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns SQL Resource definition (from user-provided XML file)
+					</wadl:doc>
+					<wadl:doc title="Example">definition/film</wadl:doc>
+					<wadl:response status="200">
+						<wadl:doc title="OK">Normal response</wadl:doc>
+						<wadl:representation mediaType="application/xml" element="rs:sqlResource"
+							href="SqlResource.xsd">
+							<wadl:doc title="SQL Resource definition" />
+						</wadl:representation>
+					</wadl:response>
+					<wadl:response status="404">
+						<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+			<wadl:resource path="metadata/{resName}">
+				<wadl:param name="resName" type="xs:string" style="template" required="true">
+					<wadl:doc>SQL Resource name</wadl:doc>
+				</wadl:param>
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns SQL Resource metadata as understood by restSQL
+						</wadl:doc>
+					<wadl:doc title="Example">metadata/film</wadl:doc>
+					<wadl:response status="200">
+						<wadl:doc title="OK">Normal response</wadl:doc>
+						<wadl:representation mediaType="application/xml" element="rs:sqlResourceMetaData"
+							href="SqlResourceMetaData.xsd">
+							<wadl:doc title="SQL Resource metadata" />
+						</wadl:representation>
+					</wadl:response>
+					<wadl:response status="404">
+						<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
+			<wadl:resource path="reload/{resName}">
+				<wadl:param name="resName" type="xs:string" style="template" required="true">
+					<wadl:doc>SQL Resource name</wadl:doc>
+				</wadl:param>
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Reloads SQL Resource definition (from user-provided XML file)
+						</wadl:doc>
+					<wadl:doc title="Example">reload/film</wadl:doc>
+					<wadl:response status="200">
+						<wadl:doc title="OK">Normal response</wadl:doc>
+					</wadl:response>
+					<wadl:response status="404">
+						<wadl:doc title="Not Found">Invalid SQL Resource name</wadl:doc>
 					</wadl:response>
 				</wadl:method>
 			</wadl:resource>
@@ -355,7 +416,7 @@
 				<wadl:doc title="Description">Returns restSQL WADL</wadl:doc>
 				<wadl:response>
 					<wadl:representation mediaType="application/xml" />
-					<!-- <wadl:representation mediaType="application/vnd.sun.wadl" />  -->
+					<!-- <wadl:representation mediaType="application/vnd.sun.wadl" /> -->
 				</wadl:response>
 			</wadl:method>
 		</wadl:resource>

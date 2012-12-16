@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" targetNamespace="http://restsql.org/schema" xmlns:rs="http://restsql.org/schema" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="sqlResourceMetaData" type="rs:SqlResourceMetaData"/>
+
+  <xs:complexType name="SqlResourceMetaData" abstract="false">
+    <xs:sequence>
+      <xs:element name="tables">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="table" type="rs:TableMetaData" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="parentTable" type="xs:string"/>
+      <xs:element name="childTable" type="xs:string" minOccurs="0"/>
+      <xs:element name="joinTable" type="xs:string" minOccurs="0"/>
+      <xs:element name="parentPlusExtTables">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="table" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="childPlusExtTables">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="table" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="joinTables" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="table" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="allReadColumns">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="column" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="parentReadColumns">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="column" type="xs:string" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="childReadColumns">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="column" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="resName" type="xs:string" use="required"/>
+    <xs:attribute name="hierarchical" type="xs:boolean" use="required"/>
+    <xs:attribute name="multipleDatabases" type="xs:boolean" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="TableMetaData">
+    <xs:sequence>
+      <xs:element name="columns">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="column" type="rs:ColumnMetaData" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="primaryKeys" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="column" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="databaseName" type="xs:string" use="required"/>
+    <xs:attribute name="tableName" type="xs:string" use="required"/>
+    <xs:attribute name="tableAlias" type="xs:string" use="required"/>
+    <xs:attribute name="qualifiedTableName" type="xs:string" use="required"/>
+    <xs:attribute name="tableRole" type="rs:tableRole" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="ColumnMetaData">
+    <xs:sequence/>
+    <xs:attribute name="tableName" type="xs:string" use="required"/>
+    <xs:attribute name="readOnly" type="xs:boolean" use="required"/>
+    <xs:attribute name="qualifiedTableName" type="xs:string" use="required"/>
+    <xs:attribute name="qualifiedColumnName" type="xs:string" use="required"/>
+    <xs:attribute name="primaryKey" type="xs:boolean" use="required"/>
+    <xs:attribute name="nonqueriedForeignKey" type="xs:boolean" use="required"/>
+    <xs:attribute name="databaseName" type="xs:string" use="required"/>
+    <xs:attribute name="columnTypeName" type="xs:string" use="required"/>
+    <xs:attribute name="columnType" type="xs:int" use="required"/>
+    <xs:attribute name="columnNumber" type="xs:int" use="required"/>
+    <xs:attribute name="columnName" type="xs:string" use="required"/>
+    <xs:attribute name="columnLabel" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:simpleType name="tableRole">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Child"/>
+      <xs:enumeration value="ChildExtension"/>
+      <xs:enumeration value="Join"/>
+      <xs:enumeration value="Parent"/>
+      <xs:enumeration value="ParentExtension"/>
+      <xs:enumeration value="Unknown"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
+

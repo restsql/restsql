@@ -2,9 +2,16 @@
 package org.restsql.core.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.TableMetaData;
@@ -15,14 +22,42 @@ import org.restsql.core.TableMetaData;
  * @author Mark Sawers
  * @see ColumnMetaData
  */
+@XmlType(name = "TableMetaData", namespace = "http://restsql.org/schema", propOrder = { "databaseName",
+		"tableName", "tableAlias", "qualifiedTableName", "tableRole", "columnList", "primaryKeyNames" })
 public class TableMetaDataImpl implements TableMetaData {
-	private final Map<String, ColumnMetaData> columns;
-	private final String databaseName;
-	private final List<ColumnMetaData> primaryKeys;
-	private final String qualifiedTableName;
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "columns", required = true)
+	@XmlElement(name = "column", type = ColumnMetaDataImpl.class, required = true)
+	private Collection<ColumnMetaData> columnList;
+
+	@XmlTransient
+	private Map<String, ColumnMetaData> columnMap;
+
+	@XmlAttribute(required = true)
+	private String databaseName;
+
+	@XmlTransient
+	private List<ColumnMetaData> primaryKeys;
+
+	@XmlElementWrapper(name = "primaryKeys")
+	@XmlElement(name = "column")
+	private List<String> primaryKeyNames;
+
+	@XmlAttribute(required = true)
+	private String qualifiedTableName;
+
+	@XmlAttribute(required = true)
 	private String tableAlias;
-	private final String tableName;
-	private final TableRole tableRole;
+
+	@XmlAttribute(required = true)
+	private String tableName;
+
+	@XmlAttribute(required = true)
+	private TableRole tableRole;
+
+	// No-arg ctor required for JAXB
+	public TableMetaDataImpl() {
+	}
 
 	public TableMetaDataImpl(final String tableName, final String qualifedTableName,
 			final String databaseName, final TableRole tableRole) {
@@ -32,19 +67,22 @@ public class TableMetaDataImpl implements TableMetaData {
 		this.databaseName = databaseName;
 		this.tableRole = tableRole;
 		primaryKeys = new ArrayList<ColumnMetaData>();
-		columns = new HashMap<String, ColumnMetaData>();
+		primaryKeyNames = new ArrayList<String>();
+		columnMap = new HashMap<String, ColumnMetaData>();
+		columnList = columnMap.values();
 	}
 
 	public void addColumn(final ColumnMetaData column) {
-		columns.put(column.getColumnLabel(), column);
+		columnMap.put(column.getColumnLabel(), column);
 	}
 
 	public void addPrimaryKey(final ColumnMetaData column) {
 		primaryKeys.add(column);
+		primaryKeyNames.add(column.getQualifiedColumnName());
 	}
 
 	public Map<String, ColumnMetaData> getColumns() {
-		return columns;
+		return columnMap;
 	}
 
 	public String getDatabaseName() {

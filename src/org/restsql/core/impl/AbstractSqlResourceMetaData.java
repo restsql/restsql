@@ -1,6 +1,7 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core.impl;
 
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
 
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.Config;
@@ -30,85 +41,187 @@ import org.restsql.core.sqlresource.Table;
  * @todo Read-only columns do not work with PostgreSQL
  * @author Mark Sawers
  */
+@XmlRootElement(name = "sqlResourceMetaData", namespace = "http://restsql.org/schema")
+@XmlType(name = "SqlResourceMetaData", namespace = "http://restsql.org/schema", propOrder = { "resName",
+		"hierarchical", "multipleDatabases", "tables", "parentTableName", "childTableName", "joinTableName",
+		"parentPlusExtTableNames", "childPlusExtTableNames", "joinTableNames", "allReadColumnNames",
+		"parentReadColumnNames", "childReadColumnNames" })
 public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData {
 	private static final int DEFAULT_NUMBER_DATABASES = 5;
 	private static final int DEFAULT_NUMBER_TABLES = 10;
 
-	private List<ColumnMetaData> allReadColumns, parentReadColumns, childReadColumns;
-	private TableMetaData childTable, parentTable, joinTable;
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "allReadColumns", required = true)
+	@XmlElement(name = "column", required = true)
+	private List<String> allReadColumnNames;
+
+	@XmlTransient
+	private List<ColumnMetaData> allReadColumns;
+
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "childPlusExtTables", required = true)
+	@XmlElement(name = "table")
+	private List<String> childPlusExtTableNames;
+
+	@XmlTransient
+	private List<TableMetaData> childPlusExtTables;
+
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "childReadColumns", required = true)
+	@XmlElement(name = "column")
+	private List<String> childReadColumnNames;
+
+	@XmlTransient
+	private List<ColumnMetaData> childReadColumns;
+
+	@XmlTransient
+	private TableMetaData childTable;
+
+	@SuppressWarnings("unused")
+	@XmlElement(name = "childTable")
+	private String childTableName;
+
+	@XmlTransient
 	private SqlResourceDefinition definition;
+
+	@XmlTransient
+	private boolean extendedMetadataIsBuilt;
+
+	@XmlAttribute
 	private boolean hierarchical;
+
+	@XmlTransient
 	private List<TableMetaData> joinList;
+
+	@XmlTransient
+	private TableMetaData joinTable;
+
+	@SuppressWarnings("unused")
+	@XmlElement(name = "joinTable")
+	private String joinTableName;
+
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "joinTables")
+	@XmlElement(name = "table")
+	private List<String> joinTableNames;
+
+	@XmlAttribute
 	private boolean multipleDatabases;
+
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "parentPlusExtTables", required = true)
+	@XmlElement(name = "table", required = true)
+	private List<String> parentPlusExtTableNames;
+
+	@XmlTransient
+	private List<TableMetaData> parentPlusExtTables;
+
+	@SuppressWarnings("unused")
+	@XmlElementWrapper(name = "parentReadColumns", required = true)
+	@XmlElement(name = "column", required = true)
+	private List<String> parentReadColumnNames;
+
+	@XmlTransient
+	private List<ColumnMetaData> parentReadColumns;
+
+	@XmlTransient
+	private TableMetaData parentTable;
+
+	@SuppressWarnings("unused")
+	@XmlElement(name = "parentTable", required = true)
+	private String parentTableName;
+
+	@XmlAttribute(required = true)
 	private String resName;
+
 	/** Map<database.table, TableMetaData> */
+	@XmlTransient
 	private Map<String, TableMetaData> tableMap;
-	private List<TableMetaData> tables, childPlusExtTables, parentPlusExtTables;
+	
+	@XmlElementWrapper(name = "tables", required = true)
+	@XmlElement(name = "table", type = TableMetaDataImpl.class, required = true)
+	private List<TableMetaData> tables;
 
 	// Public methods to retrieve metadata
 
+	@Override
 	public List<ColumnMetaData> getAllReadColumns() {
 		return allReadColumns;
 	}
 
+	@Override
 	public TableMetaData getChild() {
 		return childTable;
 	}
 
+	@Override
 	public List<TableMetaData> getChildPlusExtTables() {
 		return childPlusExtTables;
 	}
 
+	@Override
 	public List<ColumnMetaData> getChildReadColumns() {
 		return childReadColumns;
 	}
 
+	@Override
 	public TableMetaData getJoin() {
 		return joinTable;
 	}
 
+	@Override
 	public List<TableMetaData> getJoinList() {
 		return joinList;
 	}
 
+	@Override
 	public int getNumberTables() {
 		return tables.size();
 	}
 
+	@Override
 	public TableMetaData getParent() {
 		return parentTable;
 	}
 
+	@Override
 	public List<TableMetaData> getParentPlusExtTables() {
 		return parentPlusExtTables;
 	}
 
+	@Override
 	public List<ColumnMetaData> getParentReadColumns() {
 		return parentReadColumns;
 	}
 
+	@Override
 	public Map<String, TableMetaData> getTableMap() {
 		return tableMap;
 	}
 
+	@Override
 	public List<TableMetaData> getTables() {
 		return tables;
 	}
 
+	@Override
 	public boolean hasJoinTable() {
 		return joinTable != null;
 	}
 
+	@Override
 	public boolean hasMultipleDatabases() {
 		return multipleDatabases;
 	}
 
+	@Override
 	public boolean isHierarchical() {
 		return hierarchical;
 	}
 
 	/** Populates metadata using definition. */
-	public void setDefinition(String resName, final SqlResourceDefinition definition)
+	@Override
+	public void setDefinition(final String resName, final SqlResourceDefinition definition)
 			throws SqlResourceException {
 		this.resName = resName;
 		this.definition = definition;
@@ -143,6 +256,34 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		hierarchical = getChild() != null;
 	}
 
+	/** Returns XML representation. */
+	@Override
+	public String toXml() {
+		// Build extended metadata for serialization if first time through
+		if (!extendedMetadataIsBuilt) {
+			parentTableName = getQualifiedTableName(parentTable);
+			childTableName = getQualifiedTableName(childTable);
+			joinTableName = getQualifiedTableName(joinTable);
+			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
+			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
+			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
+			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
+			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
+			extendedMetadataIsBuilt = true;
+		}
+
+		try {
+			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
+			final Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			final StringWriter writer = new StringWriter();
+			marshaller.marshal(this, writer);
+			return writer.toString();
+		} catch (final JAXBException exception) {
+			return exception.toString();
+		}
+	}
+
 	// Protected methods for database-specific implementation
 
 	/**
@@ -172,13 +313,13 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		return resultSetMetaData.getTableName(colNumber);
 	}
 
-	/** Retrieves database-specific table name used in SQL statements. */
-	protected abstract String getQualifiedTableName(final SqlResourceDefinition definition,
-			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException;
-
 	/** Retrieves database-specific table name used in SQL statements. Used to build join table meta data. */
 	protected abstract String getQualifiedTableName(Connection connection, String databaseName,
 			String tableName) throws SQLException;
+
+	/** Retrieves database-specific table name used in SQL statements. */
+	protected abstract String getQualifiedTableName(final SqlResourceDefinition definition,
+			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException;
 
 	/**
 	 * Retrieves sql for querying columns. Hook method for buildInvisibleForeignKeys() and buildJoinTableMetadata()
@@ -198,8 +339,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * Retrieves sql for querying primary keys. Hook method for buildPrimaryKeys allows database-specific overrides.
 	 */
 	protected abstract String getSqlPkQuery();
-
-	// Private utils
 
 	private void buildInvisibleForeignKeys(final Connection connection) throws SQLException {
 		final PreparedStatement statement = connection.prepareStatement(getSqlColumnsQuery());
@@ -226,7 +365,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 								if (columnName.equals(pk.getColumnName())) {
 									final ColumnMetaDataImpl fkColumn = new ColumnMetaDataImpl(
 											table.getDatabaseName(), table.getQualifiedTableName(),
-											table.getTableName(), columnName, pk.getColumnLabel(), resultSet.getString(2), this);
+											table.getTableName(), columnName, pk.getColumnLabel(),
+											resultSet.getString(2), this);
 									((TableMetaDataImpl) table).addColumn(fkColumn);
 								}
 							}
@@ -247,7 +387,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 	private void buildJoinTableMetadata(final Connection connection) throws SQLException {
 		// Join table could have been idenitfied in buildTablesAndColumns(), but not always
-		Table joinDef = SqlResourceDefinitionUtils.getTable(definition, TableRole.Join);
+		final Table joinDef = SqlResourceDefinitionUtils.getTable(definition, TableRole.Join);
 		if (joinDef != null && joinTable == null) {
 			// Determine table and database name
 			String tableName, databaseName;
@@ -279,9 +419,10 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				statement.setString(2, tableName);
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
-					String columnName = resultSet.getString(1);
+					final String columnName = resultSet.getString(1);
 					final ColumnMetaDataImpl column = new ColumnMetaDataImpl(databaseName,
-							qualifiedTableName, tableName, columnName, columnName, resultSet.getString(2), this);
+							qualifiedTableName, tableName, columnName, columnName, resultSet.getString(2),
+							this);
 					((TableMetaDataImpl) joinTable).addColumn(column);
 				}
 			} catch (final SQLException exception) {
@@ -331,6 +472,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		}
 	}
 
+	// Private utils
+
 	/**
 	 * Builds table and column meta data.
 	 * 
@@ -340,7 +483,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * @throws SqlResourceException if definition is invalid
 	 */
 	@SuppressWarnings("fallthrough")
-	private void buildTablesAndColumns(final ResultSet resultSet, Connection connection) throws SQLException, SqlResourceException {
+	private void buildTablesAndColumns(final ResultSet resultSet, final Connection connection)
+			throws SQLException, SqlResourceException {
 		final ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 		final int columnCount = resultSetMetaData.getColumnCount();
 
@@ -432,5 +576,37 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 		// Determine number of databases
 		multipleDatabases = databases.size() > 1;
+	}
+
+	private List<String> getQualifiedColumnNames(final List<ColumnMetaData> columns) {
+		if (columns != null) {
+			final List<String> names = new ArrayList<String>(columns.size());
+			for (final ColumnMetaData column : columns) {
+				names.add(column.getQualifiedColumnName());
+			}
+			return names;
+		} else {
+			return null;
+		}
+	}
+
+	private String getQualifiedTableName(final TableMetaData table) {
+		if (table != null) {
+			return table.getQualifiedTableName();
+		} else {
+			return null;
+		}
+	}
+
+	private List<String> getQualifiedTableNames(final List<TableMetaData> tables) {
+		if (tables != null) {
+			final List<String> names = new ArrayList<String>(tables.size());
+			for (final TableMetaData table : tables) {
+				names.add(table.getQualifiedTableName());
+			}
+			return names;
+		} else {
+			return null;
+		}
 	}
 }

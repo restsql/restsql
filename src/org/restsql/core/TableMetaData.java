@@ -4,6 +4,8 @@ package org.restsql.core;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.annotation.XmlType;
+
 /**
  * Encapsulates table information for an SQL Resource.
  * 
@@ -45,6 +47,7 @@ public interface TableMetaData {
 	public boolean isParent();
 
 	/** Represents all of the roles a table may plan in a SQL Resource. */
+	@XmlType(namespace = "http://restsql.org/schema")
 	public enum TableRole {
 		Child, ChildExtension, Join, Parent, ParentExtension, Unknown;
 	}

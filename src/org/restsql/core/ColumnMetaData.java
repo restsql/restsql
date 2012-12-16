@@ -1,6 +1,7 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core;
 
+
 /**
  * Encapsulates column (or field) metadata of an SQL Resource.
  * 
