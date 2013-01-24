@@ -297,3 +297,23 @@ Testing SQL and Administrative resource authentication and authorization via the
 Support
 
 Use the issues forum on github (http://github.com/restsql/restsql/issues) or email the project lead directly at mark.sawers@restsql.org.
+-------------------------------------------------------------------------------
+Quick start guide
+
+Interested in just writing some tests to help illuminate an edge case?  It's easy!
+
+This guide assumes you have ant, git, java, mysql and tomcat installed.  This also doesn't go into forking and issuing pull requests but assumes any tests you write will be sent to the maintainer via email.
+
+* First, get the code: git clone git://github.com/restsql/restsql.git; git clone git://github.com/restsql/restsql-test.git; git clone git://github.com/restsql/restsql-sdk.git
+* go into the restsql-sdk directory and modify the create-sakila.sh file with your mysql admin user to create and populate the sample database
+* go into the restsql-test directory and modify the src/resources/properties/restsql-mysql.properties properties file.  In particular, you need to add database.user and database.password properties to grant access to your sample database.  Additionally, you need to update the paths to wherever restsql is set up on your system.  Point everything into your restsql-test directory.
+* go to the restsql directory and build the war file: ant dist
+* copy the war file to your tomcat webapps directory: cp ./obj/lib/restsql-0.8.5.war to tomcat
+* explode the war file
+* edit WEB-INF/web.xml and update the org.restsql.properties parameter to point to your test to point into restsql-test directory (the same restsql-mysql.properties you updated above)
+* restart tomcat.  Test to see that everything works by going to TOMCAT_WEBAPPS_DIR/restsql-0.8.5 (or whatever your exploded war directory is called).  Click on the res link and you should see a bunch of resources from the sakila test database.
+* to run the tests, go back to restsql-test: ant -Dorg.restsql.baseUri=[url to restsql base] -Dorg.restsql.properties=[path to restsql-mysql.properties file] test-service-java
+* you should see a bunch of tests pass.
+
+To run just one test, create a file called one_tests.txt (or anything that ends with _tests.txt) and add names of test files relative to restsql-test/src/resources/xml/service/testcase and add -Dtest.list=[path to your tests file] to the above invocation.
+
