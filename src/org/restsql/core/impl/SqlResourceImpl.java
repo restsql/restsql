@@ -22,6 +22,7 @@ import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.Trigger;
 import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder.SqlStruct;
+import org.restsql.core.TableMetaData.TableRole;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 
@@ -210,7 +211,7 @@ public class SqlResourceImpl implements SqlResource {
 
 				for (final ColumnMetaData column : metaData.getParentReadColumns()) {
 					final Object value = SqlUtils.getObjectByColumnLabel(column, resultSet);
-					if (column.isPrimaryKey()) {
+					if (column.isPrimaryKey() && column.getTableRole() == TableRole.Parent) {
 						currentParentPkValues.add(value);
 					}
 					parentRow.put(column.getColumnLabel(), value);

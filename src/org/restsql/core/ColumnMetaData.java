@@ -1,6 +1,8 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core;
 
+import org.restsql.core.TableMetaData.TableRole;
+
 
 /**
  * Encapsulates column (or field) metadata of an SQL Resource.
@@ -53,6 +55,9 @@ public interface ColumnMetaData {
 
 	/** Returns table name. */
 	public String getTableName();
+
+	/** Returns role of table in the SQL Resource. */
+	public TableRole getTableRole();
 
 	/** Returns true if column is a character string or date, time or timestamp. */
 	public boolean isCharOrDateTimeType();

@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlType;
 
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.SqlResourceMetaData;
+import org.restsql.core.TableMetaData.TableRole;
 
 /**
  * Represents column (field) metadata.
@@ -57,6 +58,9 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	@XmlAttribute(required = true)
 	private String tableName;
 
+	@XmlTransient
+	private TableRole tableRole;
+
 	// No-arg ctor required for JAXB
 	public ColumnMetaDataImpl() {
 	}
@@ -83,10 +87,11 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	 * child extensions, parent extensions and child tables.
 	 */
 	ColumnMetaDataImpl(final String databaseName, final String sqlQualifiedTableName, final String tableName,
-			final String columnName, final String columnLabel, final String columnTypeString,
-			final SqlResourceMetaData sqlResourceMetaData) {
+			final TableRole tableRole, final String columnName, final String columnLabel,
+			final String columnTypeString, final SqlResourceMetaData sqlResourceMetaData) {
 		this(0, databaseName, sqlQualifiedTableName, tableName, columnName, columnLabel, columnTypeString, 0,
 				false, sqlResourceMetaData);
+		setTableRole(tableRole);
 		if (columnTypeString.equalsIgnoreCase("BIT")) {
 			columnType = Types.BIT;
 		} else if (columnTypeString.equalsIgnoreCase("TINYINT")) {
@@ -210,6 +215,11 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	}
 
 	@Override
+	public TableRole getTableRole() {
+		return tableRole;
+	}
+
+	@Override
 	public boolean isCharOrDateTimeType() {
 		boolean charOrDateTimeType = false;
 		switch (columnType) {
@@ -249,6 +259,10 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 
 	void setPrimaryKey(final boolean primaryKey) {
 		this.primaryKey = primaryKey;
+	}
+
+	void setTableRole(final TableRole tableRole) {
+		this.tableRole = tableRole;
 	}
 
 	private void buildQualifiedColumnName() {

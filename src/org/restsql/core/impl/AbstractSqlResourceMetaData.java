@@ -137,7 +137,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	/** Map<database.table, TableMetaData> */
 	@XmlTransient
 	private Map<String, TableMetaData> tableMap;
-	
+
 	@XmlElementWrapper(name = "tables", required = true)
 	@XmlElement(name = "table", type = TableMetaDataImpl.class, required = true)
 	private List<TableMetaData> tables;
@@ -365,8 +365,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 								if (columnName.equals(pk.getColumnName())) {
 									final ColumnMetaDataImpl fkColumn = new ColumnMetaDataImpl(
 											table.getDatabaseName(), table.getQualifiedTableName(),
-											table.getTableName(), columnName, pk.getColumnLabel(),
-											resultSet.getString(2), this);
+											table.getTableName(), table.getTableRole(), columnName,
+											pk.getColumnLabel(), resultSet.getString(2), this);
 									((TableMetaDataImpl) table).addColumn(fkColumn);
 								}
 							}
@@ -421,8 +421,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				while (resultSet.next()) {
 					final String columnName = resultSet.getString(1);
 					final ColumnMetaDataImpl column = new ColumnMetaDataImpl(databaseName,
-							qualifiedTableName, tableName, columnName, columnName, resultSet.getString(2),
-							this);
+							qualifiedTableName, tableName, TableRole.Join, columnName, columnName,
+							resultSet.getString(2), this);
 					((TableMetaDataImpl) joinTable).addColumn(column);
 				}
 			} catch (final SQLException exception) {
@@ -557,8 +557,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				}
 			}
 
-			// Assign column to the table's
+			// Add column to the table
 			table.addColumn(column);
+			column.setTableRole(table.getTableRole());
 
 			// Add column to special column lists
 			allReadColumns.add(column);
