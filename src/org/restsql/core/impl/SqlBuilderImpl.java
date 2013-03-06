@@ -21,8 +21,6 @@ import org.restsql.core.TableMetaData;
  * 
  * @author Mark Sawers
  * @todo optimize - save sql or change to prepared statement?
- * @todo handle parameter string escaping
- * @todo handle wildcard escaping
  */
 public class SqlBuilderImpl implements SqlBuilder {
 	private static final int DEFAULT_DELETE_SIZE = 100;
@@ -149,7 +147,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 						} else {
 							sql.getClause().append(" AND ");
 						}
-						setNameValue(Request.Type.DELETE, metaData, column, nameValuePair, sql.getClause());
+						setNameValue(Request.Type.DELETE, metaData, column, nameValuePair, true, sql.getClause());
 					}
 				}
 			}
@@ -257,7 +255,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 							}
 							if (!column.isNonqueriedForeignKey()) {
 								validParamFound = true;
-								setNameValue(Request.Type.SELECT, metaData, column, param, sql.getClause());
+								setNameValue(Request.Type.SELECT, metaData, column, param, true, sql.getClause());
 							}
 						}
 					}
@@ -312,7 +310,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 						}
 
 						validParamFound = true;
-						setNameValue(request.getType(), metaData, column, param, sql.getMain());
+						setNameValue(request.getType(), metaData, column, param, false, sql.getMain());
 					}
 				}
 			}
@@ -339,7 +337,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 							sql.getClause().append(" AND ");
 						}
 						validParamFound = true;
-						setNameValue(request.getType(), metaData, column, resId, sql.getClause());
+						setNameValue(request.getType(), metaData, column, resId, true, sql.getClause());
 					}
 				}
 				sql.appendClauseToMain();
@@ -391,7 +389,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 	 * @throws InvalidRequestException if unexpected operator is found (Escaped is only for internal use)
 	 */
 	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
-			final ColumnMetaData column, final NameValuePair param, final StringBuffer sql)
+			final ColumnMetaData column, final NameValuePair param, boolean columnIsSelector, final StringBuffer sql)
 			throws InvalidRequestException {
 		// Append the name
 		if (requestType == Request.Type.SELECT) {
@@ -401,7 +399,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		}
 
 		// Append the operator
-		if (param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
+		if (columnIsSelector && param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			sql.append(" LIKE ");
 		} else {
 			switch (param.getOperator()) {
