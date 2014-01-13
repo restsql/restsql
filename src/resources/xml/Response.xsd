@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema targetNamespace="http://restsql.org/schema" elementFormDefault="unqualified"
-	xmlns="http://www.w3.org/2001/XMLSchema" xmlns:rs="http://restsql.org/schema">
+<schema targetNamespace="http://restsql.org/schema"
+	elementFormDefault="unqualified" xmlns="http://www.w3.org/2001/XMLSchema"
+	xmlns:rs="http://restsql.org/schema">
 
-    <element name="readResponse" type="anyType"></element>
+	<element name="readResponse" type="anyType"></element>
 
 	<element name="writeResponse" type="rs:WriteResponse"></element>
 
 	<complexType name="WriteResponse">
+		<sequence>
+			<any processContents="skip" minOccurs="0" />
+		</sequence>
 		<attribute name="rowsAffected" type="int" use="required"></attribute>
 	</complexType>
-
 </schema>

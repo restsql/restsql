@@ -38,7 +38,6 @@ import org.restsql.core.sqlresource.Table;
 /**
  * Represents meta data for sql resource. Queries database for table and column meta data and primary and foreign keys.
  * 
- * @todo Read-only columns do not work with PostgreSQL
  * @author Mark Sawers
  */
 @XmlRootElement(name = "sqlResourceMetaData", namespace = "http://restsql.org/schema")
@@ -50,7 +49,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	private static final int DEFAULT_NUMBER_DATABASES = 5;
 	private static final int DEFAULT_NUMBER_TABLES = 10;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "allReadColumns", required = true)
 	@XmlElement(name = "column", required = true)
 	private List<String> allReadColumnNames;
@@ -58,7 +56,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private List<ColumnMetaData> allReadColumns;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "childPlusExtTables", required = true)
 	@XmlElement(name = "table")
 	private List<String> childPlusExtTableNames;
@@ -66,7 +63,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private List<TableMetaData> childPlusExtTables;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "childReadColumns", required = true)
 	@XmlElement(name = "column")
 	private List<String> childReadColumnNames;
@@ -77,7 +73,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private TableMetaData childTable;
 
-	@SuppressWarnings("unused")
 	@XmlElement(name = "childTable")
 	private String childTableName;
 
@@ -96,11 +91,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private TableMetaData joinTable;
 
-	@SuppressWarnings("unused")
 	@XmlElement(name = "joinTable")
 	private String joinTableName;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "joinTables")
 	@XmlElement(name = "table")
 	private List<String> joinTableNames;
@@ -108,7 +101,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlAttribute
 	private boolean multipleDatabases;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "parentPlusExtTables", required = true)
 	@XmlElement(name = "table", required = true)
 	private List<String> parentPlusExtTableNames;
@@ -116,7 +108,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private List<TableMetaData> parentPlusExtTables;
 
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "parentReadColumns", required = true)
 	@XmlElement(name = "column", required = true)
 	private List<String> parentReadColumnNames;
@@ -127,7 +118,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private TableMetaData parentTable;
 
-	@SuppressWarnings("unused")
 	@XmlElement(name = "parentTable", required = true)
 	private String parentTableName;
 
@@ -221,7 +211,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 	/** Populates metadata using definition. */
 	@Override
-	public void setDefinition(final String resName, final SqlResourceDefinition definition)
+	public void init(final String resName, final SqlResourceDefinition definition)
 			throws SqlResourceException {
 		this.resName = resName;
 		this.definition = definition;
@@ -243,6 +233,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			buildPrimaryKeys(connection);
 			buildInvisibleForeignKeys(connection);
 			buildJoinTableMetadata(connection);
+			buildSequenceMetaData(connection);
 		} catch (final SQLException exception) {
 			throw new SqlResourceException(exception, sql);
 		} finally {
@@ -340,6 +331,31 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 */
 	protected abstract String getSqlPkQuery();
 
+	/**
+	 * Return whether a column in the given result set is read-only. The default implementation just calls isReadOnly()
+	 * on the result set, database specific implementations can override this behavior.
+	 * 
+	 * Contributed by <a href="https://github.com/rhuitl">rhuitl</a>.
+	 *
+	 * @param resultSetMetaData Result set metadata
+	 * @param colNumber Column number (1..N)
+	 * @throws SQLException if a database access error occurs
+	 */
+	protected boolean isColumnReadOnly(ResultSetMetaData resultSetMetaData, int colNumber)
+			throws SQLException {
+		return resultSetMetaData.isReadOnly(colNumber);
+	}
+
+	/**
+	 * Sets sequence metadata for a column with the columns query result set.
+	 * 
+	 * @throws SQLException when a database error occurs
+	 */
+	protected abstract void setSequenceMetaData(ColumnMetaDataImpl column, ResultSet resultSet)
+			throws SQLException;
+
+	// Private methods
+
 	private void buildInvisibleForeignKeys(final Connection connection) throws SQLException {
 		final PreparedStatement statement = connection.prepareStatement(getSqlColumnsQuery());
 		ResultSet resultSet = null;
@@ -386,7 +402,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	}
 
 	private void buildJoinTableMetadata(final Connection connection) throws SQLException {
-		// Join table could have been idenitfied in buildTablesAndColumns(), but not always
+		// Join table could have been identified in buildTablesAndColumns(), but not always
 		final Table joinDef = SqlResourceDefinitionUtils.getTable(definition, TableRole.Join);
 		if (joinDef != null && joinTable == null) {
 			// Determine table and database name
@@ -472,7 +488,41 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		}
 	}
 
-	// Private utils
+	/**
+	 * Builds sequence metadata for all columns.
+	 * 
+	 * @param connection database connection
+	 * @throws SQLException if a database access error occurs
+	 */
+	private void buildSequenceMetaData(final Connection connection) throws SQLException {
+
+		final PreparedStatement statement = connection.prepareStatement(getSqlColumnsQuery());
+		ResultSet resultSet = null;
+		try {
+			for (final TableMetaData table : tables) {
+				statement.setString(1, table.getDatabaseName());
+				statement.setString(2, table.getTableName());
+				resultSet = statement.executeQuery();
+				while (resultSet.next()) {
+					final String columnName = resultSet.getString(1);
+					for (ColumnMetaData column : table.getColumns().values()) {
+						if (column.getColumnName().equals(columnName)) {
+							setSequenceMetaData((ColumnMetaDataImpl) column, resultSet);
+							break;
+						}
+					}
+				}
+			}
+		} catch (final SQLException exception) {
+			if (resultSet != null) {
+				resultSet.close();
+			}
+			if (statement != null) {
+				statement.close();
+			}
+			throw exception;
+		}
+	}
 
 	/**
 	 * Builds table and column meta data.
@@ -499,7 +549,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 		for (int colNumber = 1; colNumber <= columnCount; colNumber++) {
 			final String databaseName, qualifiedTableName, tableName;
-			if (resultSetMetaData.isReadOnly(colNumber)) {
+			boolean readOnly = isColumnReadOnly(resultSetMetaData, colNumber);
+			if (readOnly) {
 				databaseName = SqlResourceDefinitionUtils.getDefaultDatabase(definition);
 				tableName = SqlResourceDefinitionUtils.getTable(definition, TableRole.Parent).getName();
 				qualifiedTableName = getQualifiedTableName(connection, databaseName, tableName);
@@ -514,7 +565,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 					qualifiedTableName, tableName, getColumnName(definition, resultSetMetaData, colNumber),
 					resultSetMetaData.getColumnLabel(colNumber),
 					resultSetMetaData.getColumnTypeName(colNumber),
-					resultSetMetaData.getColumnType(colNumber), resultSetMetaData.isReadOnly(colNumber), this);
+					resultSetMetaData.getColumnType(colNumber), readOnly, this);
 
 			TableMetaDataImpl table = (TableMetaDataImpl) tableMap.get(column.getQualifiedTableName());
 			if (table == null) {
@@ -572,6 +623,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 				case ChildExtension:
 					childReadColumns.add(column);
 					break;
+				default: // Unknown
 			}
 		}
 

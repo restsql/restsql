@@ -18,7 +18,7 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
  */
 public class Factory extends AbstractFactory {
 
-	/** Creates request for child record with blank params. */
+	/** Creates request for child record with blank params. Configurable implementation class. */
 	public static Request getChildRequest(final Request parentRequest) {
 		final RequestFactory requestFactory = (RequestFactory) getInstance(Config.KEY_REQUEST_FACTORY,
 				Config.DEFAULT_REQUEST_FACTORY);
@@ -30,14 +30,14 @@ public class Factory extends AbstractFactory {
 		return getConnectionFactory().getConnection(defaultDatabase);
 	}
 
-	/** Return connection factory. Useful for destroying it on app unload. */
+	/** Return connection factory. Useful for destroying it on app unload. Configurable implementation class. */
 	public static ConnectionFactory getConnectionFactory() {
 		return (ConnectionFactory) getInstance(Config.KEY_CONNECTION_FACTORY,
 				Config.DEFAULT_CONNECTION_FACTORY);
 	}
 
 	/**
-	 * Creates HTTP request attributes.
+	 * Creates HTTP request attributes. Configurable implementation class.
 	 * 
 	 * @param client IP or host name
 	 * @param method HTTP method
@@ -57,18 +57,19 @@ public class Factory extends AbstractFactory {
 	 * Returns request object with pre-parsed data from the URI. Used by Java API clients.
 	 */
 	public static Request getRequest(final Request.Type type, final String sqlResource,
-			final List<NameValuePair> resIds, final List<NameValuePair> params,
-			final List<List<NameValuePair>> childrenParams, final RequestLogger requestLogger)
+			final List<RequestValue> resIds, final List<RequestValue> params,
+			final List<List<RequestValue>> childrenParams, final RequestLogger requestLogger)
 			throws InvalidRequestException {
 		return getRequest(null, type, sqlResource, resIds, params, childrenParams, requestLogger);
 	}
 
 	/**
-	 * Returns request object with pre-parsed data from the URI. Used by service and Java API clients.
+	 * Returns request object with pre-parsed data from the URI. Used by service and Java API clients. Configurable
+	 * implementation class.
 	 */
 	public static Request getRequest(final HttpRequestAttributes httpAttributes, final Request.Type type,
-			final String sqlResource, final List<NameValuePair> resIds, final List<NameValuePair> params,
-			final List<List<NameValuePair>> childrenParams, final RequestLogger requestLogger)
+			final String sqlResource, final List<RequestValue> resIds, final List<RequestValue> params,
+			final List<List<RequestValue>> childrenParams, final RequestLogger requestLogger)
 			throws InvalidRequestException {
 		final RequestFactory requestFactory = (RequestFactory) getInstance(Config.KEY_REQUEST_FACTORY,
 				Config.DEFAULT_REQUEST_FACTORY);
@@ -79,7 +80,7 @@ public class Factory extends AbstractFactory {
 	/**
 	 * Builds request from URI. Assumes pattern
 	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&{param2}={value2}</code>. Used by the test harness,
-	 * Java API clients and perhaps a straight servlet implementation.
+	 * Java API clients and perhaps a straight servlet implementation. Configurable implementation class.
 	 */
 	public static Request getRequest(final HttpRequestAttributes httpAttributes)
 			throws InvalidRequestException, SqlResourceFactoryException, SqlResourceException {
@@ -88,13 +89,13 @@ public class Factory extends AbstractFactory {
 		return requestFactory.getRequest(httpAttributes);
 	}
 
-	/** Returns request logger. */
+	/** Returns request logger. Configurable implementation class. */
 	public static RequestLogger getRequestLogger() {
 		return (RequestLogger) newInstance(Config.KEY_REQUEST_LOGGER, Config.DEFAULT_REQUEST_LOGGER);
 	}
 
 	/**
-	 * Returns request deserializer.
+	 * Returns request deserializer. Configurable implementation class.
 	 * 
 	 * @throws SqlResourceException if deserializer not found for media type
 	 */
@@ -106,7 +107,7 @@ public class Factory extends AbstractFactory {
 	}
 
 	/**
-	 * Returns response serializer for media type.
+	 * Returns response serializer for media type. Configurable implementation class.
 	 * 
 	 * @throws SqlResourceException if serializer not found for media type
 	 */
@@ -117,13 +118,18 @@ public class Factory extends AbstractFactory {
 		return rsFactory.getResponseSerializer(mediaType);
 	}
 
-	/** Creates SqlBuilder instance. */
+	/** Returns singleton SequenceManager. Configurable implementation class. */
+	public static SequenceManager getSequenceManager() {
+		return (SequenceManager) getInstance(Config.KEY_SEQUENCE_MANAGER, Config.DEFAULT_SEQUENCE_MANAGER);
+	}
+
+	/** Returns existing singleton SqlBuilder. Configurable implementation. */
 	public static SqlBuilder getSqlBuilder() {
 		return (SqlBuilder) getInstance(Config.KEY_SQL_BUILDER, Config.DEFAULT_SQL_BUILDER);
 	}
 
 	/**
-	 * Returns SQL Resource for named resource.
+	 * Returns SQL Resource for named resource. Configurable implementation class.
 	 * 
 	 * @param resName resource name
 	 * @return SQLResource object
@@ -138,7 +144,7 @@ public class Factory extends AbstractFactory {
 	}
 
 	/**
-	 * Returns definition content as input stream.
+	 * Returns definition content as input stream. Configurable implementation class.
 	 */
 	public static InputStream getSqlResourceDefinition(final String resName)
 			throws SqlResourceFactoryException {
@@ -148,7 +154,7 @@ public class Factory extends AbstractFactory {
 	}
 
 	/**
-	 * Returns meta data object for definition.
+	 * Returns meta data object for definition. Configurable implementation class.
 	 * 
 	 * @throws SqlResourceException if a database access error occurs
 	 */
@@ -156,10 +162,11 @@ public class Factory extends AbstractFactory {
 			final SqlResourceDefinition definition) throws SqlResourceException {
 		final SqlResourceMetaData sqlResourceMetaData = (SqlResourceMetaData) newInstance(
 				Config.KEY_SQL_RESOURCE_METADATA, Config.DEFAULT_SQL_RESOURCE_METADATA);
-		sqlResourceMetaData.setDefinition(resName, definition);
+		sqlResourceMetaData.init(resName, definition);
 		return sqlResourceMetaData;
 	}
 
+	/** Returns SQL resources directory using configured SqlResourceFactory. */
 	public static String getSqlResourcesDir() {
 		final SqlResourceFactory sqlResourceFactory = (SqlResourceFactory) getInstance(
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
@@ -167,7 +174,7 @@ public class Factory extends AbstractFactory {
 	}
 
 	/**
-	 * Returns available SQL Resource names.
+	 * Returns available SQL Resource names using configured SqlResourceFactory.
 	 * 
 	 * @throws SqlResourceFactoryException if the configured directory does not exist
 	 */
@@ -176,16 +183,17 @@ public class Factory extends AbstractFactory {
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
 		return sqlResourceFactory.getSqlResourceNames();
 	}
-	
+
 	/**
-	 * Reloads definition from the source. This operation is not thread safe and should be run in development mode
-	 * only.
+	 * Reloads definition from the source using configured SqlResourceFactory. This operation is not thread safe and
+	 * should be run in development mode only.
 	 * 
 	 * @param resName resource name
 	 * @throws SqlResourceFactoryException if the definition could not be marshalled
 	 * @throws SqlResourceException if a database error occurs while collecting metadata
 	 */
-	public static void reloadSqlResource(final String resName) throws SqlResourceFactoryException, SqlResourceException {
+	public static void reloadSqlResource(final String resName) throws SqlResourceFactoryException,
+			SqlResourceException {
 		final SqlResourceFactory sqlResourceFactory = (SqlResourceFactory) getInstance(
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
 		sqlResourceFactory.reloadSqlResource(resName);
@@ -208,8 +216,8 @@ public class Factory extends AbstractFactory {
 				SqlResourceFactoryException, SqlResourceException;
 
 		public Request getRequest(final HttpRequestAttributes httpAttributes, final Type type,
-				final String sqlResource, final List<NameValuePair> resIds, final List<NameValuePair> params,
-				final List<List<NameValuePair>> childrenParams, final RequestLogger requestLogger)
+				final String sqlResource, final List<RequestValue> resIds, final List<RequestValue> params,
+				final List<List<RequestValue>> childrenParams, final RequestLogger requestLogger)
 				throws InvalidRequestException;
 	}
 

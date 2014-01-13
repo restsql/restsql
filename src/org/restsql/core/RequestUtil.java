@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.restsql.core.NameValuePair.Operator;
+import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.impl.MediaTypeParser;
 
 /**
@@ -39,16 +39,16 @@ public class RequestUtil {
 	}
 
 	/** Returns name-value pairs, resourceId and value, for given resource and ordered value array. */
-	public static List<NameValuePair> getResIds(final SqlResource sqlResource, final String[] values) {
-		List<NameValuePair> resIds = null;
+	public static List<RequestValue> getResIds(final SqlResource sqlResource, final String[] values) {
+		List<RequestValue> resIds = null;
 		if (values != null) {
-			resIds = new ArrayList<NameValuePair>(values.length);
+			resIds = new ArrayList<RequestValue>(values.length);
 			for (final TableMetaData table : sqlResource.getMetaData().getTableMap().values()) {
 				if (table.isParent()) {
 					for (final ColumnMetaData column : table.getPrimaryKeys()) {
 						for (final String value : values) {
 							if (value != null) {
-								final NameValuePair resId = new NameValuePair(column.getColumnLabel(), value,
+								final RequestValue resId = new RequestValue(column.getColumnLabel(), value,
 										Operator.Equals);
 								resIds.add(resId);
 							}
@@ -84,13 +84,13 @@ public class RequestUtil {
 	 * {@link HttpRequestAttributes#DEFAULT_MEDIA_TYPE}. Note: The content parameter value overrides the accept media
 	 * type!
 	 */
-	public static String getResponseMediaType(final List<NameValuePair> params,
+	public static String getResponseMediaType(final List<RequestValue> params,
 			final String requestMediaType, final String acceptMediaType) {
 		String responseMediaType = null;
 		if (params != null) {
 			int outputIndex = -1;
 			for (int i = 0; i < params.size(); i++) {
-				final NameValuePair param = params.get(i);
+				final RequestValue param = params.get(i);
 				if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_OUTPUT)) {
 					responseMediaType = convertToStandardInternetMediaType(param.getValue());
 					outputIndex = i;
@@ -123,16 +123,16 @@ public class RequestUtil {
 	 * 
 	 * @throws InvalidRequestException if a parameter is included more than once unless there the operators
 	 */
-	public static void checkForInvalidMultipleParameters(List<NameValuePair> params)
+	public static void checkForInvalidMultipleParameters(List<RequestValue> params)
 			throws InvalidRequestException {
 		if (params != null && params.size() > 0) {
 			// First organize them into a map by parameter name
-			Map<String, List<NameValuePair>> paramsByName = new HashMap<String, List<NameValuePair>>(
+			Map<String, List<RequestValue>> paramsByName = new HashMap<String, List<RequestValue>>(
 					params.size());
-			for (NameValuePair param : params) {
-				List<NameValuePair> list = paramsByName.get(param.getName());
+			for (RequestValue param : params) {
+				List<RequestValue> list = paramsByName.get(param.getName());
 				if (list == null) {
-					list = new ArrayList<NameValuePair>(1);
+					list = new ArrayList<RequestValue>(1);
 					paramsByName.put(param.getName(), list);
 				}
 				list.add(param);
@@ -140,7 +140,7 @@ public class RequestUtil {
 			}
 
 			// Now iterate through each and look for invalid multiples
-			for (List<NameValuePair> list : paramsByName.values()) {
+			for (List<RequestValue> list : paramsByName.values()) {
 				if (list.size() > 1) {
 					String name = list.get(0).getName();
 					if (list.size() == 2) {

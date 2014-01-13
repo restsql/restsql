@@ -3,7 +3,6 @@ package org.restsql.core;
 
 import org.restsql.core.TableMetaData.TableRole;
 
-
 /**
  * Encapsulates column (or field) metadata of an SQL Resource.
  * 
@@ -11,7 +10,13 @@ import org.restsql.core.TableMetaData.TableRole;
  * @see SqlResource
  * @see TableMetaData
  */
-public interface ColumnMetaData {
+public interface ColumnMetaData extends Comparable<ColumnMetaData> {
+
+	/**
+	 * Compares another column based on the column number of the select clause in the SQL Resource definition query.
+	 * Implements  Comparable interface.
+	 */
+	public int compareTo(ColumnMetaData column);
 
 	/**
 	 * Returns column label, a string identified in double quotes after columns in the select clause in the SQL Resource
@@ -22,7 +27,7 @@ public interface ColumnMetaData {
 	/** Returns column name, as it is known by the database. */
 	public String getColumnName();
 
-	/** Returns column number in the in the select clause in the SQL Resource definition query. */
+	/** Returns column number in the select clause in the SQL Resource definition query. */
 	public int getColumnNumber();
 
 	/**
@@ -53,6 +58,9 @@ public interface ColumnMetaData {
 	 */
 	public String getQualifiedTableName();
 
+	/** Returns sequence name associated with column or null if none. For MySQL, returns table name. */
+	public String getSequenceName();
+
 	/** Returns table name. */
 	public String getTableName();
 
@@ -73,4 +81,11 @@ public interface ColumnMetaData {
 
 	/** Returns true if the column is read-only, for example derived from SQL function or a database view. */
 	public boolean isReadOnly();
+
+	/**
+	 * Returns true if column is associated with a sequence.
+	 * 
+	 * @see #getSequenceName()
+	 */
+	public boolean isSequence();
 }

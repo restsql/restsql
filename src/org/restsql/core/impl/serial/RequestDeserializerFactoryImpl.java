@@ -1,5 +1,5 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
-package org.restsql.core.impl;
+package org.restsql.core.impl.serial;
 
 import org.restsql.core.RequestDeserializer;
 import org.restsql.core.SqlResourceException;

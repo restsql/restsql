@@ -25,7 +25,7 @@ import org.restsql.security.SecurityFactory;
 @Path("conf")
 public class ConfResource {
 	private final static String MENU_HTML = "<html><body style=\"font-family:sans-serif\">"
-		+ "<span style=\"font-weight:bold\">restSQL Configuration</span><br/>"
+		+ "<span style=\"font-weight:bold\">restSQL Configuration</span><hr/>"
 		+ "<a href=\"system\">System</a><br/>" + "<a href=\"log\">Logging</a><br/>"
 		+ "<a href=\"security\">Security</a><br/>" + "<a href=\"res\">Resources</a><br/>"
 		+ "</body></html>";

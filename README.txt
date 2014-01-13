@@ -1,4 +1,4 @@
-README.txt (09-Oct-2012)
+README.txt (12-Jan-2014)
 
 restSQL Deployment Guide
 
@@ -116,26 +116,38 @@ Database configuration is required. Here is an example for a database with built
 	database.user=restsql
 	database.password=Rest00sql#
 	
-	# MetaData implemenation class - match the implementation to your database
+	# DB-specific implementation classes - match the implementation to your database
 	# For MySQL:
-	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.SqlResourceMetaDataMySql
+	#	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
+	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
 	# For PostgreSQL:
-	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.SqlResourceMetaDataPostgreSql
-	org.restsql.core.SqlResourceMetaData=com.business.restsql.SqlResourceMetaDataMySql
+	#	org.restsql.core.SequenceManager=org.restsql.core.impl.postgresql.PostgreSqlSequenceManager
+	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.postgresql.PostgreSqlSqlResourceMetaData
+	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
+	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
 
 Implementation classes configuration is optional. The defaults are:
 
 	# Implementation classes - use these to customize the framework
-	# org.restsql.core.SqlBuilder=full.qualified.class.name
 	# org.restsql.core.Factory.ConnectionFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.RequestFactory=fully.qualified.class.name
-	# org.restsql.core.Factory.RequestLoggerFactory=fully.qualified.class.name
+	# org.restsql.core.Factory.RequestDeserializerFactory=fully.qualified.class.name
+	# org.restsql.core.Factory.ResponseSerializerFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.SqlResourceFactory=fully.qualified.class.name
-	org.restsql.core.SqlBuilder=org.restsql.core.impl.SqlBuilderImpl
+	# org.restsql.core.HttpRequestAttributes=fully.qualified.class.name
+	# org.restsql.core.RequestLogger=fully.qualified.class.name
+	# org.restsql.core.SeqeunceManager=fully.qualified.class.name
+	# org.restsql.core.SqlBuilder=fully.qualified.class.name
+	# org.restsql.security.Authorizer=fully.qualified.class.name
 	org.restsql.core.Factory.ConnectionFactory=org.restsql.core.impl.ConnectionFactoryImpl
 	org.restsql.core.Factory.RequestFactory=org.restsql.core.impl.RequestFactoryImpl
-	org.restsql.core.Factory.RequestLoggerFactory=org.restsql.core.impl.RequestLoggerFactoryImpl
+	org.restsql.core.Factory.RequestDeserializerFactory=org.restsql.core.impl.serial.RequestDeserializerFactoryImpl
+	org.restsql.core.Factory.ResponseSerializerFactory=org.restsql.core.impl.serial.ResponseSerializerFactoryImpl
 	org.restsql.core.Factory.SqlResourceFactory=org.restsql.core.impl.SqlResourceFactoryImpl
+	org.restsql.core.HttpRequestAttributes=org.restsql.core.impl.HttpRequestAttributesImpl
+	org.restsql.core.RequestLogger=org.restsql.core.impl.RequestLoggerImpl
+	org.restsql.core.SqlBuilder=org.restsql.core.impl.SqlBuilderImpl
+	org.restsql.security.Authorizer=org.restsql.security.impl.AuthorizerImpl
 
 See the SDK for more detail on Logging, Security, Trigger and HTTP configuration.
 

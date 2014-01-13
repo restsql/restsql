@@ -25,13 +25,14 @@ import javax.ws.rs.core.UriInfo;
 import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
 import org.restsql.core.Request.Type;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
+import org.restsql.core.WriteResponse;
 import org.restsql.security.SecurityFactory;
 
 /**
@@ -280,8 +281,8 @@ public class ResResource {
 
 	/** Processes the request. The central method of this resource class. */
 	private Response executeRequest(HttpServletRequest httpRequest, final Request.Type requestType,
-			final String resName, SqlResource sqlResource, final List<NameValuePair> resIds,
-			final List<NameValuePair> params, final String requestBody, String contentMediaType,
+			final String resName, SqlResource sqlResource, final List<RequestValue> resIds,
+			final List<RequestValue> params, final String requestBody, String contentMediaType,
 			String acceptMediaType, SecurityContext securityContext) {
 
 		// Determine the media types and create http attributes structure
@@ -315,19 +316,19 @@ public class ResResource {
 						params, null, requestLogger);
 				responseBody = sqlResource.read(request, responseMediaType);
 			} else { // INSERT, UPDATE or DELETE
-				final int rowsAffected;
+				final WriteResponse writeResponse;
 				if (requestMediaType != null
 						&& !requestMediaType.equals(MediaType.APPLICATION_FORM_URLENCODED)
 						&& requestBody != null && requestBody.length() > 0) {
 					// requestBody is not null, use request processor
-					rowsAffected = Factory.getRequestDeserializer(requestMediaType).execWrite(httpAttributes,
+					writeResponse = Factory.getRequestDeserializer(requestMediaType).execWrite(httpAttributes,
 							requestType, resIds, sqlResource, requestBody, requestLogger);
 				} else {
 					final Request request = Factory.getRequest(httpAttributes, requestType, resName, resIds,
 							params, null, requestLogger);
-					rowsAffected = sqlResource.write(request);
+					writeResponse = sqlResource.write(request);
 				}
-				responseBody = Factory.getResponseSerializer(responseMediaType).serializeWrite(rowsAffected);
+				responseBody = Factory.getResponseSerializer(responseMediaType).serializeWrite(sqlResource, writeResponse);
 			}
 
 			// Log response and send it
@@ -358,10 +359,10 @@ public class ResResource {
 	 */
 	private Response executeRequestParseResIds(HttpServletRequest httpRequest,
 			final Request.Type requestType, final String resName, final String[] resIdValues,
-			final List<NameValuePair> params, final String requestBody, String contentMediaType,
+			final List<RequestValue> params, final String requestBody, String contentMediaType,
 			String acceptMediaType, SecurityContext securityContext) {
 		final SqlResource sqlResource;
-		final List<NameValuePair> resIds;
+		final List<RequestValue> resIds;
 		try {
 			sqlResource = Factory.getSqlResource(resName);
 			resIds = RequestUtil.getResIds(sqlResource, resIdValues);
@@ -374,11 +375,11 @@ public class ResResource {
 	}
 
 	/** Converts form or query params into a list of NameValuePairs. */
-	private List<NameValuePair> getNameValuePairs(final MultivaluedMap<String, String> formOrQueryParams) {
-		final List<NameValuePair> params = new ArrayList<NameValuePair>(formOrQueryParams.size());
+	private List<RequestValue> getNameValuePairs(final MultivaluedMap<String, String> formOrQueryParams) {
+		final List<RequestValue> params = new ArrayList<RequestValue>(formOrQueryParams.size());
 		for (final String key : formOrQueryParams.keySet()) {
 			for (final String value : formOrQueryParams.get(key)) {
-				final NameValuePair param = new NameValuePair(key, value);
+				final RequestValue param = new RequestValue(key, value);
 				params.add(param);
 			}
 		}

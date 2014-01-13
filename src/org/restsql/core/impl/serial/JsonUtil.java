@@ -26,7 +26,7 @@
  SOFTWARE.
  */
 
-package org.restsql.core.impl;
+package org.restsql.core.impl.serial;
 
 /**
  * Contains JSON processing utilities.

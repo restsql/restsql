@@ -31,7 +31,7 @@ public class HttpRequestHelper {
 		final String baseUri = uriInfo.getBaseUri().toString();
 		try {
 			final List<String> resNames = Factory.getSqlResourceNames();
-			requestBody.append("<span style=\"font-weight:bold\">SQL Resources</span><br/>\n");
+			requestBody.append("<span style=\"font-weight:bold\">restSQL SQL Resources</span><hr/>\n");
 			if (resNames.size() > 0) {
 				requestBody.append("<table>\n");
 				for (final String resName : resNames) {

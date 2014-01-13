@@ -22,10 +22,11 @@ import org.restsql.core.TableMetaData;
  * @author Mark Sawers
  * @see ColumnMetaData
  */
+//TODO: remove dependency on this class, probably by moving setters to the interface
+
 @XmlType(name = "TableMetaData", namespace = "http://restsql.org/schema", propOrder = { "databaseName",
 		"tableName", "tableAlias", "qualifiedTableName", "tableRole", "columnList", "primaryKeyNames" })
 public class TableMetaDataImpl implements TableMetaData {
-	@SuppressWarnings("unused")
 	@XmlElementWrapper(name = "columns", required = true)
 	@XmlElement(name = "column", type = ColumnMetaDataImpl.class, required = true)
 	private Collection<ColumnMetaData> columnList;

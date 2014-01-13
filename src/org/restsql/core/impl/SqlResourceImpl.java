@@ -9,20 +9,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.Config;
 import org.restsql.core.Factory;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
+import org.restsql.core.Request.Type;
+import org.restsql.core.ResponseValue;
 import org.restsql.core.SqlBuilder;
+import org.restsql.core.SqlBuilder.SqlStruct;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.SqlResourceMetaData;
-import org.restsql.core.Trigger;
-import org.restsql.core.Request.Type;
-import org.restsql.core.SqlBuilder.SqlStruct;
+import org.restsql.core.TableMetaData;
 import org.restsql.core.TableMetaData.TableRole;
+import org.restsql.core.Trigger;
+import org.restsql.core.WriteResponse;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 
@@ -100,13 +105,20 @@ public class SqlResourceImpl implements SqlResource {
 	 * 
 	 * @param request Request object
 	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
-	 * @return rows affected
+	 * @return write Response object
 	 */
 	@Override
-	public int write(final Request request) throws SqlResourceException {
+	public WriteResponse write(final Request request) throws SqlResourceException {
 		TriggerManager.executeTriggers(getName(), request, true);
 
+		// Init response
+		final WriteResponse response = new WriteResponse();
 		int rowsAffected = 0;
+		Set<ResponseValue> responseValues = null;
+		if (request.getType() == Type.INSERT) {
+			responseValues = new TreeSet<ResponseValue>();
+		}
+
 		boolean doParent = true;
 		Connection connection = null;
 
@@ -115,14 +127,33 @@ public class SqlResourceImpl implements SqlResource {
 			if (metaData.isHierarchical()) {
 				final Request childRequest = Factory.getChildRequest(request);
 				if (request.getChildrenParameters() != null) {
-					// Delete, update or insert specified children
-					for (final List<NameValuePair> childRowParams : request.getChildrenParameters()) {
+
+					// Set up response
+					List<Set<ResponseValue>> childListResponseValues = null;
+					Set<ResponseValue> childResponseValues = null;
+					if (request.getType() == Type.INSERT) {
+						childListResponseValues = new ArrayList<Set<ResponseValue>>(request
+								.getChildrenParameters().size());
+						responseValues.add(new ResponseValue(getChildRowsName(), childListResponseValues,
+								Integer.MAX_VALUE));
+						// Add parent params, since we won't be executing the write on the parent
+						for (final TableMetaData table : metaData.getParentPlusExtTables()) {
+							addRequestParamsToResponseValues(request, responseValues, table);
+						}
+					}
+
+					// Delete, update or insert each specified child row
+					for (final List<RequestValue> childRowParams : request.getChildrenParameters()) {
 						if (request.getType() == Type.INSERT) {
-							// Need to add the parent pks, since inserts ignore the resIds
+							// Set up response value set
+							childResponseValues = new TreeSet<ResponseValue>();
+							childListResponseValues.add(childResponseValues);
+
+							// Add the parent pks, since inserts ignore the resIds
 							childRowParams.addAll(request.getResourceIdentifiers());
 						} // else deletes and updates use resIds
 						childRequest.setParameters(childRowParams);
-						rowsAffected += write(connection, childRequest, false);
+						rowsAffected += execWrite(connection, childRequest, false, childResponseValues);
 					}
 					// Don't touch the parent(s)
 					doParent = false;
@@ -131,15 +162,24 @@ public class SqlResourceImpl implements SqlResource {
 					if (request.getResourceIdentifiers() == null) {
 						childRequest.setParameters(request.getParameters());
 					}
-					rowsAffected += write(connection, childRequest, false);
-				} // else just insert or update the parent(s)
-			}
+					rowsAffected += execWrite(connection, childRequest, false, responseValues);
+					// Now do the parent as well, doParent already equals true
+				}
+				// else just insert or update the parent (+ extensions)
+			}	// else insert, update or delete the parent (+ extensions)
 
 			if (doParent) {
-				rowsAffected += write(connection, request, true);
+				rowsAffected += execWrite(connection, request, true, responseValues);
 			}
 
 			TriggerManager.executeTriggers(getName(), request, false);
+
+			// Finalize response
+			if (request.getType() == Type.INSERT) {
+				response.addRow(responseValues);
+			}
+			response.addRowsAffected(rowsAffected);
+
 		} catch (final SQLException exception) {
 			throw new SqlResourceException(exception);
 		} finally {
@@ -150,9 +190,33 @@ public class SqlResourceImpl implements SqlResource {
 				}
 			}
 		}
-		return rowsAffected;
+		return response;
 	}
 
+	// Private utils
+
+	/** Converts the request params and resource IDs into response values and add to the result set. */
+	private void addRequestParamsToResponseValues(final Request request,
+			final Set<ResponseValue> responseValues, final TableMetaData table) {
+		if (request.getParameters() != null) {
+			for (final RequestValue param : request.getParameters()) {
+				final ColumnMetaData column = table.getColumns().get(param.getName());
+				if (column != null && !column.isNonqueriedForeignKey()) {
+					responseValues.add(param.getResponseValue(column));
+				}
+			}
+		}
+		if (request.getResourceIdentifiers() != null) {
+			for (final RequestValue param : request.getResourceIdentifiers()) {
+				final ColumnMetaData column = table.getColumns().get(param.getName());
+				if (column != null && !column.isNonqueriedForeignKey()) {
+					responseValues.add(param.getResponseValue(column));
+				}
+			}
+		}
+	}
+
+	/** Creates collection from result set for flat resource. */
 	private List<Map<String, Object>> buildReadResultsFlatCollection(final ResultSet resultSet)
 			throws SQLException {
 		final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
@@ -169,8 +233,7 @@ public class SqlResourceImpl implements SqlResource {
 		return results;
 	}
 
-	// Private utils
-
+	/** Creates collection from result set for hierarchical resource. */
 	private List<Map<String, Object>> buildReadResultsHierachicalCollection(final ResultSet resultSet)
 			throws SQLException {
 		final List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
@@ -179,7 +242,7 @@ public class SqlResourceImpl implements SqlResource {
 		boolean newParent = false;
 		final int numberParentElementColumns = metaData.getParentReadColumns().size();
 		final int numberChildElementColumns = metaData.getChildReadColumns().size();
-		final String childRowElementName = metaData.getChild().getTableAlias() + "s";
+		final String childRowsName = getChildRowsName();
 		Map<String, Object> parentRow = null;
 		List<Map<String, Object>> childRows = null;
 
@@ -205,7 +268,7 @@ public class SqlResourceImpl implements SqlResource {
 			if (newParent) {
 				childRows = new ArrayList<Map<String, Object>>();
 				parentRow = new HashMap<String, Object>(numberParentElementColumns);
-				parentRow.put(childRowElementName, childRows);
+				parentRow.put(childRowsName, childRows);
 				results.add(parentRow);
 				currentParentPkValues.clear();
 
@@ -247,8 +310,8 @@ public class SqlResourceImpl implements SqlResource {
 		try {
 			connection = Factory.getConnection(SqlResourceDefinitionUtils.getDefaultDatabase(definition));
 			final Statement statement = connection.createStatement();
-			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(), request
-					.getResourceIdentifiers(), request.getParameters());
+			sql = sqlBuilder.buildSelectSql(metaData, definition.getQuery().getValue(),
+					request.getResourceIdentifiers(), request.getParameters());
 			Config.logger.debug(sql);
 			request.getLogger().addSql(sql);
 			final ResultSet resultSet = statement.executeQuery(sql);
@@ -283,9 +346,8 @@ public class SqlResourceImpl implements SqlResource {
 		return results;
 	}
 
-	private int write(final Connection connection, final Request request, final boolean doParent)
-			throws SqlResourceException {
-		int rowsAffected = 0;
+	private int execWrite(final Connection connection, final Request request, final boolean doParent,
+			final Set<ResponseValue> responseValues) throws SqlResourceException {
 		final Map<String, SqlBuilder.SqlStruct> sqls = sqlBuilder.buildWriteSql(metaData, request, doParent);
 
 		// Remove sql for main table
@@ -293,25 +355,51 @@ public class SqlResourceImpl implements SqlResource {
 				.getChild().getQualifiedTableName();
 		final SqlBuilder.SqlStruct mainTableSqlStruct = sqls.remove(mainTableName);
 
+		// Do the write operation(s)
+		int rowsAffected = 0;
+
 		// Do the main table if insert
 		if (request.getType() == Type.INSERT) {
-			rowsAffected += write(connection, request, mainTableSqlStruct, true);
+			rowsAffected += execWrite(connection, request, mainTableSqlStruct, true);
 		}
 
 		// Do extensions next
 		for (final SqlBuilder.SqlStruct sqlStruct : sqls.values()) {
-			rowsAffected += write(connection, request, sqlStruct, false);
+			rowsAffected += execWrite(connection, request, sqlStruct, false);
 		}
 
 		// Do the main table if update or delete
 		if (request.getType() != Type.INSERT) {
-			rowsAffected += write(connection, request, mainTableSqlStruct, true);
+			rowsAffected += execWrite(connection, request, mainTableSqlStruct, true);
 		}
 
+		// Build inserted results for the write response
+		if (request.getType() == Type.INSERT) {
+			List<TableMetaData> tables;
+			if (doParent) {
+				tables = metaData.getParentPlusExtTables();
+			} else {
+				tables = metaData.getChildPlusExtTables();
+			}
+
+			for (final TableMetaData table : tables) {
+				addRequestParamsToResponseValues(request, responseValues, table);
+
+				// Find columns missing from the request params that are sequences and request the current value
+				for (final ColumnMetaData column : table.getColumns().values()) {
+					if (!request.hasParameter(column.getColumnLabel()) && column.isSequence()) {
+						final int value = Factory.getSequenceManager().getCurrentValue(connection,
+								column.getSequenceName());
+						responseValues.add(new ResponseValue(column.getColumnLabel(), new Integer(value),
+								column.getColumnNumber()));
+					}
+				}
+			}
+		}
 		return rowsAffected;
 	}
 
-	private int write(final Connection connection, final Request request, final SqlStruct sqlStruct,
+	private int execWrite(final Connection connection, final Request request, final SqlStruct sqlStruct,
 			final boolean doMain) throws SqlResourceException {
 		int rowsAffected = 0;
 		if (sqlStruct != null) {
@@ -319,17 +407,28 @@ public class SqlResourceImpl implements SqlResource {
 				// do not execute update on extension, which would affect all rows
 			} else {
 				final String sql = sqlStruct.getMain().toString();
+				Statement statement = null;
 				try {
-					final Statement statement = connection.createStatement();
+					statement = connection.createStatement();
 					Config.logger.debug(sql);
 					request.getLogger().addSql(sql);
 					rowsAffected = statement.executeUpdate(sql);
-					statement.close();
 				} catch (final SQLException exception) {
 					throw new SqlResourceException(exception, sql);
+				} finally {
+					if (statement != null) {
+						try {
+							statement.close();
+						} catch (final SQLException e) {
+						}
+					}
 				}
 			}
 		}
 		return rowsAffected;
+	}
+
+	private String getChildRowsName() {
+		return metaData.getChild().getTableAlias() + "s";
 	}
 }

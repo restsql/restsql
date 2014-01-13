@@ -13,7 +13,7 @@ public interface SqlBuilder {
 
 	/** Creates select SQL. */
 	public String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
-			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params)
+			final List<RequestValue> resourceIdentifiers, final List<RequestValue> params)
 			throws InvalidRequestException;
 
 	/** Creates update, insert or delete SQL. */

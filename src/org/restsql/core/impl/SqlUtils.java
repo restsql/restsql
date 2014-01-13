@@ -12,19 +12,9 @@ import org.restsql.core.ColumnMetaData;
  * 
  * @author Mark Sawers
  */
-class SqlUtils {
+public class SqlUtils {
 
-	static String removeWhitespaceFromSql(String sql) {
-		sql.replaceAll("\\n", "");
-		sql = sql.replaceAll("\\r", "");
-		sql = sql.replaceFirst("\\s+", "");
-		sql = sql.replaceFirst("\\t+", " ");
-		sql = sql.replaceFirst("\\t+$", "");
-		sql = sql.replaceAll("\\t", " ");
-		return sql;
-	}
-
-	static Object getObjectByColumnLabel(final ColumnMetaData column, final ResultSet resultSet)
+	public static Object getObjectByColumnLabel(final ColumnMetaData column, final ResultSet resultSet)
 			throws SQLException {
 		Object value = null;
 		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
@@ -35,10 +25,11 @@ class SqlUtils {
 		} else {
 			value = resultSet.getObject(column.getColumnLabel());
 		}
+
 		return value;
 	}
 
-	static Object getObjectByColumnNumber(final ColumnMetaData column, final ResultSet resultSet)
+	public static Object getObjectByColumnNumber(final ColumnMetaData column, final ResultSet resultSet)
 			throws SQLException {
 		Object value = null;
 		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
@@ -50,5 +41,15 @@ class SqlUtils {
 			value = resultSet.getObject(column.getColumnNumber());
 		}
 		return value;
+	}
+
+	public static String removeWhitespaceFromSql(String sql) {
+		sql.replaceAll("\\n", "");
+		sql = sql.replaceAll("\\r", "");
+		sql = sql.replaceFirst("\\s+", "");
+		sql = sql.replaceFirst("\\t+", " ");
+		sql = sql.replaceFirst("\\t+$", "");
+		sql = sql.replaceAll("\\t", " ");
+		return sql;
 	}
 }

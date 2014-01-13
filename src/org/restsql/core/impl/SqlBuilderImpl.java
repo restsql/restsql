@@ -8,8 +8,8 @@ import java.util.Map;
 
 import org.restsql.core.ColumnMetaData;
 import org.restsql.core.InvalidRequestException;
-import org.restsql.core.NameValuePair;
-import org.restsql.core.NameValuePair.Operator;
+import org.restsql.core.RequestValue;
+import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.Request;
 import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder;
@@ -20,8 +20,9 @@ import org.restsql.core.TableMetaData;
  * Builds SQL for an operation on a SQL Resource.
  * 
  * @author Mark Sawers
- * @todo optimize - save sql or change to prepared statement?
  */
+// TODO: optimize - save sql or change to prepared statement?
+
 public class SqlBuilderImpl implements SqlBuilder {
 	private static final int DEFAULT_DELETE_SIZE = 100;
 	private static final int DEFAULT_INSERT_SIZE = 300;
@@ -32,7 +33,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 
 	/** Creates select SQL. */
 	public String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
-			final List<NameValuePair> resourceIdentifiers, final List<NameValuePair> params)
+			final List<RequestValue> resourceIdentifiers, final List<RequestValue> params)
 			throws InvalidRequestException {
 		final SqlStruct sql = new SqlStruct(mainSql.length(), DEFAULT_SELECT_SIZE);
 		sql.getMain().append(mainSql);
@@ -123,13 +124,13 @@ public class SqlBuilderImpl implements SqlBuilder {
 	}
 
 	private void buildDeleteSqlPart(final SqlResourceMetaData metaData,
-			final List<NameValuePair> nameValuePairs, final Map<String, SqlStruct> sqls,
-			final boolean doParent) throws InvalidRequestException {
-		if (nameValuePairs != null) {
-			for (final NameValuePair nameValuePair : nameValuePairs) {
+			final List<RequestValue> requestParams, final Map<String, SqlStruct> sqls, final boolean doParent)
+			throws InvalidRequestException {
+		if (requestParams != null) {
+			for (final RequestValue requestParam : requestParams) {
 				final List<TableMetaData> tables = getWriteTables(Request.Type.DELETE, metaData, doParent);
 				for (final TableMetaData table : tables) {
-					final ColumnMetaData column = table.getColumns().get(nameValuePair.getName());
+					final ColumnMetaData column = table.getColumns().get(requestParam.getName());
 					if (column != null) {
 						if (column.isReadOnly()) {
 							throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
@@ -147,7 +148,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 						} else {
 							sql.getClause().append(" AND ");
 						}
-						setNameValue(Request.Type.DELETE, metaData, column, nameValuePair, true, sql.getClause());
+						setNameValue(Request.Type.DELETE, metaData, column, requestParam, true,
+								sql.getClause());
 					}
 				}
 			}
@@ -166,7 +168,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
 
 		// Iterate through the params and build the sql for each table
-		for (final NameValuePair param : request.getParameters()) {
+		for (final RequestValue param : request.getParameters()) {
 			final List<TableMetaData> tables = getWriteTables(request.getType(), metaData, doParent);
 			for (final TableMetaData table : tables) {
 				final ColumnMetaData column = table.getColumns().get(param.getName());
@@ -219,11 +221,11 @@ public class SqlBuilderImpl implements SqlBuilder {
 		return sqls;
 	}
 
-	private void buildSelectSql(final SqlResourceMetaData metaData, final List<NameValuePair> nameValues,
+	private void buildSelectSql(final SqlResourceMetaData metaData, final List<RequestValue> nameValues,
 			final SqlStruct sql) throws InvalidRequestException {
 		if (nameValues != null && nameValues.size() > 0) {
 			boolean validParamFound = false;
-			for (final NameValuePair param : nameValues) {
+			for (final RequestValue param : nameValues) {
 				if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_LIMIT)) {
 					try {
 						sql.setLimit(Integer.valueOf(param.getValue()));
@@ -255,7 +257,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 							}
 							if (!column.isNonqueriedForeignKey()) {
 								validParamFound = true;
-								setNameValue(Request.Type.SELECT, metaData, column, param, true, sql.getClause());
+								setNameValue(Request.Type.SELECT, metaData, column, param, true,
+										sql.getClause());
 							}
 						}
 					}
@@ -271,11 +274,11 @@ public class SqlBuilderImpl implements SqlBuilder {
 			final boolean doParent) throws InvalidRequestException {
 		final Map<String, SqlStruct> sqls = new HashMap<String, SqlStruct>(metaData.getNumberTables());
 
-		List<NameValuePair> resIds;
+		List<RequestValue> resIds;
 		if (metaData.isHierarchical() && !doParent) {
 			// Clone the list, since changing the request will affect the next child request
-			resIds = new ArrayList<NameValuePair>(request.getResourceIdentifiers().size());
-			for (final NameValuePair resId : request.getResourceIdentifiers()) {
+			resIds = new ArrayList<RequestValue>(request.getResourceIdentifiers().size());
+			for (final RequestValue resId : request.getResourceIdentifiers()) {
 				resIds.add(resId);
 			}
 		} else { // not hierachical or is hierarchical and executing the parent
@@ -285,7 +288,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 		final List<TableMetaData> tables = getWriteTables(request.getType(), metaData, doParent);
 
 		boolean validParamFound = false;
-		for (final NameValuePair param : request.getParameters()) {
+		for (final RequestValue param : request.getParameters()) {
 			for (final TableMetaData table : tables) {
 				final ColumnMetaData column = table.getColumns().get(param.getName());
 				if (column != null) {
@@ -327,7 +330,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 				sqls.remove(qualifiedTableName);
 			} else {
 				// Iterate through the resourceIds and build the where clause sql for each table
-				for (final NameValuePair resId : resIds) {
+				for (final RequestValue resId : resIds) {
 					final TableMetaData table = metaData.getTableMap().get(qualifiedTableName);
 					final ColumnMetaData column = table.getColumns().get(resId.getName());
 					if (column != null) {
@@ -389,8 +392,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 	 * @throws InvalidRequestException if unexpected operator is found (Escaped is only for internal use)
 	 */
 	private void setNameValue(final Type requestType, final SqlResourceMetaData metaData,
-			final ColumnMetaData column, final NameValuePair param, boolean columnIsSelector, final StringBuffer sql)
-			throws InvalidRequestException {
+			final ColumnMetaData column, final RequestValue param, boolean columnIsSelector,
+			final StringBuffer sql) throws InvalidRequestException {
 		// Append the name
 		if (requestType == Request.Type.SELECT) {
 			sql.append(column.getQualifiedColumnName());
@@ -433,7 +436,7 @@ public class SqlBuilderImpl implements SqlBuilder {
 			sql.append("(");
 			boolean firstValue = true;
 			for (String value : param.getInValues()) {
-				if (!firstValue){
+				if (!firstValue) {
 					sql.append(",");
 				}
 				appendValue(sql, value, column.isCharOrDateTimeType());

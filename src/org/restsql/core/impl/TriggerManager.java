@@ -103,13 +103,14 @@ public class TriggerManager {
 			}
 		}
 		for (final String triggerClassName : definitions.stringPropertyNames()) {
+			URLClassLoader classLoader = null;
 			try {
 				Class<Trigger> triggerClass;
 				if (triggersClasspath != null) {
 					File dir = new File(triggersClasspath);
 					URL url = dir.toURI().toURL();
 					URL[] urls = new URL[] { url };
-					URLClassLoader classLoader = new URLClassLoader(urls, Trigger.class.getClassLoader());
+					classLoader = new URLClassLoader(urls, Trigger.class.getClassLoader());
 					triggerClass = (Class<Trigger>) classLoader.loadClass(triggerClassName);
 				} else {
 					triggerClass = (Class<Trigger>) Class.forName(triggerClassName);
@@ -119,6 +120,14 @@ public class TriggerManager {
 				addTrigger(trigger, definitions.getProperty(triggerClassName));
 			} catch (final Exception exception) {
 				Config.logger.error("Failed to load trigger " + triggerClassName, exception);
+// If we were pure 1.7, then we could close the class loader
+//			} finally {
+//				if (classLoader != null) {
+//					try {
+//						classLoader.close();
+//					} catch (Throwable t) {
+//					}
+//				}
 			}
 		}
 		if (triggers == null) {
@@ -172,9 +181,9 @@ public class TriggerManager {
 		final Properties definitions = new Properties();
 		final String fileName = Config.properties.getProperty(Config.KEY_TRIGGERS_DEFINITION, null);
 		if (fileName != null) {
+			InputStream inputStream = null;
 			try {
 				final File file = new File(fileName);
-				InputStream inputStream;
 				if (file.exists()) {
 					inputStream = new FileInputStream(file);
 				} else {
@@ -186,7 +195,15 @@ public class TriggerManager {
 				}
 			} catch (final Exception exception) {
 				Config.logger.error("Failed to load trigger definitions " + fileName, exception);
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (Throwable t) {
+					}
+				}
 			}
+
 		}
 		return definitions;
 	}

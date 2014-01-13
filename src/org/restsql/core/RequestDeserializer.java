@@ -11,8 +11,8 @@ import java.util.List;
 public interface RequestDeserializer {
 
 	/** Executes write request. */
-	public int execWrite(HttpRequestAttributes httpAttributes, final Request.Type requestType,
-			final List<NameValuePair> resIds, final SqlResource sqlResource, final String requestBody,
+	public WriteResponse execWrite(HttpRequestAttributes httpAttributes, final Request.Type requestType,
+			final List<RequestValue> resIds, final SqlResource sqlResource, final String requestBody,
 			RequestLogger requestLogger) throws SqlResourceException;
 
 	/** Returns supported media type. */

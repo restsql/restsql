@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
 import org.restsql.core.RequestLogger;
 
@@ -15,19 +15,19 @@ import org.restsql.core.RequestLogger;
  * @author Mark Sawers
  */
 public class RequestImpl implements Request {
+	private final List<List<RequestValue>> childrenParams;
 	private HttpRequestAttributes httpAttributes;
-	private final List<List<NameValuePair>> childrenParams;
-	private List<NameValuePair> params;
+	private List<RequestValue> params;
 	private Request parent;
 	private final RequestLogger requestLogger;
-	private final List<NameValuePair> resourceIdentifiers;
+	private final List<RequestValue> resourceIdentifiers;
 	private final String sqlResource;
 	private final Request.Type type;
 
 	/** Constructs object. */
-	public RequestImpl(HttpRequestAttributes httpAttributes, final Request.Type type,
-			final String sqlResource, final List<NameValuePair> resourceIdentifiers,
-			final List<NameValuePair> params, final List<List<NameValuePair>> childrenParams,
+	public RequestImpl(final HttpRequestAttributes httpAttributes, final Request.Type type,
+			final String sqlResource, final List<RequestValue> resourceIdentifiers,
+			final List<RequestValue> params, final List<List<RequestValue>> childrenParams,
 			final RequestLogger requestLogger) {
 		this.type = type;
 		this.resourceIdentifiers = resourceIdentifiers;
@@ -44,7 +44,7 @@ public class RequestImpl implements Request {
 	}
 
 	@Override
-	public List<List<NameValuePair>> getChildrenParameters() {
+	public List<List<RequestValue>> getChildrenParameters() {
 		return childrenParams;
 	}
 
@@ -59,7 +59,7 @@ public class RequestImpl implements Request {
 	}
 
 	@Override
-	public List<NameValuePair> getParameters() {
+	public List<RequestValue> getParameters() {
 		return params;
 	}
 
@@ -69,7 +69,7 @@ public class RequestImpl implements Request {
 	}
 
 	@Override
-	public List<NameValuePair> getResourceIdentifiers() {
+	public List<RequestValue> getResourceIdentifiers() {
 		return resourceIdentifiers;
 	}
 
@@ -83,9 +83,19 @@ public class RequestImpl implements Request {
 		return type;
 	}
 
+	@Override
+	public boolean hasParameter(final String name) {
+		for (final RequestValue param : params) {
+			if (name.equals(param.getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** Sets parameters for request. Used for cloning requests on child objects. Does not scan for output param. */
 	@Override
-	public void setParameters(final List<NameValuePair> params) {
+	public void setParameters(final List<RequestValue> params) {
 		this.params = params;
 	}
 
@@ -96,8 +106,7 @@ public class RequestImpl implements Request {
 
 	/**
 	 * Returns string representation, using HttpRequestAttributes string if present.
-	 * 
-	 * @todo build string representation of resource identifiers and params
+	 * of resource identifiers and params
 	 */
 	@Override
 	public String toString() {

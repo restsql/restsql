@@ -1,4 +1,4 @@
-README_FRAMEWORK_DEVELOPERS.txt (23-Sep-2012)
+README_FRAMEWORK_DEVELOPERS.txt (12-Jan-2014)
 
 restSQL Framework Developer Guide
 
@@ -7,13 +7,13 @@ Project website is at http://restsql.org. Distributions at http://restsql.org/di
 -------------------------------------------------------------------------------
 Prerequisites
 
-* JDK 1.7
+* JDK 1.7 (Note: binaries are currently distributed as both 1.6 and 1.7 so you cannot use any 1.7 features, yet)
 * Eclipse Helios SR2, but other versions probably work fine
-* Ant 1.7.1, but newer versions probably work find
+* Ant 1.9 (previously used 1.7)
 * Tomcat 7
-* MySQL Server 5.5
-* PostgreSQL 9.1
-* Windows 7, but any OS should do
+* MySQL 5.6  (previously used 5.5)
+* PostgreSQL 9.3 (previously used 9.1)
+* Mac OS X 10.8 or Windows 7, but any OS should do
 
 
 -------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ Follow Sun's Java naming conventions and Javadoc style guidelines. Package overv
 Directories and Configuration Files
 
 Source Root
-Set up your Eclipse projects in /restsql/eclipse-workspace if possible. restSQL configuration uses absolute paths in most cases. The property values and default web.xml will work out of the box if you use /restsql/eclipse-workspace (or C:\restsql\eclipse-workspace) as your root.
+Set up your Eclipse projects in /opt/restsql/code if possible. restSQL configuration uses absolute paths in most cases. The property values and default web.xml will work out of the box if you use /opt/restsql/code (or C:\opt\restsql\code on Windows) as your root.
 
 Log Root
 Logs by default are written to /var/log/restsql. Make it easier on yourself and use this directory.
@@ -83,7 +83,7 @@ Configuration Files
 The main configuration file (restsql.properties) location is configured using a Java System property named org.restsql.properties. In a JAR deployment or development/Eclipse environment, the property can be injected into the JRE or overriden in an early loaded static block. Or just use the default, /resources/properties/default-restsql.properties, which requires you to use the default dev root.
 
 In a WAR deployment, the restsql.properties is loaded using the web.xml (or Parameter entry in Tomcat's context.xml). The default is:
-	/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties
+	/opt/restsql/code/restsql-test/src/resources/properties/restsql-mysql.properties
 
 This facilitates an easier dev/test cycle when using Tomcat execution within Eclipse. The restsql-test JUnit tests and Ant launched test suites use it as well.
 
@@ -170,7 +170,7 @@ Tomcat Server Configuration
 	5. Add a Parameter to the context.xml for th server instance to facilitate switching between MySQL and PostgreSQL.
 			<!-- 
 			<Parameter name="org.restsql.properties"
-				value="/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-postgresql.properties" override="false" />
+				value="/opt/restsql/code/restsql-test/src/resources/properties/restsql-postgresql.properties" override="false" />
 			 -->
 	   The default restsql properties will be restsql-test/src/resources/properties/restsql-mysql.properties.
 	   Uncomment the Parameter, publish and restart the server to start up with PostgreSQL. 
@@ -186,22 +186,11 @@ Starting the Server
  	
 	The console will show any stdout (System.out.printlns). You should see this:
 	
-		Loading restsql properties from /restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties
+		Loading restsql properties from /opt/restsql/code/restsql-test/src/resources/properties/restsql-mysql.properties
 		
-	And then something close to this:
+	And then a few messages later:
 	
-		Sep 22, 2012 4:18:49 PM com.sun.jersey.api.core.PackagesResourceConfig init
-		INFO: Scanning for root resource and provider classes in the packages:
-		  org.restsql.service
-		Sep 22, 2012 4:18:49 PM com.sun.jersey.api.core.ScanningResourceConfig logClasses
-		INFO: Root resource classes found:
-		  class org.restsql.service.WadlResource
-		  class org.restsql.service.ResResource
-		  class org.restsql.service.ConfResource
-		  class org.restsql.service.StatsResource
-		  class org.restsql.service.LogResource
-		Sep 22, 2012 4:18:49 PM com.sun.jersey.api.core.ScanningResourceConfig init
-		INFO: No provider classes found.
+		INFO: Instantiated the Application class org.restsql.service.RestSqlApplication
 	
 Stoping the Server
  	1. Right-click on the server instance in the Servers view
@@ -263,7 +252,7 @@ You can run one, several or a group of tests using the test-service-java-subset 
 
 You can run a subset in debug mode by creating a debug configuration for the class org.restsql.service.ServiceTestRunner with
 	Program arguments: 	java src/resources/xml/service/testcase/_tests.txt none
-	VM arguments:				-Dorg.restsql.properties=/resources/properties/restsql-mysql.properties
+	VM arguments:		-Dorg.restsql.properties=/resources/properties/restsql-mysql.properties
 
 Launch the ServiceTestRunner in debug mode.
 

@@ -15,8 +15,10 @@ import org.restsql.core.TableMetaData.TableRole;
  * Represents column (field) metadata.
  * 
  * @author Mark Sawers
- * @todo remove circular dependency with SqlResourceMetaData in buildQualifiedColumnName()
  */
+// TODO: remove circular dependency with SqlResourceMetaData in buildQualifiedColumnName()
+// TODO: remove dependency on this class, probably by moving setters to the interface
+
 @XmlType(name = "ColumnMetaData", namespace = "http://restsql.org/schema")
 public class ColumnMetaDataImpl implements ColumnMetaData {
 	@XmlAttribute(required = true)
@@ -52,6 +54,12 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	@XmlAttribute
 	private boolean readOnly;
 
+	@XmlAttribute
+	private boolean sequence;
+
+	@XmlAttribute
+	private String sequenceName;
+
 	@XmlTransient
 	private SqlResourceMetaData sqlResourceMetadata; // evil circular dependency - what was I thinking?
 
@@ -65,6 +73,7 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	public ColumnMetaDataImpl() {
 	}
 
+	/** Used for all columns declared in the SqlResource select clause. */
 	ColumnMetaDataImpl(final int columnNumber, final String databaseName, final String qualifiedTableName,
 			final String tableName, final String columnName, final String columnLabel,
 			final String columnTypeName, final int columnType, final boolean readOnly,
@@ -169,6 +178,29 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		nonqueriedForeignKey = true;
 	}
 
+	private void buildQualifiedColumnName() {
+		final StringBuilder name = new StringBuilder(100);
+		if (sqlResourceMetadata.hasMultipleDatabases()) {
+			name.append(getQualifiedTableName());
+		} else {
+			name.append(getTableName());
+		}
+		name.append('.');
+		name.append(getColumnName());
+		qualifiedColumnName = name.toString();
+	}
+
+	@Override
+	public int compareTo(final ColumnMetaData column) {
+		if (columnNumber < column.getColumnNumber()) {
+			return -1;
+		} else if (columnNumber > column.getColumnNumber()) {
+			return 1;
+		} else {
+			return 0;
+		}
+	}
+
 	@Override
 	public String getColumnLabel() {
 		return columnLabel;
@@ -209,11 +241,18 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		return qualifiedTableName;
 	}
 
+	@XmlTransient
+	@Override
+	public String getSequenceName() {
+		return sequenceName;
+	}
+
 	@Override
 	public String getTableName() {
 		return tableName;
 	}
 
+	@XmlTransient
 	@Override
 	public TableRole getTableRole() {
 		return tableRole;
@@ -257,23 +296,25 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 		return readOnly;
 	}
 
+	@XmlTransient
+	@Override
+	public boolean isSequence() {
+		return sequence;
+	}
+
 	void setPrimaryKey(final boolean primaryKey) {
 		this.primaryKey = primaryKey;
 	}
 
-	void setTableRole(final TableRole tableRole) {
-		this.tableRole = tableRole;
+	public void setSequence(final boolean sequence) {
+		this.sequence = sequence;
 	}
 
-	private void buildQualifiedColumnName() {
-		final StringBuilder name = new StringBuilder(100);
-		if (sqlResourceMetadata.hasMultipleDatabases()) {
-			name.append(getQualifiedTableName());
-		} else {
-			name.append(getTableName());
-		}
-		name.append('.');
-		name.append(getColumnName());
-		qualifiedColumnName = name.toString();
+	public void setSequenceName(final String sequenceName) {
+		this.sequenceName = sequenceName;
+	}
+
+	void setTableRole(final TableRole tableRole) {
+		this.tableRole = tableRole;
 	}
 }

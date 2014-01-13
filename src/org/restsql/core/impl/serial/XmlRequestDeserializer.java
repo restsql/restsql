@@ -1,5 +1,5 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
-package org.restsql.core.impl;
+package org.restsql.core.impl.serial;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -9,17 +9,19 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.restsql.core.ColumnMetaData;
+import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
+import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.Request;
+import org.restsql.core.Request.Type;
 import org.restsql.core.RequestDeserializer;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
-import org.restsql.core.NameValuePair.Operator;
-import org.restsql.core.Request.Type;
+import org.restsql.core.WriteResponse;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -53,9 +55,10 @@ import org.xml.sax.helpers.DefaultHandler;
 public class XmlRequestDeserializer implements RequestDeserializer {
 
 	/** Executes write request. */
-	public int execWrite(HttpRequestAttributes httpAttributes, final Request.Type requestType,
-			final List<NameValuePair> resIds, final SqlResource sqlResource, final String requestBody,
-			RequestLogger requestLogger) throws SqlResourceException {
+	@Override
+	public WriteResponse execWrite(final HttpRequestAttributes httpAttributes,
+			final Type requestType, final List<RequestValue> resIds, final SqlResource sqlResource,
+			final String requestBody, final RequestLogger requestLogger) throws SqlResourceException {
 		final Handler handler = new Handler(httpAttributes, requestType, resIds, sqlResource, requestLogger);
 		final SAXParser parser;
 		final ByteArrayInputStream inputStream;
@@ -64,40 +67,41 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 			inputStream = new ByteArrayInputStream(requestBody.getBytes());
 			parser.parse(inputStream, handler);
 		} catch (final Exception exception) {
+			Config.logger.info("Error parsing request body for " + httpAttributes, exception);
 			throw new InvalidRequestException("Error parsing request body: " + exception.toString());
 		}
-		SqlResourceException handlerException = handler.getHandlerException();
+		final SqlResourceException handlerException = handler.getHandlerException();
 		if (handlerException != null) {
 			throw handlerException;
 		}
-		return handler.getRowsAffected();
+		return handler.getWriteResponse();
 	}
 
 	@Override
 	public String getSupportedMediaType() {
 		return "application/xml";
 	}
-	
-	static class Handler extends DefaultHandler {
-		private static final String TAG_REQUEST = "request";
 
+	static class Handler extends DefaultHandler {
 		private static final int DEFAULT_CHILDREN_SIZE = 10;
 
-		int rowsAffected = 0;
-		private Request.Type requestType;
-		private List<NameValuePair> parentRequestResIds;
-		private List<List<NameValuePair>> childrenParams;
-		private SqlResourceException handlerException;
-		private List<NameValuePair> params;
-		private List<NameValuePair> parentAttributes;
-		private List<NameValuePair> resIds;
-		private final SqlResource sqlResource;
-		private RequestLogger requestLogger;
-		private HttpRequestAttributes httpAttributes;
+		private static final String TAG_REQUEST = "request";
 
-		Handler(HttpRequestAttributes httpAttributes, final Request.Type requestType,
-				final List<NameValuePair> parentRequestResIds, final SqlResource sqlResource,
-				RequestLogger requestLogger) {
+		private List<List<RequestValue>> childrenParams;
+		private SqlResourceException handlerException;
+		private final HttpRequestAttributes httpAttributes;
+		private List<RequestValue> params;
+		private List<RequestValue> parentAttributes;
+		private final List<RequestValue> parentRequestResIds;
+		private final RequestLogger requestLogger;
+		private final Request.Type requestType;
+		private List<RequestValue> resIds;
+		private final SqlResource sqlResource;
+		private WriteResponse response;
+
+		Handler(final HttpRequestAttributes httpAttributes, final Request.Type requestType,
+				final List<RequestValue> parentRequestResIds, final SqlResource sqlResource,
+				final RequestLogger requestLogger) {
 			this.httpAttributes = httpAttributes;
 			this.requestType = requestType;
 			this.parentRequestResIds = parentRequestResIds;
@@ -138,8 +142,8 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 			return handlerException;
 		}
 
-		public int getRowsAffected() {
-			return rowsAffected;
+		public WriteResponse getWriteResponse() {
+			return response;
 		}
 
 		@Override
@@ -150,9 +154,9 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 					parentAttributes = parseAttributes(attributes);
 				} else { // child element
 					if (childrenParams == null) {
-						childrenParams = new ArrayList<List<NameValuePair>>(DEFAULT_CHILDREN_SIZE);
+						childrenParams = new ArrayList<List<RequestValue>>(DEFAULT_CHILDREN_SIZE);
 					}
-					final List<NameValuePair> childParams = parseAttributes(attributes);
+					final List<RequestValue> childParams = parseAttributes(attributes);
 					childrenParams.add(childParams);
 				}
 			}
@@ -160,21 +164,26 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 
 		private void executeRequest() {
 			try {
-				Request request = Factory.getRequest(httpAttributes, requestType, sqlResource.getName(),
-						resIds, params, childrenParams, requestLogger);
-				rowsAffected += sqlResource.write(request);
-			} catch (SqlResourceException exception) {
+				final Request request = Factory.getRequest(httpAttributes, requestType,
+						sqlResource.getName(), resIds, params, childrenParams, requestLogger);
+				WriteResponse localResponse = sqlResource.write(request);
+				if (response == null) {
+					response = localResponse;
+				} else {
+					response.addWriteResponse(localResponse);
+				}
+			} catch (final SqlResourceException exception) {
 				handlerException = exception;
 			}
 		}
 
 		private void extractResIdsParamsFromParentAttributes(final boolean extractParams) {
-			resIds = new ArrayList<NameValuePair>(sqlResource.getMetaData().getParent().getPrimaryKeys()
+			resIds = new ArrayList<RequestValue>(sqlResource.getMetaData().getParent().getPrimaryKeys()
 					.size());
 			if (extractParams) {
-				params = new ArrayList<NameValuePair>(parentAttributes.size() - resIds.size());
+				params = new ArrayList<RequestValue>(parentAttributes.size() - resIds.size());
 			}
-			for (final NameValuePair attrib : parentAttributes) {
+			for (final RequestValue attrib : parentAttributes) {
 				for (final ColumnMetaData column : sqlResource.getMetaData().getParent().getPrimaryKeys()) {
 					if (column.getColumnLabel().equals(attrib.getName())) {
 						resIds.add(attrib);
@@ -185,13 +194,14 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 			}
 		}
 
-		private List<NameValuePair> parseAttributes(final Attributes attributes) {
-			final List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(attributes.getLength());
+		private List<RequestValue> parseAttributes(final Attributes attributes) {
+			final List<RequestValue> requestParams = new ArrayList<RequestValue>(attributes.getLength());
 			for (int i = 0; i < attributes.getLength(); i++) {
-				final NameValuePair param = new NameValuePair(attributes.getQName(i), attributes.getValue(i), Operator.Equals);
-				nameValuePairs.add(param);
+				final RequestValue param = new RequestValue(attributes.getQName(i), attributes.getValue(i),
+						Operator.Equals);
+				requestParams.add(param);
 			}
-			return nameValuePairs;
+			return requestParams;
 		}
 	}
 }

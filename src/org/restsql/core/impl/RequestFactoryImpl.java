@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
@@ -46,8 +46,8 @@ public class RequestFactoryImpl implements RequestFactory {
 			SqlResourceFactoryException, SqlResourceException {
 		int elements = 0;
 		String resName = null, path, query = null;
-		List<NameValuePair> resIds = null;
-		List<NameValuePair> params = null;
+		List<RequestValue> resIds = null;
+		List<RequestValue> params = null;
 
 		String uri;
 		try {
@@ -92,10 +92,10 @@ public class RequestFactoryImpl implements RequestFactory {
 			while (tokenizer.hasMoreElements()) {
 				final String element = (String) tokenizer.nextElement();
 				if (params == null) {
-					params = new ArrayList<NameValuePair>(4);
+					params = new ArrayList<RequestValue>(4);
 				}
 				final int equalsIndex = element.indexOf('=');
-				params.add(new NameValuePair(element.substring(0, equalsIndex), element
+				params.add(new RequestValue(element.substring(0, equalsIndex), element
 						.substring(equalsIndex + 1)));
 			}
 		}
@@ -115,8 +115,8 @@ public class RequestFactoryImpl implements RequestFactory {
 	 */
 	@Override
 	public Request getRequest(final HttpRequestAttributes httpAttributes, final Type type,
-			final String sqlResource, final List<NameValuePair> resIds, final List<NameValuePair> params,
-			final List<List<NameValuePair>> childrenParams, final RequestLogger requestLogger)
+			final String sqlResource, final List<RequestValue> resIds, final List<RequestValue> params,
+			final List<List<RequestValue>> childrenParams, final RequestLogger requestLogger)
 			throws InvalidRequestException {
 		// Verify expectations
 		if (sqlResource == null) {

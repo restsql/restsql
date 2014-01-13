@@ -13,8 +13,11 @@ public interface Request {
 	public static final String PARAM_NAME_OFFSET = "_offset";
 	public static final String PARAM_NAME_OUTPUT = "_output";
 
+	/** Returns true if request has parameter with the given name. */
+	public boolean hasParameter(String name);
+	
 	/** Returns children CUD requests to a single parent for a hierarchical SQL Resource. */
-	public List<List<NameValuePair>> getChildrenParameters();
+	public List<List<RequestValue>> getChildrenParameters();
 
 	/** Returns http request attributes. */
 	public HttpRequestAttributes getHttpRequestAttributes();
@@ -23,7 +26,7 @@ public interface Request {
 	public RequestLogger getLogger();
 
 	/** Returns ordered list of parameters, for example the selection filter for update request. */
-	public List<NameValuePair> getParameters();
+	public List<RequestValue> getParameters();
 
 	/** Returns parent, if any. */
 	public Request getParent();
@@ -32,7 +35,7 @@ public interface Request {
 	 * Returns ordered list of primary key values for a CRUD request on a single object (row). On a hierarchical SQL
 	 * Resource, this list identifies the parent and the children are identified by the children parameters.
 	 */
-	public List<NameValuePair> getResourceIdentifiers();
+	public List<RequestValue> getResourceIdentifiers();
 
 	/** Returns SQL Resource name. */
 	public String getSqlResource();
@@ -41,7 +44,7 @@ public interface Request {
 	public Type getType();
 
 	/** Sets parameters for request. Used for cloning requests on child objects. */
-	public void setParameters(final List<NameValuePair> params);
+	public void setParameters(final List<RequestValue> params);
 
 	/** Sets parent request. */
 	public void setParent(Request parentRequest);

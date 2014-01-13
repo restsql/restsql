@@ -33,16 +33,18 @@ public class Config {
 	public static final String DEFAULT_LOGGING_FACILITY = "log4j";
 	public static final String DEFAULT_REQUEST_FACTORY = "org.restsql.core.impl.RequestFactoryImpl";
 	public static final String DEFAULT_REQUEST_LOGGER = "org.restsql.core.impl.RequestLoggerImpl";
-	public static final String DEFAULT_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.impl.RequestDeserializerFactoryImpl";
+	public static final String DEFAULT_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.impl.serial.RequestDeserializerFactoryImpl";
 	public static final String DEFAULT_REQUEST_USE_XML_SCHEMA = "false";
-	public static final String DEFAULT_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.impl.ResponseSerializerFactoryImpl";
+	public static final String DEFAULT_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.impl.serial.ResponseSerializerFactoryImpl";
 	public static final String DEFAULT_RESPONSE_USE_XML_DIRECTIVE = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
+	public static final String DEFAULT_SEQUENCE_MANAGER = "org.restsql.core.impl.mysql.MySqlSequenceManager";
 	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.SqlBuilderImpl";
 	public static final String DEFAULT_SQL_RESOURCE_FACTORY = "org.restsql.core.impl.SqlResourceFactoryImpl";
-	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.SqlResourceMetaDataMySql";
+	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.mysql.MySqlSqlResourceMetaData";
 	public static final String DEFAULT_SQLRESOURCES_DIR = "/resources/xml/sqlresources";
+	public static final String DEFAULT_WRITE_RESPONSE = "org.restsql.core.impl.WriteResponseImpl";
 
 	public static final String KEY_AUTHORIZER = "org.restsql.security.Authorizer";
 	public static final String KEY_CONNECTION_FACTORY = "org.restsql.core.Factory.Connection";
@@ -65,6 +67,7 @@ public class Config {
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";
 	public static final String KEY_RESTSQL_PROPERTIES = "org.restsql.properties";
+	public static final String KEY_SEQUENCE_MANAGER = "org.restsql.core.SequenceManager";
 	public static final String KEY_SECURITY_PRIVILEGES = "security.privileges";
 	public static final String KEY_SQL_BUILDER = "org.restsql.core.SqlBuilder";
 	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResourceFactory";
@@ -72,6 +75,7 @@ public class Config {
 	public static final String KEY_SQLRESOURCES_DIR = "sqlresources.dir";
 	public static final String KEY_TRIGGERS_CLASSPATH = "triggers.classpath";
 	public static final String KEY_TRIGGERS_DEFINITION = "triggers.definition";
+	public static final String KEY_WRITE_RESPONSE = "org.restsql.core.WriteResponse";
 
 	public static final String NAME_LOGGER_ACCESS = "org.restsql.access";
 	public static final String NAME_LOGGER_ERROR = "org.restsql.error";

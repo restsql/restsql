@@ -10,12 +10,8 @@
 		<filter-name>jersey</filter-name>
 		<filter-class>com.sun.jersey.spi.container.servlet.ServletContainer</filter-class>
 		<init-param>
-			<param-name>com.sun.jersey.config.property.resourceConfigClass</param-name>
-			<param-value>com.sun.jersey.api.core.PackagesResourceConfig</param-value>
-		</init-param>
-		<init-param>
-			<param-name>com.sun.jersey.config.property.packages</param-name>
-			<param-value>org.restsql.service</param-value>
+			<param-name>javax.ws.rs.Application</param-name>
+			<param-value>org.restsql.service.RestSqlApplication</param-value>
 		</init-param>
 		<init-param>
 			<param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
@@ -37,10 +33,24 @@
 		<listener-class>org.restsql.service.LifecycleListener</listener-class>
 	</listener>
 
+	<!-- Disable RestEasy Deployer package scanning for JBoss AS 6+ -->
+	<context-param>
+    		<param-name>resteasy.scan</param-name>
+    		<param-value>false</param-value>
+	</context-param>
+	<context-param>
+    		<param-name>resteasy.scan.providers</param-name>
+    		<param-value>false</param-value>
+	</context-param>
+	<context-param>
+    		<param-name>resteasy.scan.resources</param-name>
+    		<param-value>false</param-value>
+	</context-param>
+
 	<!-- Configure absolute path to restsql properties file -->
 	<context-param>
 		<param-name>org.restsql.properties</param-name>
-		<param-value>/restsql/eclipse-workspace/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
+		<param-value>/opt/restsql/code/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
 	</context-param>
 
 	<!-- Uncomment security-roles, security-constraints and login-config for authentication/authorization -->

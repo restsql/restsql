@@ -37,9 +37,9 @@ public interface ResponseSerializer {
 			final List<Map<String, Object>> results);
 
 	/**
-	 * Converts write results to a string.
-	 * 
-	 * @param rowsAffected rows affected
+	 * Converts write response to a string.
+	 * @param sqlResource SQL resource
+	 * @param response response
 	 */
-	public String serializeWrite(final int rowsAffected);
+	public String serializeWrite(SqlResource sqlResource, final WriteResponse response);	
 }

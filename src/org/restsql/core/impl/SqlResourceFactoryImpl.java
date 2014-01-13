@@ -56,6 +56,13 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 			} catch (final JAXBException exception) {
 				throw new SqlResourceFactoryException("Error unmarshalling SQL Resource "
 						+ getSqlResourceFileName(resName) + " -- " + exception.getMessage());
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (Throwable t) {
+					}
+				}
 			}
 		}
 		return sqlResource;
@@ -121,6 +128,8 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 
 	// Private utils
 
+	/** Opens input stream to resource name. Callers must close stream. */
+	@SuppressWarnings("resource")
 	private InputStream getInputStream(final String resName) throws SqlResourceFactoryException {
 		final String fileName = getSqlResourceFileName(resName);
 		InputStream inputStream = null;

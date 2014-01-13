@@ -60,11 +60,11 @@ public interface SqlResource {
 	public String read(final Request request, final String mediaType) throws SqlResourceException;
 
 	/**
-	 * Executes insert, update or delete.
+	 * Executes database write (insert, update or delete).
 	 * 
 	 * @param request Request object
-	 * @return number of rows updated
-	 * @throws SqlResourceException if a database access error occurs
+	 * @throws SqlResourceException if the request is invalid or a database access error or trigger exception occurs
+	 * @return write response
 	 */
-	public int write(final Request request) throws SqlResourceException;
+	public WriteResponse write(final Request request) throws SqlResourceException;
 }

@@ -23,7 +23,7 @@
 			</fileset>
 		</copy>
 
-		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" debug="true">
+		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" includeantruntime="false" debug="true">
 			<compilerarg line="-Xlint:all" />
 		</javac>
 	</target>
@@ -44,10 +44,18 @@
 			<arg line="-classpath obj/bin;${compile.classpath} -d src/resources/xml src/org/restsql/core/impl/AbstractSqlResourceMetaData.java" />
 		</java>
 		<move file="src/resources/xml/schema1.xsd" tofile="src/resources/xml/SqlResourceMetaData.xsd" />
-		<echo message="PLEASE MANUALLY CHANGE XML TYPE TO CONCRETE !!!" /> 
+		<echo message="PLEASE MANUALLY CHANGE XML TYPE TO CONCRETE !!!" />
 	</target>
 
-	<target name="lib" depends="lib-war,lib-src" description="generates binary libs and war">
+	<target name="generate-html" description="generates html for webapp">
+		<copy todir="WebContent">
+			<fileset dir="src/resources/html" />
+		</copy>
+		
+		<replace file="WebContent/index.html" token="@@build.version@@" value="${build.version}"/>
+	</target>
+
+	<target name="lib" depends="generate-html,lib-war,lib-src" description="generates binary libs and war">
 		<!-- Create output dir -->
 		<mkdir dir="obj/lib" />
 
@@ -157,10 +165,12 @@
 		<antcall target="-doc">
 			<param name="destdir" value="${javadoc.destdir.api}" />
 			<param name="packagenames" value="${javadoc.packagenames.api}" />
+			<param name="access" value="${javadoc.access.api}" />
 		</antcall>
 		<antcall target="-doc">
 			<param name="destdir" value="${javadoc.destdir.full}" />
 			<param name="packagenames" value="${javadoc.packagenames.full}" />
+			<param name="access" value="${javadoc.access.full}" />
 		</antcall>
 	</target>
 
@@ -170,9 +180,8 @@
 		<mkdir dir="${destdir}" />
 
 		<!-- Javadoc -->
-		<javadoc sourcepath="src" destdir="${destdir}" access="public" windowtitle="restSQL" author="true" version="true" use="true" bottom="${javadoc.copyright}" classpath="${javadoc.classpath}" packagenames="${packagenames}" overview="${javadoc.overview}">
+		<javadoc sourcepath="src" destdir="${destdir}" access="${access}" windowtitle="restSQL" author="true" version="true" use="true" bottom="${javadoc.copyright}" classpath="${javadoc.classpath}" packagenames="${packagenames}" overview="${javadoc.overview}">
 			<link offline="true" packagelistloc="${javadoc.javase6.package-list.dir}" href="${javadoc.javase6.href}" />
-			<tag name="todo" scope="all" description="To do:" />
 		</javadoc>
 	</target>
 

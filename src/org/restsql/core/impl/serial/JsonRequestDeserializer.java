@@ -1,5 +1,5 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
-package org.restsql.core.impl;
+package org.restsql.core.impl.serial;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,14 +12,15 @@ import org.restsql.core.ColumnMetaData;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
-import org.restsql.core.NameValuePair;
+import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
 import org.restsql.core.RequestDeserializer;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
-import org.restsql.core.NameValuePair.Operator;
+import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.Request.Type;
+import org.restsql.core.WriteResponse;
 
 /**
  * Processes requests represented in a JSON string. It expects a top-level array of objects, as in:
@@ -74,9 +75,9 @@ import org.restsql.core.Request.Type;
 public class JsonRequestDeserializer implements RequestDeserializer {
 
 	@Override
-	public int execWrite(final HttpRequestAttributes httpAttributes, final Type requestType,
-			final List<NameValuePair> resIds, final SqlResource sqlResource, final String requestBody,
-			final RequestLogger requestLogger) throws SqlResourceException {
+	public WriteResponse execWrite(HttpRequestAttributes httpAttributes, Type requestType,
+			List<RequestValue> resIds, SqlResource sqlResource, String requestBody,
+			RequestLogger requestLogger) throws SqlResourceException {
 		final Handler handler = new Handler(httpAttributes, requestType, resIds, sqlResource, requestLogger);
 		try {
 			final JSONParser parser = new JSONParser();
@@ -88,7 +89,7 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 		if (handlerException != null) {
 			throw handlerException;
 		}
-		return handler.getRowsAffected();
+		return handler.getWriteResponse();
 	}
 
 	@Override
@@ -99,24 +100,24 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 	class Handler implements ContentHandler {
 		private static final int DEFAULT_CHILDREN_SIZE = 10;
 
-		int rowsAffected = 0;
 		private final int childColumnCount;
 		private String childrenKey, currentKey;
-		private List<List<NameValuePair>> childrenParams;
+		private List<List<RequestValue>> childrenParams;
 		private SqlResourceException handlerException;
 		private final HttpRequestAttributes httpAttributes;
-		private List<NameValuePair> params;
-		private List<NameValuePair> parentAttributes;
+		private List<RequestValue> params;
+		private List<RequestValue> parentAttributes;
 		private final int parentColumnCount;
-		private final List<NameValuePair> parentRequestResIds;
+		private final List<RequestValue> parentRequestResIds;
 		private ParserState parserState = ParserState.Initial;
 		private final RequestLogger requestLogger;
 		private final Request.Type requestType;
-		private List<NameValuePair> resIds;
+		private List<RequestValue> resIds;
 		private final SqlResource sqlResource;
+		private WriteResponse response;
 
 		Handler(final HttpRequestAttributes httpAttributes, final Request.Type requestType,
-				final List<NameValuePair> parentRequestResIds, final SqlResource sqlResource,
+				final List<RequestValue> parentRequestResIds, final SqlResource sqlResource,
 				final RequestLogger requestLogger) {
 			this.httpAttributes = httpAttributes;
 			this.requestType = requestType;
@@ -218,18 +219,18 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 			return handlerException;
 		}
 
-		public int getRowsAffected() {
-			return rowsAffected;
+		public WriteResponse getWriteResponse() {
+			return response;
 		}
 
 		/** Sets string, number or boolean value to current parameter. */
 		@Override
 		public boolean primitive(final Object value) throws ParseException, IOException {
-			NameValuePair pair;
+			RequestValue pair;
 			if (value != null) {
-				pair = new NameValuePair(currentKey, value.toString(), Operator.Equals);
+				pair = new RequestValue(currentKey, value.toString(), Operator.Equals);
 			} else {
-				pair = new NameValuePair(currentKey, null, Operator.Equals);
+				pair = new RequestValue(currentKey, null, Operator.Equals);
 			}
 			params.add(pair);
 			return true;
@@ -282,13 +283,13 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 
 			currentKey = null;
 			if (parserState == ParserState.AtLevel1Object && parentRequestResIds == null) {
-				params = new ArrayList<NameValuePair>(parentColumnCount);
+				params = new ArrayList<RequestValue>(parentColumnCount);
 				parentAttributes = params;
 			} else if (parserState == ParserState.AtLevel1Object || parserState == ParserState.AtLevel2Object) {
 				if (childrenParams == null) {
-					childrenParams = new ArrayList<List<NameValuePair>>(DEFAULT_CHILDREN_SIZE);
+					childrenParams = new ArrayList<List<RequestValue>>(DEFAULT_CHILDREN_SIZE);
 				}
-				params = new ArrayList<NameValuePair>(childColumnCount);
+				params = new ArrayList<RequestValue>(childColumnCount);
 				childrenParams.add(params);
 			}
 			return true;
@@ -311,19 +312,24 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 			try {
 				final Request request = Factory.getRequest(httpAttributes, requestType,
 						sqlResource.getName(), resIds, params, childrenParams, requestLogger);
-				rowsAffected += sqlResource.write(request);
+				WriteResponse localResponse = sqlResource.write(request);
+				if (response == null) {
+					response = localResponse;
+				} else {
+					response.addWriteResponse(localResponse);
+				}
 			} catch (final SqlResourceException exception) {
 				handlerException = exception;
 			}
 		}
 
 		private void extractResIdsParamsFromParentAttributes(final boolean extractParams) {
-			resIds = new ArrayList<NameValuePair>(sqlResource.getMetaData().getParent().getPrimaryKeys()
+			resIds = new ArrayList<RequestValue>(sqlResource.getMetaData().getParent().getPrimaryKeys()
 					.size());
 			if (extractParams) {
-				params = new ArrayList<NameValuePair>(parentAttributes.size() - resIds.size());
+				params = new ArrayList<RequestValue>(parentAttributes.size() - resIds.size());
 			}
-			for (final NameValuePair attrib : parentAttributes) {
+			for (final RequestValue attrib : parentAttributes) {
 				for (final ColumnMetaData column : sqlResource.getMetaData().getParent().getPrimaryKeys()) {
 					if (column.getColumnLabel().equals(attrib.getName())) {
 						resIds.add(attrib);
