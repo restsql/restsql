@@ -61,11 +61,11 @@ public interface SqlBuilder {
 		}
 
 		public void setLimit(final int limit) {
-			this.limit = limit;
+			//this.limit = limit;
 		}
 
 		public void setOffset(final int offset) {
-			this.offset = offset;
+			//this.offset = offset;
 		}
 	}
 
