@@ -76,6 +76,15 @@ public class PostgreSqlSqlResourceMetaData extends AbstractSqlResourceMetaData {
 		return SQL_PK_QUERY;
 	}
 
+	/**
+	 * Retrieves qualified column label for disambiguating duplicate labels in SQL
+	 * statements. MySQL can use the form <code>database.table.label</code>, for example <code>sakila.film.id</code>.
+	 */
+	@Override
+	protected String getQualifiedColumnLabel(String tableName, String qualifiedTableName, final boolean readOnly, final String label) {
+		return label;
+	}
+
 	/** Retrieves database-specific table name used in SQL statements. */
 	@Override
 	protected String getQualifiedTableName(final SqlResourceDefinition definition,

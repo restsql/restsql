@@ -14,7 +14,7 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 
 	/**
 	 * Compares another column based on the column number of the select clause in the SQL Resource definition query.
-	 * Implements  Comparable interface.
+	 * Implements Comparable interface.
 	 */
 	public int compareTo(ColumnMetaData column);
 
@@ -43,6 +43,13 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 
 	/** Returns database name. */
 	public String getDatabaseName();
+
+	/**
+	 * Returns fully qualified column label in database-specific form for use in SQL statements. MySQL uses the form
+	 * <code>database.table.label</code>, for example <code>sakila.film.id</code>. PostgreSQL can only use
+	 * <code>label</code> and cannot disambiguate by table source.
+	 */
+	public String getQualifiedColumnLabel();
 
 	/**
 	 * Returns fully qualified column name in database-specific form for use in SQL statements. MySQL uses the form
@@ -88,4 +95,32 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 	 * @see #getSequenceName()
 	 */
 	public boolean isSequence();
+	
+	/**
+	 * Used for all columns declared in the SqlResource select clause.
+	 */
+	public void setAttributes(final int columnNumber, final String databaseName, final String qualifiedTableName,
+			final String tableName, final String columnName, final String qualifiedColumnName,
+			final String columnLabel, final String qualifiedColumnLabel, final String columnTypeName,
+			final int columnType, final boolean readOnly);
+
+	/**
+	 * Used for foreign key columns not declared in the SqlResource select columns. These are required for writes to
+	 * child extensions, parent extensions and child tables.
+	 */
+	public void setAttributes(final String databaseName, final String sqlQualifiedTableName, final String tableName,
+			final TableRole tableRole, final String columnName, final String qualifiedColumnName,
+			final String columnLabel, final String qualifiedColumnLabel, final String columnTypeString);
+
+	/** Sets primary key. */
+	public void setPrimaryKey(final boolean primaryKey);
+	
+	/** Sets true if column populated with a sequence function (auto increment). */
+	public void setSequence(final boolean sequence);
+
+	/** Sets sequence name. */
+	public void setSequenceName(final String sequenceName);
+
+		/** Sets table role. */
+	public void setTableRole(final TableRole tableRole);
 }

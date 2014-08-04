@@ -21,6 +21,7 @@ public class RestSqlApplication extends Application {
         classes.add(ResResource.class);
         classes.add(StatsResource.class);
         classes.add(WadlResource.class);
+        classes.add(ToolsResource.class);
         return classes;
     }
 

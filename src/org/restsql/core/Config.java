@@ -20,6 +20,7 @@ import org.apache.commons.logging.LogFactory;
 public class Config {
 
 	public static final String DEFAULT_AUTHORIZER = "org.restsql.security.impl.AuthorizerImpl";
+	public static final String DEFAULT_COLUMN_METADATA = "org.restsql.core.impl.ColumnMetaDataImpl";
 	public static final String DEFAULT_CONNECTION_FACTORY = "org.restsql.core.impl.ConnectionFactoryImpl";
 	public static final String DEFAULT_DATABASE_DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
 	public static final String DEFAULT_DATABASE_PASSWORD = "root";
@@ -38,15 +39,18 @@ public class Config {
 	public static final String DEFAULT_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.impl.serial.ResponseSerializerFactoryImpl";
 	public static final String DEFAULT_RESPONSE_USE_XML_DIRECTIVE = "false";
 	public static final String DEFAULT_RESPONSE_USE_XML_SCHEMA = "false";
+	public static final String DEFAULT_RESOURCE_DEFINITION_GENERATOR = "org.restsql.tools.impl.mysql.MySqlResourceDefinitionGenerator";
 	public static final String DEFAULT_RESTSQL_PROPERTIES = "/resources/properties/default-restsql.properties";
 	public static final String DEFAULT_SEQUENCE_MANAGER = "org.restsql.core.impl.mysql.MySqlSequenceManager";
-	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.SqlBuilderImpl";
+	public static final String DEFAULT_SQL_BUILDER = "org.restsql.core.impl.mysql.MySqlSqlBuilder";
 	public static final String DEFAULT_SQL_RESOURCE_FACTORY = "org.restsql.core.impl.SqlResourceFactoryImpl";
 	public static final String DEFAULT_SQL_RESOURCE_METADATA = "org.restsql.core.impl.mysql.MySqlSqlResourceMetaData";
 	public static final String DEFAULT_SQLRESOURCES_DIR = "/resources/xml/sqlresources";
+	public static final String DEFAULT_TABLE_METADATA = "org.restsql.core.impl.TableMetaDataImpl";
 	public static final String DEFAULT_WRITE_RESPONSE = "org.restsql.core.impl.WriteResponseImpl";
 
 	public static final String KEY_AUTHORIZER = "org.restsql.security.Authorizer";
+	public static final String KEY_COLUMN_METADATA = "org.restsql.core.ColumnMetaData";
 	public static final String KEY_CONNECTION_FACTORY = "org.restsql.core.Factory.Connection";
 	public static final String KEY_DATABASE_DRIVER_CLASSNAME = "database.driverClassName";
 	public static final String KEY_DATABASE_PASSWORD = "database.password";
@@ -63,6 +67,7 @@ public class Config {
 	public static final String KEY_REQUEST_LOGGER = "org.restsql.core.RequestLogger";
 	public static final String KEY_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.Factory.RequestDeserializerFactory";
 	public static final String KEY_REQUEST_USE_XML_SCHEMA = "request.useXmlDirective";
+	public static final String KEY_RESOURCE_DEFINTION_GENERATOR = "org.restsql.tools.ResourceDefinitionGenerator";
 	public static final String KEY_RESPONSE_SERIALIZER_FACTORY = "org.restsql.core.Factory.ResponseSerializerFactory";
 	public static final String KEY_RESPONSE_USE_XML_DIRECTIVE = "response.useXmlDirective";
 	public static final String KEY_RESPONSE_USE_XML_SCHEMA = "response.useXmlSchema";
@@ -73,6 +78,7 @@ public class Config {
 	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResourceFactory";
 	public static final String KEY_SQL_RESOURCE_METADATA = "org.restsql.core.SqlResourceMetaData";
 	public static final String KEY_SQLRESOURCES_DIR = "sqlresources.dir";
+	public static final String KEY_TABLE_METADATA = "org.restsql.core.TableMetaData";
 	public static final String KEY_TRIGGERS_CLASSPATH = "triggers.classpath";
 	public static final String KEY_TRIGGERS_DEFINITION = "triggers.definition";
 	public static final String KEY_WRITE_RESPONSE = "org.restsql.core.WriteResponse";

@@ -22,7 +22,6 @@ import org.restsql.core.TableMetaData;
  * @author Mark Sawers
  * @see ColumnMetaData
  */
-//TODO: remove dependency on this class, probably by moving setters to the interface
 
 @XmlType(name = "TableMetaData", namespace = "http://restsql.org/schema", propOrder = { "databaseName",
 		"tableName", "tableAlias", "qualifiedTableName", "tableRole", "columnList", "primaryKeyNames" })
@@ -37,12 +36,12 @@ public class TableMetaDataImpl implements TableMetaData {
 	@XmlAttribute(required = true)
 	private String databaseName;
 
-	@XmlTransient
-	private List<ColumnMetaData> primaryKeys;
-
 	@XmlElementWrapper(name = "primaryKeys")
 	@XmlElement(name = "column")
 	private List<String> primaryKeyNames;
+
+	@XmlTransient
+	private List<ColumnMetaData> primaryKeys;
 
 	@XmlAttribute(required = true)
 	private String qualifiedTableName;
@@ -60,10 +59,68 @@ public class TableMetaDataImpl implements TableMetaData {
 	public TableMetaDataImpl() {
 	}
 
-	public TableMetaDataImpl(final String tableName, final String qualifedTableName,
+	@Override
+	public void addColumn(final ColumnMetaData column) {
+		columnMap.put(column.getColumnLabel(), column);
+	}
+
+	@Override
+	public void addPrimaryKey(final ColumnMetaData column) {
+		primaryKeys.add(column);
+		primaryKeyNames.add(column.getQualifiedColumnName());
+	}
+
+	@Override
+	public Map<String, ColumnMetaData> getColumns() {
+		return columnMap;
+	}
+
+	@Override
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	@Override
+	public List<ColumnMetaData> getPrimaryKeys() {
+		return primaryKeys;
+	}
+
+	@Override
+	public String getQualifiedTableName() {
+		return qualifiedTableName;
+	}
+
+	@XmlTransient
+	@Override
+	public String getTableAlias() {
+		return tableAlias;
+	}
+
+	@Override
+	public String getTableName() {
+		return tableName;
+	}
+
+	@Override
+	public TableRole getTableRole() {
+		return tableRole;
+	}
+
+	@Override
+	public boolean isChild() {
+		return tableRole == TableRole.Child;
+	}
+
+	@Override
+	public boolean isParent() {
+		return tableRole == TableRole.Parent;
+	}
+
+	@Override
+	public void setAttributes(final String tableName, final String qualifedTableName,
 			final String databaseName, final TableRole tableRole) {
 		this.tableName = tableName;
-		this.tableAlias = tableName;
+		tableAlias = tableName;
 		qualifiedTableName = qualifedTableName;
 		this.databaseName = databaseName;
 		this.tableRole = tableRole;
@@ -73,52 +130,8 @@ public class TableMetaDataImpl implements TableMetaData {
 		columnList = columnMap.values();
 	}
 
-	public void addColumn(final ColumnMetaData column) {
-		columnMap.put(column.getColumnLabel(), column);
-	}
-
-	public void addPrimaryKey(final ColumnMetaData column) {
-		primaryKeys.add(column);
-		primaryKeyNames.add(column.getQualifiedColumnName());
-	}
-
-	public Map<String, ColumnMetaData> getColumns() {
-		return columnMap;
-	}
-
-	public String getDatabaseName() {
-		return databaseName;
-	}
-
-	public List<ColumnMetaData> getPrimaryKeys() {
-		return primaryKeys;
-	}
-
-	public String getQualifiedTableName() {
-		return qualifiedTableName;
-	}
-
-	public String getTableAlias() {
-		return tableAlias;
-	}
-
-	public String getTableName() {
-		return tableName;
-	}
-
-	public TableRole getTableRole() {
-		return tableRole;
-	}
-
-	public boolean isChild() {
-		return tableRole == TableRole.Child;
-	}
-
-	public boolean isParent() {
-		return tableRole == TableRole.Parent;
-	}
-
-	void setTableAlias(String tableAlias) {
+	@Override
+	public void setTableAlias(final String tableAlias) {
 		this.tableAlias = tableAlias;
 	}
 }

@@ -21,9 +21,7 @@ public class SqlResourceDefinitionUtils {
 		return definition.getMetadata().getDatabase().getDefault();
 	}
 
-	/**
-	 * Returns table with specified qualfied name. If the qualified name doesn't exist, finds table by unqualified name.
-	 */
+	/** Returns table object for column, ignoring case. Uses qualified name first, then unqualified. */
 	public static Table getTable(final SqlResourceDefinition definition, final ColumnMetaData column) {
 		Table target = null;
 		for (final Table table : definition.getMetadata().getTable()) {
@@ -38,7 +36,21 @@ public class SqlResourceDefinitionUtils {
 		return target;
 	}
 
-	/** Returns table with desired role. If there are multiple, returns first one. */
+	/**
+	 * Returns table object with specified table name, ignoring case. If the qualified name doesn't exist, finds table
+	 * by unqualified name.
+	 */
+	public static Table getTable(final SqlResourceDefinition definition, final String tableName) {
+		Table target = null;
+		for (final Table table : definition.getMetadata().getTable()) {
+			if (table.getName().equalsIgnoreCase(tableName)) {
+				target = table;
+			}
+		}
+		return target;
+	}
+
+	/** Returns table object with desired role. If there are multiple, returns first one. */
 	public static Table getTable(final SqlResourceDefinition definition, final TableMetaData.TableRole role) {
 		Table target = null;
 		for (final Table table : definition.getMetadata().getTable()) {
@@ -50,7 +62,7 @@ public class SqlResourceDefinitionUtils {
 		return target;
 	}
 
-	/** Returns list of tables with specified role. */
+	/** Returns list of table objects with specified role. */
 	public static List<Table> getTableList(final SqlResourceDefinition definition,
 			final TableMetaData.TableRole role) {
 		final List<Table> target = new ArrayList<Table>(3);
@@ -75,7 +87,7 @@ public class SqlResourceDefinitionUtils {
 	 * @param definition definition
 	 * @throws SqlResourceException if definition is invalid
 	 */
-	public static void validate(SqlResourceDefinition definition) throws SqlResourceException {
+	public static void validate(final SqlResourceDefinition definition) throws SqlResourceException {
 		if (definition.getQuery() == null) {
 			throw new SqlResourceException("Definition requires one query element");
 		} else if (definition.getMetadata() == null) {

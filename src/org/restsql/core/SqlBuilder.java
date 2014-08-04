@@ -16,6 +16,9 @@ public interface SqlBuilder {
 			final List<RequestValue> resourceIdentifiers, final List<RequestValue> params)
 			throws InvalidRequestException;
 
+	/** Creates select SQL limit clause. Returns empty string if database does not support limit feature. */
+	public String buildSelectLimitSql(final int limit, final int offset);
+
 	/** Creates update, insert or delete SQL. */
 	public Map<String, SqlStruct> buildWriteSql(final SqlResourceMetaData metaData, final Request request,
 			final boolean doParent) throws InvalidRequestException;

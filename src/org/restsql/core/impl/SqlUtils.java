@@ -18,12 +18,12 @@ public class SqlUtils {
 			throws SQLException {
 		Object value = null;
 		if (column.getColumnType() == Types.DATE && column.getColumnTypeName().equals("YEAR")) {
-			value = new Integer(resultSet.getInt(column.getColumnLabel()));
+			value = new Integer(resultSet.getInt(column.getQualifiedColumnLabel()));
 			if (resultSet.wasNull()) {
 				value = null;
 			}
 		} else {
-			value = resultSet.getObject(column.getColumnLabel());
+			value = resultSet.getObject(column.getQualifiedColumnLabel());
 		}
 
 		return value;
@@ -44,9 +44,9 @@ public class SqlUtils {
 	}
 
 	public static String removeWhitespaceFromSql(String sql) {
-		sql.replaceAll("\\n", "");
 		sql = sql.replaceAll("\\r", "");
-		sql = sql.replaceFirst("\\s+", "");
+		sql = sql.replaceFirst("^\\s+", "");
+		sql = sql.replaceFirst("\\s+$", "");
 		sql = sql.replaceFirst("\\t+", " ");
 		sql = sql.replaceFirst("\\t+$", "");
 		sql = sql.replaceAll("\\t", " ");

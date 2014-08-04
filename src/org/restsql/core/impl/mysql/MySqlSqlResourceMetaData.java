@@ -40,6 +40,31 @@ public class MySqlSqlResourceMetaData extends AbstractSqlResourceMetaData {
 		return SQL_PK_QUERY;
 	}
 
+	/**
+	 * Building the qualified column label for disambiguating duplicate labels in SQL statements. MySQL can use the form
+	 * <code>database.table.label</code>, for example <code>sakila.film.id</code>.
+	 * @param readOnly true if column is read only
+	 * @param label base column label
+	 * 
+	 * @return qualified label
+	 */
+	@Override
+	protected String getQualifiedColumnLabel(String tableName, String qualifiedTableName, final boolean readOnly, final String label) {
+		if (readOnly) {
+			return label;
+		} else {
+			final StringBuilder qualifiedLabel = new StringBuilder(100);
+			if (hasMultipleDatabases()) {
+				qualifiedLabel.append(qualifiedTableName);
+			} else {
+				qualifiedLabel.append(tableName);
+			}
+			qualifiedLabel.append('.');
+			qualifiedLabel.append(label);
+			return qualifiedLabel.toString();
+		}
+	}
+
 	/** Retrieves database-specific table name used in SQL statements. */
 	@Override
 	protected String getQualifiedTableName(final SqlResourceDefinition definition,

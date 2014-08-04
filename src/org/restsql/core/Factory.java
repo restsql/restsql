@@ -25,6 +25,11 @@ public class Factory extends AbstractFactory {
 		return requestFactory.getChildRequest(parentRequest);
 	}
 
+	/** Creates new column meta data object. Configurable implementation class. */
+	public static ColumnMetaData getColumnMetaData() {
+		return (ColumnMetaData)newInstance(Config.KEY_COLUMN_METADATA, Config.DEFAULT_COLUMN_METADATA);
+	}
+
 	/** Returns connection. */
 	public static Connection getConnection(final String defaultDatabase) throws SQLException {
 		return getConnectionFactory().getConnection(defaultDatabase);
@@ -155,14 +160,15 @@ public class Factory extends AbstractFactory {
 
 	/**
 	 * Returns meta data object for definition. Configurable implementation class.
+	 * @param sqlBuilder db-specific SQL builder
 	 * 
 	 * @throws SqlResourceException if a database access error occurs
 	 */
 	public static SqlResourceMetaData getSqlResourceMetaData(final String resName,
-			final SqlResourceDefinition definition) throws SqlResourceException {
+			final SqlResourceDefinition definition, SqlBuilder sqlBuilder) throws SqlResourceException {
 		final SqlResourceMetaData sqlResourceMetaData = (SqlResourceMetaData) newInstance(
 				Config.KEY_SQL_RESOURCE_METADATA, Config.DEFAULT_SQL_RESOURCE_METADATA);
-		sqlResourceMetaData.init(resName, definition);
+		sqlResourceMetaData.init(resName, definition, sqlBuilder);
 		return sqlResourceMetaData;
 	}
 
@@ -182,6 +188,11 @@ public class Factory extends AbstractFactory {
 		final SqlResourceFactory sqlResourceFactory = (SqlResourceFactory) getInstance(
 				Config.KEY_SQL_RESOURCE_FACTORY, Config.DEFAULT_SQL_RESOURCE_FACTORY);
 		return sqlResourceFactory.getSqlResourceNames();
+	}
+	
+	/** Creates new table meta data object. Configurable implementation class. */
+	public static TableMetaData getTableMetaData() {
+		return (TableMetaData)newInstance(Config.KEY_TABLE_METADATA, Config.DEFAULT_TABLE_METADATA);
 	}
 
 	/**

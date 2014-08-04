@@ -27,11 +27,11 @@ public class HttpRequestHelper {
 	/** Builds HTML page with SQL Resources and actions for each. Used for /restsql/res and /restsql/conf. */
 	public static StringBuffer buildSqlResourceListing(final UriInfo uriInfo) {
 		final StringBuffer requestBody = new StringBuffer(500);
-		requestBody.append("<html>\n<body style=\"font-family:sans-serif\">\n");
+		requestBody.append("<!DOCTYPE html>\n<html>\n<body style=\"font-family:sans-serif\">\n");
 		final String baseUri = uriInfo.getBaseUri().toString();
 		try {
 			final List<String> resNames = Factory.getSqlResourceNames();
-			requestBody.append("<span style=\"font-weight:bold\">restSQL SQL Resources</span><hr/>\n");
+			requestBody.append("<span style=\"font-weight:bold\"><a href=\"..\">restSQL</a> SQL Resources</span><hr/>\n");
 			if (resNames.size() > 0) {
 				requestBody.append("<table>\n");
 				for (final String resName : resNames) {

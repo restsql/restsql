@@ -43,7 +43,7 @@ public interface SqlResourceMetaData {
 
 	public boolean isHierarchical();
 	
-	public void init(String sqlResourceName, SqlResourceDefinition definition) throws SqlResourceException;
+	public void init(String sqlResourceName, SqlResourceDefinition definition, SqlBuilder sqlBuilder) throws SqlResourceException;
 	
 	public String toXml();
 }

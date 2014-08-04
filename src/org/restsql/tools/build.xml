@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="restsql" default="dist">
+	<property file="build.properties" />
+	<taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask" classpath="lib/jaxb-xjc.jar" />
+
+	<target name="dist" depends="compile,lib,doc,lib-doc" description="generates distribution files" />
+
+	<target name="clean" description="deletes output dir">
+		<delete dir="obj" failonerror="false" includeEmptyDirs="true" quiet="true" />
+	</target>
+
+	<target name="compile" description="compiles sources">
+		<!-- Create output dir -->
+		<mkdir dir="obj/bin" />
+
+		<!-- Copy supporting files -->
+		<copy todir="obj/bin">
+			<fileset dir="src">
+				<include name="**/*.properties" />
+				<include name="**/*.xml" />
+				<include name="**/*.xsd" />
+				<exclude name="resources/eclipse/*.xml" />
+			</fileset>
+		</copy>
+
+		<javac srcdir="src" destdir="obj/bin" classpath="${compile.classpath}" includeantruntime="false" debug="true">
+			<compilerarg line="-Xlint:all" />
+		</javac>
+	</target>
+
+	<target name="compile-schema" description="executes xjc on xml files">
+		<!-- Create output dir -->
+		<mkdir dir="obj/bin" />
+
+		<xjc destdir="src" package="org.restsql.core.sqlresource" removeOldOutput="yes">
+			<schema file="src/resources/xml/SqlResource.xsd" />
+			<depends file="src/resources/xml/SqlResource.xsd" />
+			<produces dir="obj/bin" />
+		</xjc>
+	</target>
+
+	<target name="generate-schema" description="executes jxc on java files">
+		<java classpath="lib/jaxb-xjc.jar" classname="com.sun.tools.jxc.SchemaGenerator">
+			<arg line="-classpath obj/bin;${compile.classpath} -d src/resources/xml src/org/restsql/core/impl/AbstractSqlResourceMetaData.java" />
+		</java>
+		<move file="src/resources/xml/schema1.xsd" tofile="src/resources/xml/SqlResourceMetaData.xsd" />
+		<echo message="PLEASE MANUALLY CHANGE XML TYPE TO CONCRETE !!!" />
+	</target>
+
+	<target name="generate-html" description="generates html for webapp">
+		<copy todir="WebContent">
+			<fileset dir="src/resources/html" />
+		</copy>
+		
+		<replace file="WebContent/index.html" token="@@build.version@@" value="${build.version}"/>
+	</target>
+
+	<target name="lib" depends="generate-html,lib-war,lib-src" description="generates binary libs and war">
+		<!-- Create output dir -->
+		<mkdir dir="obj/lib" />
+
+		<!-- Create JAR -->
+		<jar destfile="obj/lib/restsql-${build.version}.jar">
+			<fileset dir="obj/bin">
+				<exclude name="**/*.html" />
+			</fileset>
+			<fileset file="CONTRIBUTORS.txt" />
+			<fileset file="LICENSE.txt" />
+			<fileset file="README.txt" />
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Specification-Vendor" value="${manifest.vendor}" />
+				<attribute name="Specification-Title" value="${manifest.title.jar}" />
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="${manifest.vendor}" />
+				<attribute name="Implementation-Title" value="${manifest.title.jar}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+			</manifest>
+		</jar>
+		<!-- Create WAR -->
+		<jar destfile="obj/lib/restsql-${build.version}.war">
+			<fileset dir="obj/war" />
+			<fileset file="CONTRIBUTORS.txt" />
+			<fileset file="LICENSE.txt" />
+			<fileset file="README.txt" />
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Specification-Vendor" value="${manifest.vendor}" />
+				<attribute name="Specification-Title" value="${manifest.title.war}" />
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="${manifest.vendor}" />
+				<attribute name="Implementation-Title" value="${manifest.title.war}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="lib-war" depends="compile">
+		<mkdir dir="obj/war/WEB-INF/classes" />
+		<copy todir="obj/war/WEB-INF/classes">
+			<fileset dir="obj/bin">
+				<exclude name="**/*.html" />
+			</fileset>
+		</copy>
+
+		<mkdir dir="obj/war/WEB-INF/lib" />
+		<copy todir="obj/war/WEB-INF/lib">
+			<path>
+				<fileset dir="lib" includes="*.jar" excludes="jaxb-*.jar,servlet-api.jar" />
+			</path>
+		</copy>
+
+		<copy todir="obj/war">
+			<fileset dir="WebContent" includes="**" />
+		</copy>
+	</target>
+
+	<target name="lib-src">
+		<!-- Create output dir -->
+		<mkdir dir="obj/lib" />
+
+		<!-- Create JAR -->
+		<jar destfile="obj/lib/restsql-${build.version}-src.jar">
+			<fileset dir="src">
+				<exclude name="**/*.html" />
+			</fileset>
+			<fileset file="CONTRIBUTORS.txt" />
+			<fileset file="LICENSE.txt" />
+			<fileset file="README.txt" />
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Specification-Vendor" value="${manifest.vendor}" />
+				<attribute name="Specification-Title" value="${manifest.title.src}" />
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="${manifest.vendor}" />
+				<attribute name="Implementation-Title" value="${manifest.title.src}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="lib-doc" description="generates full javadoc jar">
+		<!-- Create output dir -->
+		<mkdir dir="obj/lib" />
+
+		<!-- Create JAR -->
+		<jar destfile="obj/lib/restsql-${build.version}-javadoc.jar">
+			<fileset dir="${javadoc.destdir.full}" />
+			<fileset file="CONTRIBUTORS.txt" />
+			<fileset file="LICENSE.txt" />
+			<fileset file="README.txt" />
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Specification-Vendor" value="${manifest.vendor}" />
+				<attribute name="Specification-Title" value="${manifest.title.javadoc}" />
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Vendor" value="${manifest.vendor}" />
+				<attribute name="Implementation-Title" value="${manifest.title.javadoc}" />
+				<attribute name="Implementation-Version" value="${build.version}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="doc" description="generates javadoc">
+		<antcall target="-doc">
+			<param name="destdir" value="${javadoc.destdir.api}" />
+			<param name="packagenames" value="${javadoc.packagenames.api}" />
+			<param name="access" value="${javadoc.access.api}" />
+		</antcall>
+		<antcall target="-doc">
+			<param name="destdir" value="${javadoc.destdir.full}" />
+			<param name="packagenames" value="${javadoc.packagenames.full}" />
+			<param name="access" value="${javadoc.access.full}" />
+		</antcall>
+	</target>
+
+	<target name="-doc">
+		<!-- Create output dir -->
+		<delete dir="${destdir}" />
+		<mkdir dir="${destdir}" />
+
+		<!-- Javadoc -->
+		<javadoc sourcepath="src" destdir="${destdir}" access="${access}" windowtitle="restSQL" author="true" version="true" use="true" bottom="${javadoc.copyright}" classpath="${javadoc.classpath}" packagenames="${packagenames}" overview="${javadoc.overview}">
+			<link offline="true" packagelistloc="${javadoc.javase6.package-list.dir}" href="${javadoc.javase6.href}" />
+		</javadoc>
+	</target>
+
+</project>

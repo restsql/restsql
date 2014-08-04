@@ -24,12 +24,6 @@ import org.restsql.security.SecurityFactory;
  */
 @Path("conf")
 public class ConfResource {
-	private final static String MENU_HTML = "<html><body style=\"font-family:sans-serif\">"
-		+ "<span style=\"font-weight:bold\">restSQL Configuration</span><hr/>"
-		+ "<a href=\"system\">System</a><br/>" + "<a href=\"log\">Logging</a><br/>"
-		+ "<a href=\"security\">Security</a><br/>" + "<a href=\"res\">Resources</a><br/>"
-		+ "</body></html>";
-
 	@GET
 	@Path("system")
 	@Produces(MediaType.TEXT_PLAIN)
@@ -96,12 +90,5 @@ public class ConfResource {
 		} catch (final SqlResourceException exception) {
 			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);
 		}
-	}
-
-	@GET
-	@Path("")
-	@Produces(MediaType.TEXT_HTML)
-	public Response getMenu() {
-		return Response.ok(MENU_HTML).build();
 	}
 }

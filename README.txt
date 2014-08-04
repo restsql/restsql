@@ -120,15 +120,22 @@ Database configuration is required. Here is an example for a database with built
 	# For MySQL:
 	#	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
 	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
+	#	org.restsql.core.SqlBuilder=org.restsql.core.impl.mysql.MySqlSqlBuilder
+	#	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.mysql.MySqlResourceDefinitionGenerator
 	# For PostgreSQL:
 	#	org.restsql.core.SequenceManager=org.restsql.core.impl.postgresql.PostgreSqlSequenceManager
 	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.postgresql.PostgreSqlSqlResourceMetaData
+	#	org.restsql.core.SqlBuilder=org.restsql.core.impl.postgresql.PostgreSqlSqlBuilder
+	#	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.postgresql.PostgreSqlResourceDefinitionGenerator
 	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
 	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
+	org.restsql.core.SqlBuilder=org.restsql.core.impl.myesql.MySqlSqlBuilder
+	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.mysql.MySqlResourceDefinitionGenerator
 
 Implementation classes configuration is optional. The defaults are:
 
 	# Implementation classes - use these to customize the framework
+	# org.restsql.core.ColumnMetaData=fully.qualified.class.name
 	# org.restsql.core.Factory.ConnectionFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.RequestFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.RequestDeserializerFactory=fully.qualified.class.name
@@ -136,9 +143,9 @@ Implementation classes configuration is optional. The defaults are:
 	# org.restsql.core.Factory.SqlResourceFactory=fully.qualified.class.name
 	# org.restsql.core.HttpRequestAttributes=fully.qualified.class.name
 	# org.restsql.core.RequestLogger=fully.qualified.class.name
-	# org.restsql.core.SeqeunceManager=fully.qualified.class.name
-	# org.restsql.core.SqlBuilder=fully.qualified.class.name
+	# org.restsql.core.TableMetaData=fully.qualified.class.name
 	# org.restsql.security.Authorizer=fully.qualified.class.name
+	org.restsql.core.ColumnMetaData=org.restsql.core.impl.ColumnMetaDataImpl
 	org.restsql.core.Factory.ConnectionFactory=org.restsql.core.impl.ConnectionFactoryImpl
 	org.restsql.core.Factory.RequestFactory=org.restsql.core.impl.RequestFactoryImpl
 	org.restsql.core.Factory.RequestDeserializerFactory=org.restsql.core.impl.serial.RequestDeserializerFactoryImpl
@@ -146,7 +153,7 @@ Implementation classes configuration is optional. The defaults are:
 	org.restsql.core.Factory.SqlResourceFactory=org.restsql.core.impl.SqlResourceFactoryImpl
 	org.restsql.core.HttpRequestAttributes=org.restsql.core.impl.HttpRequestAttributesImpl
 	org.restsql.core.RequestLogger=org.restsql.core.impl.RequestLoggerImpl
-	org.restsql.core.SqlBuilder=org.restsql.core.impl.SqlBuilderImpl
+	org.restsql.core.TableMetaData=org.restsql.core.impl.TableMetaDataImpl
 	org.restsql.security.Authorizer=org.restsql.security.impl.AuthorizerImpl
 
 See the SDK for more detail on Logging, Security, Trigger and HTTP configuration.
@@ -223,6 +230,14 @@ Additionally one of the following jdbc drivers is necessary for databases with b
 	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 9.0)
 
 Enabling Authentication and Authorization: restSQL will authorize SQL Resource operations. Your app will authenticate users and associate users with roles. You must provide a priviliges properties file and reference it in the restsql.properties. Your app will call restSQL's Authorizer and provide a SecurityContextimplementation. See the SDK's Security configuration for more instructions.
+
+
+-------------------------------------------------------------------------------
+Resource Definition Generation Tool
+The tool creates resource definition templates for all columns for each table in a database schema. The definitions are created in the user-provided subfolder. These resources can be immediately used, or modified and reloaded and moved as necessary.
+
+The tool is accessed after deploying restsql from the Tools link on the home page, or from http://host:port/restsql/tools. Enter the subfolder name (default is 'auto') and the database name. The definitions are created in the configured SQL Resources directory (in the restsql.properties file). These are viewable from the SQL Resources browser, i.e. http://host:port/restsql/res.
+
 
 
 -------------------------------------------------------------------------------

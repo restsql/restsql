@@ -15,6 +15,12 @@ import javax.xml.bind.annotation.XmlType;
  */
 public interface TableMetaData {
 
+	/** Adds normal column. */
+	public void addColumn(final ColumnMetaData column);
+
+	/** Adds primary key column. */
+	public void addPrimaryKey(final ColumnMetaData column);
+
 	/** Returns map of column meta data, keyed by the column label (the alias if provided, otherwise the name). */
 	public Map<String, ColumnMetaData> getColumns();
 
@@ -46,6 +52,13 @@ public interface TableMetaData {
 	/** Returns true if the SQL Resource role is parent. */
 	public boolean isParent();
 
+	/** Sets attributes. */
+	public void setAttributes(final String tableName, final String qualifedTableName,
+			final String databaseName, final TableRole tableRole);
+
+	/** Sets table alias. */
+	public void setTableAlias(final String tableAlias);
+	
 	/** Represents all of the roles a table may plan in a SQL Resource. */
 	@XmlType(namespace = "http://restsql.org/schema")
 	public enum TableRole {

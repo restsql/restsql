@@ -20,6 +20,7 @@ import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.Factory.SqlResourceFactory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
+import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.Trigger;
@@ -50,8 +51,9 @@ public class SqlResourceFactoryImpl implements SqlResourceFactory {
 				unmarshaller.setSchema(null);
 				final SqlResourceDefinition definition = ((JAXBElement<SqlResourceDefinition>) unmarshaller
 						.unmarshal(inputStream)).getValue();
+				final SqlBuilder sqlBuilder = Factory.getSqlBuilder();
 				sqlResource = new SqlResourceImpl(resName, definition, Factory.getSqlResourceMetaData(
-						resName, definition), Factory.getSqlBuilder(), new ArrayList<Trigger>());
+						resName, definition, sqlBuilder), sqlBuilder, new ArrayList<Trigger>());
 				sqlResources.put(resName, sqlResource);
 			} catch (final JAXBException exception) {
 				throw new SqlResourceFactoryException("Error unmarshalling SQL Resource "

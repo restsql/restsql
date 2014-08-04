@@ -34,8 +34,8 @@ public class LogResource {
 	public Response getLogList(@Context final UriInfo uriInfo) {
 		String baseUri = uriInfo.getBaseUri().toString() + "log/";
 		final StringBuilder body = new StringBuilder(500);
-		body.append("<html>\n<body style=\"font-family:sans-serif\">\n");
-		body.append("<span style=\"font-weight:bold\">restSQL Logs</span><hr/>");
+		body.append("<!DOCTYPE html>\n<html>\n<body style=\"font-family:sans-serif\">\n");
+		body.append("<span style=\"font-weight:bold\"><a href=\"..\">restSQL</a> Logs</span><hr/>");
 		body.append("<span style=\"font-weight:bold\">Current Logs</span><br/>");
 		appendCurrentLogAnchor(body, baseUri, "access");
 		appendCurrentLogAnchor(body, baseUri, "error");

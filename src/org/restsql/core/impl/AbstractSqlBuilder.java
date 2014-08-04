@@ -23,7 +23,7 @@ import org.restsql.core.TableMetaData;
  */
 // TODO: optimize - save sql or change to prepared statement?
 
-public class SqlBuilderImpl implements SqlBuilder {
+public abstract class AbstractSqlBuilder implements SqlBuilder {
 	private static final int DEFAULT_DELETE_SIZE = 100;
 	private static final int DEFAULT_INSERT_SIZE = 300;
 	private static final int DEFAULT_SELECT_SIZE = 300;
@@ -42,10 +42,8 @@ public class SqlBuilderImpl implements SqlBuilder {
 		addOrderBy(metaData, sql);
 		if (sql.getLimit() > -1) {
 			if (sql.getOffset() >= 0) {
-				sql.getClause().append(" LIMIT ");
-				sql.getClause().append(sql.getLimit());
-				sql.getClause().append(" OFFSET ");
-				sql.getClause().append(sql.getOffset());
+				// Call concrete database-specific class to get the limit clause
+				sql.getClause().append(buildSelectLimitSql(sql.getLimit(), sql.getOffset()));
 			} else {
 				throw new InvalidRequestException(InvalidRequestException.MESSAGE_OFFSET_REQUIRED);
 			}
@@ -457,5 +455,4 @@ public class SqlBuilderImpl implements SqlBuilder {
 			sql.append('\'');
 		}
 	}
-
 }
