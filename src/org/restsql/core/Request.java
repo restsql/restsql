@@ -13,9 +13,6 @@ public interface Request {
 	public static final String PARAM_NAME_OFFSET = "_offset";
 	public static final String PARAM_NAME_OUTPUT = "_output";
 
-	/** Returns true if request has parameter with the given name. */
-	public boolean hasParameter(String name);
-	
 	/** Returns children CUD requests to a single parent for a hierarchical SQL Resource. */
 	public List<List<RequestValue>> getChildrenParameters();
 
@@ -37,17 +34,43 @@ public interface Request {
 	 */
 	public List<RequestValue> getResourceIdentifiers();
 
+	/** Returns select row limit, if any. */
+	public Integer getSelectLimit();
+
+	/** Returns select row offset, if any. */
+	public Integer getSelectOffset();
+
 	/** Returns SQL Resource name. */
 	public String getSqlResource();
 
 	/** Returns request type. */
 	public Type getType();
 
+	/** Returns true if request has parameter with the given name. */
+	public boolean hasParameter(String name);
+
 	/** Sets parameters for request. Used for cloning requests on child objects. */
 	public void setParameters(final List<RequestValue> params);
 
 	/** Sets parent request. */
 	public void setParent(Request parentRequest);
+
+	/**
+	 * Sets select limit.
+	 */
+	public void setSelectLimit(final Integer integer);
+
+	/**
+	 * Sets select offset.
+	 */
+	public void setSelectOffset(final Integer integer);
+
+	/**
+	 * Extract limit and offset.
+	 * 
+	 * @throws InvalidRequestException if request is invalid
+	 */
+	public void extractParameters() throws InvalidRequestException;
 
 	/**
 	 * Represents request types, mapping to CRUD operations.

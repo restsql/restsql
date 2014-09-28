@@ -29,7 +29,7 @@ import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.InvalidRequestException;
 import org.restsql.core.Request;
-import org.restsql.core.RequestValue;
+import org.restsql.core.Request.Type;
 import org.restsql.core.SqlBuilder;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.SqlResourceMetaData;
@@ -198,6 +198,30 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		return tables;
 	}
 
+	/**
+	 * Determines the tables to use for write, possibly substituting the parent+, child+ or join table for query tables.
+	 */
+	@Override
+	public List<TableMetaData> getWriteTables(final Type requestType, final boolean doParent) {
+		List<TableMetaData> tables;
+		if (isHierarchical()) {
+			if (!doParent) { // child write
+				if (hasJoinTable() && requestType != Type.UPDATE) {
+					// Substitute join table for child if many to many hierarchical
+					tables = getJoinList();
+				} else {
+					tables = getChildPlusExtTables();
+				}
+			} else { // parent write
+				tables = getParentPlusExtTables();
+			}
+		} else {
+			// Use all query tables
+			tables = getTables();
+		}
+		return tables;
+	}
+
 	@Override
 	public boolean hasJoinTable() {
 		return joinTable != null;
@@ -352,17 +376,17 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 	/**
 	 * Retrieves sql for the main query based on the definition. Optimized to retrieve only one row using limit/offset.
-	 * Hook method for constructor allows database-specific overrides, however the usual route for customizaiton is
+	 * Hook method for constructor allows database-specific overrides, however the usual route for customization is
 	 * through SqlBuilder.buildSelectSql().
 	 * 
 	 * @throws InvalidRequestException if main query is invalid
 	 */
 	protected String getSqlMainQuery(final SqlResourceDefinition definition, final SqlBuilder sqlBuilder)
 			throws InvalidRequestException {
-		final List<RequestValue> params = new ArrayList<RequestValue>(2);
-		params.add(new RequestValue(Request.PARAM_NAME_LIMIT, "1"));
-		params.add(new RequestValue(Request.PARAM_NAME_OFFSET, "0"));
-		return sqlBuilder.buildSelectSql(this, definition.getQuery().getValue(), null, params);
+		Request request = Factory.getRequest(Type.SELECT, resName, null, null, null, null);
+		request.setSelectLimit(new Integer(1));
+		request.setSelectOffset(new Integer(0));
+		return sqlBuilder.buildSelectSql(this, definition.getQuery().getValue(), request).getStatement();
 	}
 
 	/**

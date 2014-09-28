@@ -1,4 +1,4 @@
-README.txt (12-Jan-2014)
+README.txt (28-Sep-2014)
 
 restSQL Deployment Guide
 
@@ -115,27 +115,29 @@ Database configuration is required. Here is an example for a database with built
 	database.url=jdbc:mysql://localhost:3306/
 	database.user=restsql
 	database.password=Rest00sql#
-	
+
 	# DB-specific implementation classes - match the implementation to your database
 	# For MySQL:
+	# 	org.restsql.core.ColumnMetaData=org.restsql.core.impl.mysql.MySqlColumnMetaData
 	#	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
 	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
 	#	org.restsql.core.SqlBuilder=org.restsql.core.impl.mysql.MySqlSqlBuilder
 	#	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.mysql.MySqlResourceDefinitionGenerator
 	# For PostgreSQL:
+	# 	org.restsql.core.ColumnMetaData=org.restsql.core.impl.ColumnMetaDataImpl
 	#	org.restsql.core.SequenceManager=org.restsql.core.impl.postgresql.PostgreSqlSequenceManager
 	#	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.postgresql.PostgreSqlSqlResourceMetaData
 	#	org.restsql.core.SqlBuilder=org.restsql.core.impl.postgresql.PostgreSqlSqlBuilder
 	#	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.postgresql.PostgreSqlResourceDefinitionGenerator
+	org.restsql.core.ColumnMetaData=org.restsql.core.impl.mysql.MySqlColumnMetaData
 	org.restsql.core.SequenceManager=org.restsql.core.impl.mysql.MySqlSequenceManager
 	org.restsql.core.SqlResourceMetaData=org.restsql.core.impl.mysql.MySqlSqlResourceMetaData
-	org.restsql.core.SqlBuilder=org.restsql.core.impl.myesql.MySqlSqlBuilder
+	org.restsql.core.SqlBuilder=org.restsql.core.impl.mysql.MySqlSqlBuilder
 	org.restsql.tools.ResourceDefinitionGenerator=org.restsql.tools.impl.mysql.MySqlResourceDefinitionGenerator
 
 Implementation classes configuration is optional. The defaults are:
 
 	# Implementation classes - use these to customize the framework
-	# org.restsql.core.ColumnMetaData=fully.qualified.class.name
 	# org.restsql.core.Factory.ConnectionFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.RequestFactory=fully.qualified.class.name
 	# org.restsql.core.Factory.RequestDeserializerFactory=fully.qualified.class.name
@@ -145,7 +147,6 @@ Implementation classes configuration is optional. The defaults are:
 	# org.restsql.core.RequestLogger=fully.qualified.class.name
 	# org.restsql.core.TableMetaData=fully.qualified.class.name
 	# org.restsql.security.Authorizer=fully.qualified.class.name
-	org.restsql.core.ColumnMetaData=org.restsql.core.impl.ColumnMetaDataImpl
 	org.restsql.core.Factory.ConnectionFactory=org.restsql.core.impl.ConnectionFactoryImpl
 	org.restsql.core.Factory.RequestFactory=org.restsql.core.impl.RequestFactoryImpl
 	org.restsql.core.Factory.RequestDeserializerFactory=org.restsql.core.impl.serial.RequestDeserializerFactoryImpl
@@ -226,8 +227,8 @@ Deploy: Copy jar to the classpath of your web app, e.g. WEB-INF/lib. The followi
 log4j is not necessary if your app uses Java Native Logging. restSQL has been tested with JRE 1.6 and Java Native Logging.
 
 Additionally one of the following jdbc drivers is necessary for databases with built-in support:
-	* mysql-connector-java-#.jar (tested with MySQL version 5.5)
-	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 9.0)
+	* mysql-connector-java-#.jar (tested with MySQL version 5.6)
+	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 9.3)
 
 Enabling Authentication and Authorization: restSQL will authorize SQL Resource operations. Your app will authenticate users and associate users with roles. You must provide a priviliges properties file and reference it in the restsql.properties. Your app will call restSQL's Authorizer and provide a SecurityContextimplementation. See the SDK's Security configuration for more instructions.
 

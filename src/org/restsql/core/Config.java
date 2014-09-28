@@ -20,7 +20,7 @@ import org.apache.commons.logging.LogFactory;
 public class Config {
 
 	public static final String DEFAULT_AUTHORIZER = "org.restsql.security.impl.AuthorizerImpl";
-	public static final String DEFAULT_COLUMN_METADATA = "org.restsql.core.impl.ColumnMetaDataImpl";
+	public static final String DEFAULT_COLUMN_METADATA = "org.restsql.core.impl.mysql.MySqlColumnMetaData";
 	public static final String DEFAULT_CONNECTION_FACTORY = "org.restsql.core.impl.ConnectionFactoryImpl";
 	public static final String DEFAULT_DATABASE_DRIVER_CLASSNAME = "com.mysql.jdbc.Driver";
 	public static final String DEFAULT_DATABASE_PASSWORD = "root";

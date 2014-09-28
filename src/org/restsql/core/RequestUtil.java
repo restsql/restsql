@@ -38,7 +38,11 @@ public class RequestUtil {
 		}
 	}
 
-	/** Returns name-value pairs, resourceId and value, for given resource and ordered value array. */
+	/**
+	 * Returns name-value pairs, resourceId and value, for given resource and ordered value array.
+	 * 
+	 * @throws InvalidRequestException
+	 */
 	public static List<RequestValue> getResIds(final SqlResource sqlResource, final String[] values) {
 		List<RequestValue> resIds = null;
 		if (values != null) {
@@ -84,15 +88,15 @@ public class RequestUtil {
 	 * {@link HttpRequestAttributes#DEFAULT_MEDIA_TYPE}. Note: The content parameter value overrides the accept media
 	 * type!
 	 */
-	public static String getResponseMediaType(final List<RequestValue> params,
-			final String requestMediaType, final String acceptMediaType) {
+	public static String getResponseMediaType(final List<RequestValue> params, final String requestMediaType,
+			final String acceptMediaType) {
 		String responseMediaType = null;
 		if (params != null) {
 			int outputIndex = -1;
 			for (int i = 0; i < params.size(); i++) {
 				final RequestValue param = params.get(i);
 				if (param.getName().equalsIgnoreCase(Request.PARAM_NAME_OUTPUT)) {
-					responseMediaType = convertToStandardInternetMediaType(param.getValue());
+					responseMediaType = convertToStandardInternetMediaType(param.getValue().toString());
 					outputIndex = i;
 					break;
 				}

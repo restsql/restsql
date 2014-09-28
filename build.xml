@@ -48,6 +48,7 @@
 	</target>
 
 	<target name="generate-html" description="generates html for webapp">
+		<delete file="WebContent/index.html" />
 		<copy todir="WebContent">
 			<fileset dir="src/resources/html" />
 		</copy>

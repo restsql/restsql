@@ -14,7 +14,6 @@ import org.restsql.core.ResponseSerializer;
 import org.restsql.core.ResponseValue;
 import org.restsql.core.SqlResource;
 import org.restsql.core.WriteResponse;
-import org.restsql.core.impl.SqlUtils;
 
 /**
  * Converts read/write results to an XML document.
@@ -61,8 +60,7 @@ public class XmlResponseSerializer implements ResponseSerializer {
 			body.append(sqlResource.getMetaData().getParent().getTableAlias());
 			for (final ColumnMetaData column : sqlResource.getMetaData().getAllReadColumns()) {
 				if (!column.isNonqueriedForeignKey()) {
-					addAttribute(body, column.getColumnLabel(),
-							SqlUtils.getObjectByColumnNumber(column, resultSet));
+					addAttribute(body, column.getColumnLabel(), column.getResultByNumber(resultSet));
 				}
 			}
 			body.append(" />");
@@ -154,8 +152,8 @@ public class XmlResponseSerializer implements ResponseSerializer {
 	}
 
 	/** One-level recursive method to serialize hierarchical results. */
-	private void serializeReadRowsHierarchical(final SqlResource sqlResource, final List<Map<String, Object>> rows,
-			final StringBuilder body, final int level) {
+	private void serializeReadRowsHierarchical(final SqlResource sqlResource,
+			final List<Map<String, Object>> rows, final StringBuilder body, final int level) {
 		String tableAlias = sqlResource.getMetaData().getParent().getTableAlias();
 		if (level == 2) {
 			tableAlias = sqlResource.getMetaData().getChild().getTableAlias();
@@ -182,7 +180,7 @@ public class XmlResponseSerializer implements ResponseSerializer {
 			// Do embedded child object columns
 			for (final String columnLabel : row.keySet()) {
 				final Object value = row.get(columnLabel);
-				if (value instanceof List<?> && ((List<?>)value).size() > 0) {
+				if (value instanceof List<?> && ((List<?>) value).size() > 0) {
 					hasChildren = true;
 					body.append(">");
 					@SuppressWarnings("unchecked")
@@ -236,7 +234,7 @@ public class XmlResponseSerializer implements ResponseSerializer {
 
 			// Do embedded child object columns
 			for (final ResponseValue value : row) {
-				if (value.getValue() instanceof List<?> && ((List<?>)value.getValue()).size() > 0) {
+				if (value.getValue() instanceof List<?> && ((List<?>) value.getValue()).size() > 0) {
 					hasChildren = true;
 					body.append(">"); // cap the parent element
 					@SuppressWarnings("unchecked")

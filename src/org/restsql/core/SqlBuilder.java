@@ -1,6 +1,7 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,12 +13,8 @@ import java.util.Map;
 public interface SqlBuilder {
 
 	/** Creates select SQL. */
-	public String buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
-			final List<RequestValue> resourceIdentifiers, final List<RequestValue> params)
-			throws InvalidRequestException;
-
-	/** Creates select SQL limit clause. Returns empty string if database does not support limit feature. */
-	public String buildSelectLimitSql(final int limit, final int offset);
+	public SqlStruct buildSelectSql(final SqlResourceMetaData metaData, final String mainSql,
+			final Request request) throws InvalidRequestException;
 
 	/** Creates update, insert or delete SQL. */
 	public Map<String, SqlStruct> buildWriteSql(final SqlResourceMetaData metaData, final Request request,
@@ -29,46 +26,75 @@ public interface SqlBuilder {
 	 * @author Mark Sawers
 	 */
 	public static class SqlStruct {
-		private StringBuffer clause;
-		private int limit = -1;
-		private StringBuffer main;
-		private int offset = -1;
+		private final StringBuilder clause, main, preparedClause, preparedStatement, statement;
+		private StringBuilder preparedMain;
+		private final List<Object> preparedValues;
 
 		public SqlStruct(final int mainSize, final int clauseSize) {
-			main = new StringBuffer(mainSize);
-			clause = new StringBuffer(clauseSize);
+			main = new StringBuilder(mainSize);
+			clause = new StringBuilder(clauseSize);
+			preparedClause = new StringBuilder(clauseSize);
+			preparedValues = new ArrayList<Object>(clauseSize);
+			statement = new StringBuilder(mainSize + clauseSize);
+			preparedStatement = new StringBuilder(mainSize + clauseSize);
 		}
 
-		public void appendClauseToMain() {
-			main.append(clause);
+		public SqlStruct(final int mainSize, final int clauseSize, final boolean usePreparedMain) {
+			this(mainSize, clauseSize);
+			preparedMain = new StringBuilder(mainSize);
 		}
 
-		public StringBuffer getClause() {
+		public void appendToBothClauses(final String string) {
+			clause.append(string);
+			preparedClause.append(string);
+		}
+
+		public void appendToBothMains(final String string) {
+			main.append(string);
+			preparedMain.append(string);
+		}
+
+		/**
+		 * Appends clause to the main for the complete statement, and prepared clause to the main for the complete
+		 * prepared statement.
+		 */
+		public void compileStatements() {
+			statement.append(main);
+			statement.append(clause);
+			preparedStatement.append(preparedMain == null ? main : preparedMain);
+			preparedStatement.append(preparedClause);
+		}
+
+		public StringBuilder getClause() {
 			return clause;
 		}
 
-		public int getLimit() {
-			return limit;
-		}
-
-		public StringBuffer getMain() {
+		public StringBuilder getMain() {
 			return main;
 		}
 
-		public int getOffset() {
-			return offset;
+		public StringBuilder getPreparedClause() {
+			return preparedClause;
+		}
+
+		public StringBuilder getPreparedMain() {
+			return preparedMain;
+		}
+
+		public String getPreparedStatement() {
+			return preparedStatement.toString();
+		}
+
+		public List<Object> getPreparedValues() {
+			return preparedValues;
+		}
+
+		public String getStatement() {
+			return statement.toString();
 		}
 
 		public boolean isClauseEmpty() {
 			return clause.length() == 0;
-		}
-
-		public void setLimit(final int limit) {
-			this.limit = limit;
-		}
-
-		public void setOffset(final int offset) {
-			this.offset = offset;
 		}
 	}
 

@@ -12,7 +12,6 @@ import org.restsql.core.ResponseSerializer;
 import org.restsql.core.ResponseValue;
 import org.restsql.core.SqlResource;
 import org.restsql.core.WriteResponse;
-import org.restsql.core.impl.SqlUtils;
 
 /**
  * Converts read/write results to a JSON string.
@@ -33,7 +32,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 	 * @param resultSet results
 	 * @return JSON string
 	 */
-	//TODO: move column get from metadata outside of result set while loop!!!
+	// TODO: move column get from metadata outside of result set while loop!!!
 	@Override
 	public String serializeReadFlat(final SqlResource sqlResource, final ResultSet resultSet)
 			throws SQLException {
@@ -50,7 +49,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			for (ColumnMetaData column : columns) {
 				if (!column.isNonqueriedForeignKey()) {
 					addAttribute(firstPair, body, column.getColumnLabel(),
-							SqlUtils.getObjectByColumnNumber(column, resultSet));
+							column.getResultByNumber(resultSet));
 					firstPair = false;
 				}
 			}
@@ -119,7 +118,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			doc.append("{ \"");
 			doc.append(sqlResource.getMetaData().getParent().getTableAlias());
 			doc.append("s\": [");
-		} else {	// DocType.Write
+		} else { // DocType.Write
 			doc.append("{ ");
 		}
 
@@ -136,7 +135,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 				if (attributes != null) {
 					doc.append(",\n\t");
 				}
- 				doc.append("\"");
+				doc.append("\"");
 				doc.append(sqlResource.getMetaData().getParent().getTableAlias());
 				doc.append("s\": [");
 			}
@@ -145,7 +144,7 @@ public class JsonResponseSerializer implements ResponseSerializer {
 		} else {
 			if (docType == DocType.Read) {
 				doc.append("] }");
-			} else {	// DocType.Write
+			} else { // DocType.Write
 				doc.append(" }");
 			}
 		}

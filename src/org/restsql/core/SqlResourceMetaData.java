@@ -4,6 +4,7 @@ package org.restsql.core;
 import java.util.List;
 import java.util.Map;
 
+import org.restsql.core.Request.Type;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 
 /**
@@ -37,13 +38,16 @@ public interface SqlResourceMetaData {
 
 	public List<TableMetaData> getTables();
 
+	public List<TableMetaData> getWriteTables(final Type requestType, final boolean doParent);
+
 	public boolean hasJoinTable();
 
 	public boolean hasMultipleDatabases();
 
 	public boolean isHierarchical();
-	
-	public void init(String sqlResourceName, SqlResourceDefinition definition, SqlBuilder sqlBuilder) throws SqlResourceException;
-	
+
+	public void init(final String sqlResourceName, final SqlResourceDefinition definition, final SqlBuilder sqlBuilder)
+			throws SqlResourceException;
+
 	public String toXml();
 }

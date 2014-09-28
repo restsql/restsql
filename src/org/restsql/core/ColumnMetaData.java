@@ -1,6 +1,9 @@
 /* Copyright (c) restSQL Project Contributors. Licensed under MIT. */
 package org.restsql.core;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import org.restsql.core.TableMetaData.TableRole;
 
 /**
@@ -16,6 +19,7 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 	 * Compares another column based on the column number of the select clause in the SQL Resource definition query.
 	 * Implements Comparable interface.
 	 */
+	@Override
 	public int compareTo(ColumnMetaData column);
 
 	/**
@@ -65,6 +69,12 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 	 */
 	public String getQualifiedTableName();
 
+	/** Returns object from result set using the column label. */
+	public Object getResultByLabel(ResultSet resultSet) throws SQLException;
+
+	/** Returns object from result set using the column number. */
+	public Object getResultByNumber(ResultSet resultSet) throws SQLException;
+
 	/** Returns sequence name associated with column or null if none. For MySQL, returns table name. */
 	public String getSequenceName();
 
@@ -73,6 +83,9 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 
 	/** Returns role of table in the SQL Resource. */
 	public TableRole getTableRole();
+
+	/** Returns true if type is BINARY, BLOB, JAVA OBJECT or LONGVARBINARY. */
+	public boolean isBinaryType();
 
 	/** Returns true if column is a character string or date, time or timestamp. */
 	public boolean isCharOrDateTimeType();
@@ -95,32 +108,42 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 	 * @see #getSequenceName()
 	 */
 	public boolean isSequence();
-	
+
+	/**
+	 * Converts String value to a numeric Object, Date or UUDecode String into Object if required using the column
+	 * metadata.
+	 * 
+	 * @param requestValue parameter or resource identifier
+	 * @throws InvalidRequestException if conversion failed
+	 */
+	public void normalizeValue(final RequestValue requestValue) throws InvalidRequestException;
+
 	/**
 	 * Used for all columns declared in the SqlResource select clause.
 	 */
-	public void setAttributes(final int columnNumber, final String databaseName, final String qualifiedTableName,
-			final String tableName, final String columnName, final String qualifiedColumnName,
-			final String columnLabel, final String qualifiedColumnLabel, final String columnTypeName,
-			final int columnType, final boolean readOnly);
+	public void setAttributes(final int columnNumber, final String databaseName,
+			final String qualifiedTableName, final String tableName, final String columnName,
+			final String qualifiedColumnName, final String columnLabel, final String qualifiedColumnLabel,
+			final String columnTypeName, final int columnType, final boolean readOnly);
 
 	/**
 	 * Used for foreign key columns not declared in the SqlResource select columns. These are required for writes to
 	 * child extensions, parent extensions and child tables.
 	 */
-	public void setAttributes(final String databaseName, final String sqlQualifiedTableName, final String tableName,
-			final TableRole tableRole, final String columnName, final String qualifiedColumnName,
-			final String columnLabel, final String qualifiedColumnLabel, final String columnTypeString);
+	public void setAttributes(final String databaseName, final String sqlQualifiedTableName,
+			final String tableName, final TableRole tableRole, final String columnName,
+			final String qualifiedColumnName, final String columnLabel, final String qualifiedColumnLabel,
+			final String columnTypeString);
 
 	/** Sets primary key. */
 	public void setPrimaryKey(final boolean primaryKey);
-	
+
 	/** Sets true if column populated with a sequence function (auto increment). */
 	public void setSequence(final boolean sequence);
 
 	/** Sets sequence name. */
 	public void setSequenceName(final String sequenceName);
 
-		/** Sets table role. */
+	/** Sets table role. */
 	public void setTableRole(final TableRole tableRole);
 }
