@@ -57,6 +57,7 @@
           </xs:sequence>
         </xs:complexType>
       </xs:element>
+      <xs:element name="documentation" type="rs:Documentation"/>
     </xs:sequence>
     <xs:attribute name="resName" type="xs:string" use="required"/>
     <xs:attribute name="hierarchical" type="xs:boolean" use="required"/>
@@ -88,11 +89,16 @@
   </xs:complexType>
 
   <xs:complexType name="ColumnMetaData">
-    <xs:sequence/>
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
     <xs:attribute name="tableName" type="xs:string" use="required"/>
+    <xs:attribute name="sequenceName" type="xs:string"/>
+    <xs:attribute name="sequence" type="xs:boolean" use="required"/>
     <xs:attribute name="readOnly" type="xs:boolean" use="required"/>
     <xs:attribute name="qualifiedTableName" type="xs:string" use="required"/>
     <xs:attribute name="qualifiedColumnName" type="xs:string" use="required"/>
+    <xs:attribute name="qualifiedColumnLabel" type="xs:string" use="required"/>
     <xs:attribute name="primaryKey" type="xs:boolean" use="required"/>
     <xs:attribute name="nonqueriedForeignKey" type="xs:boolean" use="required"/>
     <xs:attribute name="databaseName" type="xs:string" use="required"/>
@@ -101,6 +107,71 @@
     <xs:attribute name="columnNumber" type="xs:int" use="required"/>
     <xs:attribute name="columnName" type="xs:string" use="required"/>
     <xs:attribute name="columnLabel" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Documentation">
+    <xs:sequence>
+      <xs:element name="resource" type="xs:string" minOccurs="0"/>
+      <xs:element name="columns" type="rs:Columns" minOccurs="0"/>
+      <xs:element name="examples" type="rs:Examples" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Columns">
+    <xs:sequence>
+      <xs:element name="column" type="rs:Column" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Column">
+    <xs:sequence>
+      <xs:element name="description" type="rs:Description" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="label" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:simpleType name="Description">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>
+
+  <xs:complexType name="Examples">
+    <xs:sequence>
+      <xs:element name="example" type="rs:Example" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Example">
+    <xs:sequence>
+      <xs:element name="request" type="rs:Request" minOccurs="0"/>
+      <xs:element name="response" type="rs:Response" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Request">
+    <xs:sequence>
+      <xs:element name="header" type="rs:Header" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="body" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="password" type="xs:string"/>
+    <xs:attribute name="user" type="xs:string"/>
+    <xs:attribute name="accept" type="xs:string"/>
+    <xs:attribute name="contentType" type="xs:string"/>
+    <xs:attribute name="uri" type="xs:string" use="required"/>
+    <xs:attribute name="method" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Header">
+    <xs:sequence/>
+    <xs:attribute name="value" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Response">
+    <xs:sequence>
+      <xs:element name="header" type="rs:Header" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="body" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="status" type="xs:int"/>
   </xs:complexType>
 
   <xs:simpleType name="tableRole">
