@@ -59,6 +59,13 @@ public class HttpRequestHelper {
 					requestBody.append("conf/metadata/");
 					requestBody.append(resName);
 					requestBody.append("\">metadata</a></td>");
+					
+					// Documentation
+					requestBody.append("<td><a href=\"");
+					requestBody.append(baseUri);
+					requestBody.append("conf/documentation/");
+					requestBody.append(resName);
+					requestBody.append("\">documentation</a></td>");
 
 					// Reload
 					requestBody.append("<td><a href=\"");

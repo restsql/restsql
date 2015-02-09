@@ -301,6 +301,35 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			final Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			final StringWriter writer = new StringWriter();
+			marshaller.marshal(this, writer);
+			return writer.toString();
+		} catch (final JAXBException exception) {
+			return exception.toString();
+		}
+	}
+	
+	
+	/** Returns HTML representation. */
+	@Override
+	public String toHtml() {
+		// Build extended metadata for serialization if first time through
+		if (!extendedMetadataIsBuilt) {
+			parentTableName = getQualifiedTableName(parentTable);
+			childTableName = getQualifiedTableName(childTable);
+			joinTableName = getQualifiedTableName(joinTable);
+			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
+			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
+			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
+			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
+			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
+			extendedMetadataIsBuilt = true;
+		}
+
+		try {
+			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
+			final Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			final StringWriter writer = new StringWriter();
 		    writer.append("<?xml version=\"1.0\"?>");
 		    writer.append("<?xml-stylesheet type=\"text/xsl\" href=\"../../tools/Documentation.xsl\" ?>");
 		    marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
@@ -310,6 +339,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			return exception.toString();
 		}
 	}
+
 
 	// Protected methods for database-specific implementation
 

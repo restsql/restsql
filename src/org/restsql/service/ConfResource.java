@@ -70,6 +70,19 @@ public class ConfResource {
 			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);
 		}
 	}
+	
+	@GET
+	@Path("documentation/{resName}")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getDocumentation(@PathParam("resName") final String resName,
+			@Context final HttpServletRequest httpRequest) {
+		try {
+			return Response.ok(Factory.getSqlResource(resName).getMetaData().toHtml())
+					.type(MediaType.APPLICATION_XML_TYPE).build();
+		} catch (final SqlResourceException exception) {
+			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);
+		}
+	}
 
 	@GET
 	@Path("res")
