@@ -134,6 +134,8 @@ public interface ColumnMetaData extends Comparable<ColumnMetaData> {
 			final String tableName, final TableRole tableRole, final String columnName,
 			final String qualifiedColumnName, final String columnLabel, final String qualifiedColumnLabel,
 			final String columnTypeString);
+	
+	public void setDescription(String description);
 
 	/** Sets primary key. */
 	public void setPrimaryKey(final boolean primaryKey);

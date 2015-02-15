@@ -35,6 +35,7 @@ import org.restsql.core.SqlResourceException;
 import org.restsql.core.SqlResourceMetaData;
 import org.restsql.core.TableMetaData;
 import org.restsql.core.TableMetaData.TableRole;
+import org.restsql.core.sqlresource.Documentation;
 import org.restsql.core.sqlresource.SqlResourceDefinition;
 import org.restsql.core.sqlresource.SqlResourceDefinitionUtils;
 import org.restsql.core.sqlresource.Table;
@@ -48,7 +49,7 @@ import org.restsql.core.sqlresource.Table;
 @XmlType(name = "SqlResourceMetaData", namespace = "http://restsql.org/schema", propOrder = { "resName",
 		"hierarchical", "multipleDatabases", "tables", "parentTableName", "childTableName", "joinTableName",
 		"parentPlusExtTableNames", "childPlusExtTableNames", "joinTableNames", "allReadColumnNames",
-		"parentReadColumnNames", "childReadColumnNames" })
+		"parentReadColumnNames", "childReadColumnNames", "documentation" })
 public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData {
 	private static final int DEFAULT_NUMBER_DATABASES = 5;
 	private static final int DEFAULT_NUMBER_TABLES = 10;
@@ -135,6 +136,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlElementWrapper(name = "tables", required = true)
 	@XmlElement(name = "table", type = TableMetaDataImpl.class, required = true)
 	private List<TableMetaData> tables;
+	
+	@XmlElement(name = "documentation", required = true)
+	private Documentation documentation;
 
 	// Public methods to retrieve metadata
 
@@ -262,6 +266,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			buildInvisibleForeignKeys(connection);
 			buildJoinTableMetadata(connection);
 			buildSequenceMetaData(connection);
+			documentation = definition.getDocumentation();
 		} catch (final SQLException exception) {
 			throw new SqlResourceException(exception, sql);
 		} finally {
@@ -302,6 +307,39 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			return exception.toString();
 		}
 	}
+	
+	
+	/** Returns HTML representation. */
+	@Override
+	public String toHtml() {
+		// Build extended metadata for serialization if first time through
+		if (!extendedMetadataIsBuilt) {
+			parentTableName = getQualifiedTableName(parentTable);
+			childTableName = getQualifiedTableName(childTable);
+			joinTableName = getQualifiedTableName(joinTable);
+			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
+			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
+			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
+			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
+			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
+			extendedMetadataIsBuilt = true;
+		}
+
+		try {
+			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
+			final Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			final StringWriter writer = new StringWriter();
+		    writer.append("<?xml version=\"1.0\"?>");
+		    writer.append("<?xml-stylesheet type=\"text/xsl\" href=\"../../tools/Documentation.xsl\" ?>");
+		    marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+			marshaller.marshal(this, writer);
+			return writer.toString();
+		} catch (final JAXBException exception) {
+			return exception.toString();
+		}
+	}
+
 
 	// Protected methods for database-specific implementation
 

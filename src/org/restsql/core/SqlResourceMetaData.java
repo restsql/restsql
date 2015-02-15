@@ -50,4 +50,6 @@ public interface SqlResourceMetaData {
 			throws SqlResourceException;
 
 	public String toXml();
+
+	String toHtml();
 }

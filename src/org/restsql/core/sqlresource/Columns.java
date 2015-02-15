@@ -12,22 +12,20 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for MetaData complex type.
+ * <p>Java class for Columns complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MetaData">
+ * &lt;complexType name="Columns">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="database" type="{http://restsql.org/schema}Database"/>
- *         &lt;element name="table" type="{http://restsql.org/schema}Table" maxOccurs="unbounded"/>
+ *         &lt;element name="column" type="{http://restsql.org/schema}Column" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -37,68 +35,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "MetaData", propOrder = {
-    "database",
-    "table"
+@XmlType(name = "Columns", propOrder = {
+    "column"
 })
-public class MetaData {
+public class Columns {
 
-    @XmlElement(required = true)
-    protected Database database;
-    @XmlElement(required = true)
-    protected List<Table> table;
+    protected List<Column> column;
 
     /**
-     * Gets the value of the database property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Database }
-     *     
-     */
-    public Database getDatabase() {
-        return database;
-    }
-
-    /**
-     * Sets the value of the database property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Database }
-     *     
-     */
-    public void setDatabase(Database value) {
-        this.database = value;
-    }
-
-    /**
-     * Gets the value of the table property.
+     * Gets the value of the column property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the table property.
+     * This is why there is not a <CODE>set</CODE> method for the column property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getTable().add(newItem);
+     *    getColumn().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Table }
+     * {@link Column }
      * 
      * 
      */
-    public List<Table> getTable() {
-        if (table == null) {
-            table = new ArrayList<Table>();
+    public List<Column> getColumn() {
+        if (column == null) {
+            column = new ArrayList<Column>();
         }
-        return this.table;
+        return this.column;
     }
 
 }

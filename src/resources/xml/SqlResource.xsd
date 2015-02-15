@@ -13,6 +13,7 @@
 		</annotation>
 		<sequence>
 			<element name="query" type="rs:Query" maxOccurs="1" minOccurs="1"></element>
+			<element name="documentation" type="rs:Documentation" maxOccurs="1" minOccurs="1"></element>
 			<element name="metadata" type="rs:MetaData" maxOccurs="1" minOccurs="1"></element>
 			<element name="validatedAttribute" type="rs:ValidatedAttribute" maxOccurs="unbounded"
 				minOccurs="0">
@@ -22,6 +23,82 @@
 	</complexType>
 
 	<complexType name="Query">
+		<simpleContent>
+			<extension base="string">
+			</extension>
+		</simpleContent>
+	</complexType>
+	
+	<complexType name="Documentation">
+		<sequence>
+		    <element name="resource" type="string" maxOccurs="1" minOccurs="0"></element>
+			<element name="columns" type="rs:Columns" maxOccurs="1" minOccurs="0"></element>
+			<element name="examples" type="rs:Examples" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="Examples">
+		<sequence>
+			<element name="example" type="rs:Example" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="Example">
+		<sequence>
+			<element name="request" type="rs:Request" maxOccurs="1" minOccurs="0"></element>
+			<element name="response" type="rs:Response" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="Request">
+		<sequence>
+			<element name="header" type="rs:Header" maxOccurs="unbounded" minOccurs="0"></element>
+			<element name="body" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="method" use="required">
+			<simpleType>
+				<restriction base="string">
+					<enumeration value="DELETE"></enumeration>
+					<enumeration value="GET"></enumeration>
+					<enumeration value="POST"></enumeration>
+					<enumeration value="PUT"></enumeration>
+				</restriction>
+			</simpleType>
+		</attribute>
+		<attribute name="uri" type="string" use="required"></attribute>
+		<attribute name="contentType" type="string" use="optional" default="application/xml"></attribute>
+		<attribute name="accept" type="string" use="optional" default="application/xml" />
+		<attribute name="user" type="string" use="optional" default="all"></attribute>
+		<attribute name="password" type="string" use="optional" default="all"></attribute>
+	</complexType>
+
+	<complexType name="Response">
+		<sequence>
+			<element name="header" type="rs:Header" maxOccurs="unbounded" minOccurs="0"></element>
+			<element name="body" type="string" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="status" type="int" use="optional" default="200"></attribute>
+	</complexType>
+
+	<complexType name="Header">
+		<attribute name="name" type="string" use="required"></attribute>
+		<attribute name="value" type="string" use="required"></attribute>
+	</complexType>
+	
+	<complexType name="Columns">
+		<sequence>
+			<element name="column" type="rs:Column" maxOccurs="unbounded" minOccurs="0"></element>
+		</sequence>
+	</complexType>
+	
+	<complexType name="Column">
+		<sequence>
+			<element name="description" type="rs:Description" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
+		<attribute name="label" type="string" use="required"></attribute>
+	</complexType>
+	
+	<complexType name="Description">
 		<simpleContent>
 			<extension base="string">
 			</extension>

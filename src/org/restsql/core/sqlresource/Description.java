@@ -10,56 +10,57 @@ package org.restsql.core.sqlresource;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 
 
 /**
- * <p>Java class for HttpResponse complex type.
+ * <p>Java class for Description complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="HttpResponse">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="cacheControl" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
+ * &lt;complexType name="Description">
+ *   &lt;simpleContent>
+ *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
+ *     &lt;/extension>
+ *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "HttpResponse")
-public class HttpResponse {
+@XmlType(name = "Description", propOrder = {
+    "value"
+})
+public class Description {
 
-    @XmlAttribute(name = "cacheControl")
-    protected String cacheControl;
+    @XmlValue
+    protected String value;
 
     /**
-     * Gets the value of the cacheControl property.
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getCacheControl() {
-        return cacheControl;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the cacheControl property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setCacheControl(String value) {
-        this.cacheControl = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

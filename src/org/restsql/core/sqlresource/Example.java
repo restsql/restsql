@@ -14,16 +14,17 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for HttpConfig complex type.
+ * <p>Java class for Example complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="HttpConfig">
+ * &lt;complexType name="Example">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="response" type="{http://restsql.org/schema}HttpResponse" minOccurs="0"/>
+ *         &lt;element name="request" type="{http://restsql.org/schema}Request" minOccurs="0"/>
+ *         &lt;element name="response" type="{http://restsql.org/schema}Response" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -33,22 +34,48 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "HttpConfig", propOrder = {
+@XmlType(name = "Example", propOrder = {
+    "request",
     "response"
 })
-public class HttpConfig {
+public class Example {
 
-    protected HttpResponse response;
+    protected Request request;
+    protected Response response;
+
+    /**
+     * Gets the value of the request property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Request }
+     *     
+     */
+    public Request getRequest() {
+        return request;
+    }
+
+    /**
+     * Sets the value of the request property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Request }
+     *     
+     */
+    public void setRequest(Request value) {
+        this.request = value;
+    }
 
     /**
      * Gets the value of the response property.
      * 
      * @return
      *     possible object is
-     *     {@link HttpResponse }
+     *     {@link Response }
      *     
      */
-    public HttpResponse getResponse() {
+    public Response getResponse() {
         return response;
     }
 
@@ -57,10 +84,10 @@ public class HttpConfig {
      * 
      * @param value
      *     allowed object is
-     *     {@link HttpResponse }
+     *     {@link Response }
      *     
      */
-    public void setResponse(HttpResponse value) {
+    public void setResponse(Response value) {
         this.response = value;
     }
 
