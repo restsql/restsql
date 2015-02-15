@@ -16,6 +16,9 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Config;
+import org.restsql.service.monitoring.MonitoringFactory;
+
+import com.codahale.metrics.Counter;
 
 /**
  * Provides access to logs.
@@ -28,10 +31,14 @@ public class LogResource {
 	private static final String LOG_NAME_ERROR = "error.log";
 	private static final String LOG_NAME_INTERNAL = "internal.log";
 	private static final String LOG_NAME_TRACE = "trace.log";
+	
+	private final Counter logAccessCounter = MonitoringFactory.getMonitoringManager().newCounter(LogResource.class, "logAccess");
+	private final Counter logListCounter = MonitoringFactory.getMonitoringManager().newCounter(LogResource.class, "logList");
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getLogList(@Context final UriInfo uriInfo) {
+		logListCounter.inc();
 		String baseUri = uriInfo.getBaseUri().toString() + "log/";
 		final StringBuilder body = new StringBuilder(500);
 		body.append("<!DOCTYPE html>\n<html>\n<body style=\"font-family:sans-serif\">\n");
@@ -65,6 +72,7 @@ public class LogResource {
 	@Path("access")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getCurrentAccessLog() {
+		logAccessCounter.inc();
 		return getFileContents(LOG_NAME_ACCESS);
 	}
 
@@ -72,6 +80,7 @@ public class LogResource {
 	@Path("error")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getCurrentErrorLog() {
+		logAccessCounter.inc();
 		return getFileContents(LOG_NAME_ERROR);
 	}
 
@@ -79,6 +88,7 @@ public class LogResource {
 	@Path("internal")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getCurrentInternalLog() {
+		logAccessCounter.inc();
 		return getFileContents(LOG_NAME_INTERNAL);
 	}
 
@@ -86,6 +96,7 @@ public class LogResource {
 	@Path("trace")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getCurrentTraceLog() {
+		logAccessCounter.inc();
 		return getFileContents(LOG_NAME_TRACE);
 	}
 
@@ -93,6 +104,7 @@ public class LogResource {
 	@Path("{fileName}")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response getLog(@PathParam("fileName") final String fileName) {
+		logAccessCounter.inc();
 		return getFileContents(fileName);
 	}
 

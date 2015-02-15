@@ -9,18 +9,26 @@ import java.util.Map;
  * 
  * @author Mark Sawers
  */
-public class AbstractFactory {
+public abstract class AbstractFactory {
 
-	private static Map<String, FactoryHelper> helpers = new HashMap<String, FactoryHelper>();
+	private static final Map<String, FactoryHelper> helpers = new HashMap<String, FactoryHelper>();
 
-	/** Returns singleton instance of the interface implementation, creating it on first access. */
+	/** Returns singleton instance of the interface implementation, creating it on first access in a thread safe way. */
 	public static Object getInstance(final String interfaceName, final String defaultImpl) {
+		Object object = null;
 		FactoryHelper helper = helpers.get(interfaceName);
 		if (helper == null) {
-			return newInstance(interfaceName, defaultImpl);
-		} else {
-			return helper.getInstance();
+			synchronized (helpers) {
+				helper = helpers.get(interfaceName);
+				if (helper == null) {
+					object = newInstance(interfaceName, defaultImpl);
+				}
+			}
 		}
+		if (object == null) {
+			object = helper.getInstance();
+		}
+		return object;
 	}
 
 	/** Returns new instance of the interface implementation. */
@@ -38,30 +46,31 @@ public class AbstractFactory {
 		private String implName;
 		private Object instance;
 		private final String interfaceName;
-	
+
 		public FactoryHelper(final String interfaceName, final String defaultImpl) {
 			this.interfaceName = interfaceName;
 			this.implName = Config.properties.getProperty(interfaceName, defaultImpl);
 		}
-	
+
 		public String getImplName() {
 			return implName;
 		}
-	
+
 		public Object getInstance() {
 			if (instance == null) {
 				instance = newInstance();
 			}
 			return instance;
 		}
-	
+
 		public String getInterfaceName() {
 			return interfaceName;
 		}
-	
+
 		public Object newInstance() {
 			try {
-				return Class.forName(implName).newInstance();
+				instance = Class.forName(implName).newInstance();
+				return instance;
 			} catch (final Exception exception) {
 				throw new RuntimeException("Error loading " + interfaceName + " implementation " + implName,
 						exception);

@@ -25,15 +25,20 @@ import javax.ws.rs.core.UriInfo;
 import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
-import org.restsql.core.RequestValue;
 import org.restsql.core.Request;
 import org.restsql.core.Request.Type;
 import org.restsql.core.RequestLogger;
 import org.restsql.core.RequestUtil;
+import org.restsql.core.RequestValue;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.WriteResponse;
 import org.restsql.security.SecurityFactory;
+import org.restsql.service.monitoring.MonitoringFactory;
+
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.annotation.Timed;
 
 /**
  * Contains core JAX-RS Resource of the service, processing SQL Resource CRUD requests. Also lists available resources.
@@ -42,9 +47,12 @@ import org.restsql.security.SecurityFactory;
  */
 @Path("res")
 public class ResResource {
-
+	private final Timer allRequestTypesTimer = MonitoringFactory.getMonitoringManager().newTimer(ResResource.class, "allRequestTypes");
+	private final Counter confRequestCounter = MonitoringFactory.getMonitoringManager().newCounter(ResResource.class, "conf");
+	
 	@DELETE
 	@Path("{resName}/{resId1}")
+	@Timed
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String requestBody,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -56,6 +64,7 @@ public class ResResource {
 
 	@DELETE
 	@Path("{resName}/{resId1}/{resId2}")
+	@Timed
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
@@ -67,6 +76,7 @@ public class ResResource {
 
 	@DELETE
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
+	@Timed
 	public Response delete(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String requestBody,
@@ -79,6 +89,7 @@ public class ResResource {
 
 	@DELETE
 	@Path("{resName}")
+	@Timed
 	public Response delete(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
@@ -90,6 +101,7 @@ public class ResResource {
 
 	@GET
 	@Path("{resName}/{resId1}")
+	@Timed
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@Context final UriInfo uriInfo, @HeaderParam("Accept") String acceptMediaType,
 			@Context final HttpServletRequest httpRequest, @Context final SecurityContext securityContext) {
@@ -99,6 +111,7 @@ public class ResResource {
 
 	@GET
 	@Path("{resName}/{resId1}/{resId2}")
+	@Timed
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @Context final UriInfo uriInfo,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
@@ -109,6 +122,7 @@ public class ResResource {
 
 	@GET
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
+	@Timed
 	public Response get(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
 			@Context final UriInfo uriInfo, @HeaderParam("Accept") String acceptMediaType,
@@ -120,6 +134,7 @@ public class ResResource {
 
 	@GET
 	@Path("{resName}")
+	@Timed
 	public Response get(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
 			@Context final SecurityContext securityContext) {
@@ -130,6 +145,7 @@ public class ResResource {
 	@GET
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
+		confRequestCounter.inc();
 		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
 		return Response.ok(requestBody.toString()).build();
 	}
@@ -137,6 +153,7 @@ public class ResResource {
 	@POST
 	@Path("{resName}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Timed
 	public Response post(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -149,6 +166,7 @@ public class ResResource {
 
 	@POST
 	@Path("{resName}/{resId1}")
+	@Timed
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, final String requestBody,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -160,6 +178,7 @@ public class ResResource {
 
 	@POST
 	@Path("{resName}/{resId1}/{resId2}")
+	@Timed
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
@@ -171,6 +190,7 @@ public class ResResource {
 
 	@POST
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
+	@Timed
 	public Response post(@PathParam("resName") final String resName,
 			@PathParam("resId1") final String resId1, @PathParam("resId2") final String resId2,
 			@PathParam("resId3") final String resId3, final String requestBody,
@@ -183,6 +203,7 @@ public class ResResource {
 
 	@POST
 	@Path("{resName}")
+	@Timed
 	public Response post(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
@@ -195,6 +216,7 @@ public class ResResource {
 	@PUT
 	@Path("{resName}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Timed
 	public Response put(@PathParam("resName") final String resName,
 			final MultivaluedMap<String, String> formParams, @Context final UriInfo uriInfo,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -209,6 +231,7 @@ public class ResResource {
 	@PUT
 	@Path("{resName}/{resId1}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			final MultivaluedMap<String, String> formParams,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -222,6 +245,7 @@ public class ResResource {
 
 	@PUT
 	@Path("{resName}/{resId1}")
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
@@ -233,6 +257,7 @@ public class ResResource {
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}")
 	@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final MultivaluedMap<String, String> formParams,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -246,6 +271,7 @@ public class ResResource {
 
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}")
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, final String requestBody,
 			@HeaderParam("Content-Type") String contentMediaType,
@@ -257,6 +283,7 @@ public class ResResource {
 
 	@PUT
 	@Path("{resName}/{resId1}/{resId2}/{resId3}")
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @PathParam("resId1") final String resId1,
 			@PathParam("resId2") final String resId2, @PathParam("resId3") final String resId3,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
@@ -268,6 +295,7 @@ public class ResResource {
 
 	@PUT
 	@Path("{resName}")
+	@Timed
 	public Response put(@PathParam("resName") final String resName, @Context final UriInfo uriInfo,
 			final String requestBody, @HeaderParam("Content-Type") String contentMediaType,
 			@HeaderParam("Accept") String acceptMediaType, @Context final HttpServletRequest httpRequest,
@@ -284,7 +312,8 @@ public class ResResource {
 			final String resName, SqlResource sqlResource, final List<RequestValue> resIds,
 			final List<RequestValue> params, final String requestBody, String contentMediaType,
 			String acceptMediaType, SecurityContext securityContext) {
-
+		Timer.Context requestTimerContext = allRequestTypesTimer.time();
+		
 		// Determine the media types and create http attributes structure
 		String requestMediaType = RequestUtil.getRequestMediaType(contentMediaType);
 		String responseMediaType = RequestUtil
@@ -350,6 +379,8 @@ public class ResResource {
 		} catch (final SqlResourceException exception) {
 			return HttpRequestHelper.handleException(httpRequest, requestBody, requestMediaType, exception,
 					requestLogger);
+		} finally {
+			requestTimerContext.stop();
 		}
 	}
 

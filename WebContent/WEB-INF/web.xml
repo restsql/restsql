@@ -24,14 +24,63 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>jersey</filter-name>
-		<url-pattern>/*</url-pattern>
+		<url-pattern>/conf/*</url-pattern>
+		<url-pattern>/log/*</url-pattern>
+		<url-pattern>/res/*</url-pattern>
+		<url-pattern>/tools/*</url-pattern>
+		<url-pattern>/wadl/*</url-pattern>
 		<dispatcher>REQUEST</dispatcher>
 		<dispatcher>FORWARD</dispatcher>
 		<dispatcher>INCLUDE</dispatcher>
 	</filter-mapping>
+	
 	<listener>
 		<listener-class>org.restsql.service.LifecycleListener</listener-class>
 	</listener>
+
+	<!-- Performance Monitoring -->
+	<listener>
+		<listener-class>org.restsql.service.monitoring.HealthCheckServletContextListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>org.restsql.service.monitoring.MetricsServletContextListener</listener-class>
+	</listener>
+		
+	<servlet>
+		<servlet-name>ping</servlet-name>
+		<servlet-class>com.codahale.metrics.servlets.PingServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ping</servlet-name>
+		<url-pattern>/monitoring/ping</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>healthcheck</servlet-name>
+		<servlet-class>com.codahale.metrics.servlets.HealthCheckServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>healthcheck</servlet-name>
+		<url-pattern>/monitoring/healthcheck</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>metrics</servlet-name>
+		<servlet-class>com.codahale.metrics.servlets.MetricsServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>metrics</servlet-name>
+		<url-pattern>/monitoring/metrics</url-pattern>
+	</servlet-mapping>
+
+	<servlet>
+		<servlet-name>threads</servlet-name>
+		<servlet-class>com.codahale.metrics.servlets.ThreadDumpServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>threads</servlet-name>
+		<url-pattern>/monitoring/threads</url-pattern>
+	</servlet-mapping>
 
 	<!-- Disable RestEasy Deployer package scanning for JBoss AS 6+ -->
 	<context-param>
@@ -86,7 +135,8 @@
 			<web-resource-name>Admin Resources</web-resource-name>
 			<url-pattern>/conf/*</url-pattern>
 			<url-pattern>/log/*</url-pattern>
-			<url-pattern>/stats/*</url-pattern>
+			<url-pattern>/monitoring/*</url-pattern>
+			<url-pattern>/tools/*</url-pattern>
 		</web-resource-collection>
 		<auth-constraint>
 			<role-name>admin</role-name>
@@ -99,6 +149,5 @@
 		<auth-method>BASIC</auth-method>
 		<realm-name>UserDatabase</realm-name>
 	</login-config>
- 	-->
- 	
+	-->
 </web-app>

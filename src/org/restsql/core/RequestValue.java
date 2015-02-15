@@ -113,7 +113,7 @@ public class RequestValue {
 	public RequestValue(final String name, final Object value, final Operator operator) {
 		this.name = name;
 		this.value = value;
-		this.operator = Operator.Equals;
+		this.operator = operator;
 	}
 
 	/** Returns true if the names, values and operators are equal. */

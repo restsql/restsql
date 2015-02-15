@@ -32,6 +32,12 @@ public class Config {
 	public static final String DEFAULT_LOG4J_CONFIG = "resources/properties/default-log4j.properties";
 	public static final String DEFAULT_LOGGING_DIR = "/var/log/restsql";
 	public static final String DEFAULT_LOGGING_FACILITY = "log4j";
+	public static final String DEFAULT_MONITORING_GANGLIA_PORT = "8649";
+	public static final String DEFAULT_MONITORING_GANGLIA_UDP_MODE = "unicast";
+	public static final String DEFAULT_MONITORING_GANGLIA_TTL = "1";
+	public static final String DEFAULT_MONITORING_GANGLIA_FREQUENCY = "1";
+	public static final String DEFAULT_MONITORING_GRAPHITE_FREQUNCY = "1";
+	public static final String DEFAULT_MONITORING_MANAGER = "org.restsql.service.monitoring.MonitoringManagerImpl";
 	public static final String DEFAULT_REQUEST_FACTORY = "org.restsql.core.impl.RequestFactoryImpl";
 	public static final String DEFAULT_REQUEST_LOGGER = "org.restsql.core.impl.RequestLoggerImpl";
 	public static final String DEFAULT_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.impl.serial.RequestDeserializerFactoryImpl";
@@ -63,6 +69,16 @@ public class Config {
 	public static final String KEY_LOGGING_CONFIG = "logging.config";
 	public static final String KEY_LOGGING_DIR = "logging.dir";
 	public static final String KEY_LOGGING_FACILITY = "logging.facility";
+	public static final String KEY_MONITORING_GANGLIA_HOST = "monitoring.ganglia.host";
+	public static final String KEY_MONITORING_GANGLIA_PORT = "monitoring.ganglia.port";
+	public static final String KEY_MONITORING_GANGLIA_UDP_MODE = "monitoring.ganglia.udpMode";
+	public static final String KEY_MONITORING_GANGLIA_TTL = "monitoring.ganglia.ttl";
+	public static final String KEY_MONITORING_GANGLIA_FREQUENCY = "monitoring.ganglia.reportingRrequency";
+	public static final String KEY_MONITORING_GRAPHITE_HOST = "monitoring.graphite.host";
+	public static final String KEY_MONITORING_GRAPHITE_PORT = "monitoring.graphite.port";
+	public static final String KEY_MONITORING_GRAPHITE_PREFIX = "monitoring.graphite.prefix";
+	public static final String KEY_MONITORING_GRAPHITE_FREQUENCY = "monitoring.graphite.reportingRrequency";
+	public static final String KEY_MONITORING_MANAGER = "org.restsql.service.monitoring.MonitoringManager";
 	public static final String KEY_REQUEST_FACTORY = "org.restsql.core.Factory.RequestFactory";
 	public static final String KEY_REQUEST_LOGGER = "org.restsql.core.RequestLogger";
 	public static final String KEY_REQUEST_DESERIALIZER_FACTORY = "org.restsql.core.Factory.RequestDeserializerFactory";
@@ -158,6 +174,7 @@ public class Config {
 					.getProperty(KEY_RESTSQL_PROPERTIES, DEFAULT_RESTSQL_PROPERTIES);
 			properties = new ImmutableProperties();
 			InputStream inputStream = null;
+			String message = null;
 			try {
 				final File file = new File(restsqlPropertiesFileName);
 				if (file.exists()) {
@@ -168,10 +185,14 @@ public class Config {
 				if (inputStream != null) {
 					properties.backingProperties.load(inputStream);
 					propertiesLoaded = true;
+				} else {
+					message = String.format("Error loading properties from %s: %s. Using defaults.",
+							restsqlPropertiesFileName,
+							(file.exists() ? "cannot read file" : "file not found"));
 				}
 			} catch (final Exception exception) {
-				System.out.println("Error loading properties from " + restsqlPropertiesFileName + ":"
-						+ exception.toString());
+				message = String.format("Error loading properties from %s: %s. Using defaults.",
+						restsqlPropertiesFileName, exception.toString());
 			} finally {
 				if (inputStream != null) {
 					try {
@@ -185,15 +206,18 @@ public class Config {
 			configureLogging();
 
 			if (!propertiesLoaded) {
-				logger.error("Error loading properties from " + restsqlPropertiesFileName
-						+ ". Using defaults.");
+				logger.error(message);
+				System.out.println(String.format("ERROR: restSQL %s", message));
 			} else {
+				message = String.format("loaded %d properties from %s", properties.backingProperties
+						.entrySet().size(), restsqlPropertiesFileName);
 				if (logger.isInfoEnabled()) {
-					logger.info("Loaded restsql properties from " + restsqlPropertiesFileName);
+					logger.info(message);
 				}
-				if (logger.isDebugEnabled()) {
-					logger.debug(dumpConfig(false));
+				if (logger.isInfoEnabled()) {
+					logger.info(dumpConfig(false));
 				}
+				System.out.println(String.format("INFO: restSQL %s", message));
 			}
 		}
 	}
@@ -239,8 +263,11 @@ public class Config {
 			try {
 				loggingProperties.backingProperties.load(inputStream);
 				loggingPropertiesFileContent = loggingProperties.toString();
+				System.out.println(String.format("INFO: restSQL using logging conf from $WEBAPPS/restsql%s", loggingPropertiesFileName));
 			} catch (final Exception exception) {
-				logger.error("Error loading logging conf file", exception);
+				String message = String.format("error loading logging conf from $WEBAPPS/restsql%s", loggingPropertiesFileName);
+				logger.error(message, exception);
+				System.out.println(String.format("ERROR: restSQL %s", message));
 			} finally {
 				if (inputStream != null) {
 					try {
@@ -250,8 +277,9 @@ public class Config {
 				}
 			}
 		} else {
-			logger.warn("Current thread's class loader could not locate logging conf file "
-					+ loggingPropertiesFileName);
+			String message = String.format("logging conf not found in $WEBAPPS/restsql%s", loggingPropertiesFileName);
+			logger.error(message);
+			System.out.println(String.format("ERROR: restSQL %s", message));
 		}
 	}
 

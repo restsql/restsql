@@ -9,16 +9,15 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.restsql.core.ColumnMetaData;
-import org.restsql.core.Config;
 import org.restsql.core.Factory;
 import org.restsql.core.HttpRequestAttributes;
 import org.restsql.core.InvalidRequestException;
-import org.restsql.core.RequestValue;
-import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.Request;
 import org.restsql.core.Request.Type;
 import org.restsql.core.RequestDeserializer;
 import org.restsql.core.RequestLogger;
+import org.restsql.core.RequestValue;
+import org.restsql.core.RequestValue.Operator;
 import org.restsql.core.SqlResource;
 import org.restsql.core.SqlResourceException;
 import org.restsql.core.WriteResponse;
@@ -67,7 +66,6 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 			inputStream = new ByteArrayInputStream(requestBody.getBytes());
 			parser.parse(inputStream, handler);
 		} catch (final Exception exception) {
-			Config.logger.info("Error parsing request body for " + httpAttributes, exception);
 			throw new InvalidRequestException("Error parsing request body: " + exception.toString());
 		}
 		final SqlResourceException handlerException = handler.getHandlerException();

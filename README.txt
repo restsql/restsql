@@ -1,4 +1,4 @@
-README.txt (28-Sep-2014)
+README.txt (15-Feb-2014)
 
 restSQL Deployment Guide
 
@@ -58,6 +58,7 @@ The general restsql.properties contains the following configurations:
     6. HTTP									(optional)
     7. Database                             (required)
     8. Implementation classes               (optional)
+    9. Monitoring							(optional)
 
 Logging configuration example:
 
@@ -156,6 +157,21 @@ Implementation classes configuration is optional. The defaults are:
 	org.restsql.core.RequestLogger=org.restsql.core.impl.RequestLoggerImpl
 	org.restsql.core.TableMetaData=org.restsql.core.impl.TableMetaDataImpl
 	org.restsql.security.Authorizer=org.restsql.security.impl.AuthorizerImpl
+	org.restsql.service.monitoring.MonitoringManager=org.restsql.service.monitoring.MonitoringManagerImpl
+
+Monitoring configuration is optional:
+
+	# Ganglia monitoring configuration
+	monitoring.ganglia.host=hostName or ipAddress
+	monitoring.ganglia.port=portNumber
+	monitoring.ganglia.ttl=numberOfRouterHops
+	monitoring.ganglia.udpMode=[unicast,multicast]
+	monitoring.ganglia.frequency=seconds
+	
+	# Graphite monitoring configuration
+	monitoring.graphite.host=hostName or ipAddress
+	monitoring.graphite.port=portNumber
+	monitoring.graphite.frequency=seconds
 
 See the SDK for more detail on Logging, Security, Trigger and HTTP configuration.
 
@@ -167,7 +183,7 @@ Installing restSQL WAR mode
 
 Requirements: JEE Container, RDBMS, JAR tool
 
-Properties Files: Create your two required properties files (restsql.properties and log4j.properties (or logging.properties), as above. Create your two optional privileges and triggers definitions if required. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically.
+Properties Files: Create your two required properties files (restsql.properties and log4j.properties (or logging.properties), as above. Create your two optional privileges and triggers definitions if required. The restsql.properties can exist outside the restSQL webapp, however the log4j.properties/logging.properties must exist within the classpath in WEB-INF/classes. Note that it will not load properly if you put the logging properties in WEB-INF/lib. You do not have to create the logging directory or directories, e.g. /var/log/restsql. The logging frameworks will do this automatically, assuming the user running the java container can create the folder. In the previous case that would be write privilege on /var/log. Better to create it by hand and ensure it's writable to the user running the java container.
 
 Abbreviated Deployment for Tomcat:
 You can use this shortcut if you are using Tomcat, do not want restSQL Authentication or Authorization and Java Security Manager is disabled (the default for Tomcat). Add a Parameter entry that indicates your absolute path to your restsql.properties in your $TOMCAT_HOME/conf/context.xml, as in:

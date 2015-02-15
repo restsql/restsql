@@ -16,6 +16,9 @@ import org.restsql.core.Factory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
 import org.restsql.core.SqlResourceException;
 import org.restsql.security.SecurityFactory;
+import org.restsql.service.monitoring.MonitoringFactory;
+
+import com.codahale.metrics.Counter;
 
 /**
  * Provides access to framework, resource, logging and security configuration.
@@ -24,10 +27,13 @@ import org.restsql.security.SecurityFactory;
  */
 @Path("conf")
 public class ConfResource {
+	private final Counter requestCounter = MonitoringFactory.getMonitoringManager().newCounter(ConfResource.class, "conf");
+
 	@GET
 	@Path("system")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response dumpConfig() {
+		requestCounter.inc();
 		return Response.ok(Config.dumpConfig(true)).build();
 	}
 
@@ -35,6 +41,7 @@ public class ConfResource {
 	@Path("log")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response dumpLoggingConfig() {
+		requestCounter.inc();
 		return Response.ok(Config.dumpLoggingConfig()).build();
 	}
 
@@ -42,6 +49,7 @@ public class ConfResource {
 	@Path("security")
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response dumpSecurityConfig() {
+		requestCounter.inc();
 		return Response.ok(SecurityFactory.getAuthorizer().dumpConfig()).build();
 	}
 
@@ -50,6 +58,7 @@ public class ConfResource {
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getDefinition(@PathParam("resName") final String resName,
 			@Context final HttpServletRequest httpRequest) {
+		requestCounter.inc();
 		try {
 			return Response.ok(Factory.getSqlResourceDefinition(resName))
 					.type(MediaType.APPLICATION_XML_TYPE).build();
@@ -63,6 +72,7 @@ public class ConfResource {
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getMetadata(@PathParam("resName") final String resName,
 			@Context final HttpServletRequest httpRequest) {
+		requestCounter.inc();
 		try {
 			return Response.ok(Factory.getSqlResource(resName).getMetaData().toXml())
 					.type(MediaType.APPLICATION_XML_TYPE).build();
@@ -75,6 +85,7 @@ public class ConfResource {
 	@Path("res")
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
+		requestCounter.inc();
 		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
 		return Response.ok(requestBody.toString()).build();
 	}
@@ -84,6 +95,7 @@ public class ConfResource {
 	@Produces(MediaType.TEXT_PLAIN)
 	public Response reloadDefinition(@PathParam("resName") final String resName,
 			@Context final HttpServletRequest httpRequest) {
+		requestCounter.inc();
 		try {
 			Factory.reloadSqlResource(resName);
 			return Response.ok("Reload of " + resName + " succeeded").build();
