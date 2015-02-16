@@ -27,7 +27,8 @@ import com.codahale.metrics.Counter;
  */
 @Path("conf")
 public class ConfResource {
-	private final Counter requestCounter = MonitoringFactory.getMonitoringManager().newCounter(ConfResource.class, "conf");
+	private final Counter requestCounter = MonitoringFactory.getMonitoringManager().newCounter(
+			ConfResource.class, "conf");
 
 	@GET
 	@Path("system")
@@ -68,6 +69,19 @@ public class ConfResource {
 	}
 
 	@GET
+	@Path("documentation/{resName}")
+	@Produces(MediaType.APPLICATION_XML)
+	public Response getDocumentation(@PathParam("resName") final String resName,
+			@Context final HttpServletRequest httpRequest) {
+		try {
+			return Response.ok(Factory.getSqlResource(resName).getMetaData().toHtml())
+					.type(MediaType.APPLICATION_XML_TYPE).build();
+		} catch (final SqlResourceException exception) {
+			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);
+		}
+	}
+
+	@GET
 	@Path("metadata/{resName}")
 	@Produces(MediaType.APPLICATION_XML)
 	public Response getMetadata(@PathParam("resName") final String resName,
@@ -75,19 +89,6 @@ public class ConfResource {
 		requestCounter.inc();
 		try {
 			return Response.ok(Factory.getSqlResource(resName).getMetaData().toXml())
-					.type(MediaType.APPLICATION_XML_TYPE).build();
-		} catch (final SqlResourceException exception) {
-			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);
-		}
-	}
-	
-	@GET
-	@Path("documentation/{resName}")
-	@Produces(MediaType.APPLICATION_XML)
-	public Response getDocumentation(@PathParam("resName") final String resName,
-			@Context final HttpServletRequest httpRequest) {
-		try {
-			return Response.ok(Factory.getSqlResource(resName).getMetaData().toHtml())
 					.type(MediaType.APPLICATION_XML_TYPE).build();
 		} catch (final SqlResourceException exception) {
 			return HttpRequestHelper.handleException(httpRequest, null, null, exception, null);

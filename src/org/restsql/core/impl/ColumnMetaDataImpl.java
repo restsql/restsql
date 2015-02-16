@@ -6,7 +6,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
@@ -25,9 +24,6 @@ import org.restsql.core.TableMetaData.TableRole;
 @XmlType(name = "ColumnMetaData", namespace = "http://restsql.org/schema")
 public class ColumnMetaDataImpl implements ColumnMetaData {
 
-	@XmlElement(name = "description")
-	private String description;
-	
 	@XmlAttribute(required = true)
 	private String columnLabel;
 
@@ -431,12 +427,5 @@ public class ColumnMetaDataImpl implements ColumnMetaData {
 	 */
 	protected int getColumnType(final int columnType, final String columnTypeName) {
 		return columnType;
-	}
-
-	@Override
-	public void setDescription(String description) {
-		this.description = description;
-		
-		
 	}
 }

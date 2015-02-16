@@ -51,6 +51,11 @@ public class ResponseValue implements Comparable<ResponseValue> {
 	public Object getValue() {
 		return value;
 	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode() + value.hashCode();
+	}
 
 	/** Returns string representation in the form <code>name: value</code>. */
 	@Override

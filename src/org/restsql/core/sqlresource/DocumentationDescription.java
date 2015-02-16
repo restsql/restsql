@@ -10,56 +10,57 @@ package org.restsql.core.sqlresource;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.XmlValue;
 
 
 /**
- * <p>Java class for Database complex type.
+ * <p>Java class for Description complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="Database">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;attribute name="default" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
+ * &lt;complexType name="Description">
+ *   &lt;simpleContent>
+ *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
+ *     &lt;/extension>
+ *   &lt;/simpleContent>
  * &lt;/complexType>
  * </pre>
  * 
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "Database")
-public class Database {
+@XmlType(name = "Description", propOrder = {
+    "value"
+})
+public class DocumentationDescription {
 
-    @XmlAttribute(name = "default", required = true)
-    protected String _default;
+    @XmlValue
+    protected String value;
 
     /**
-     * Gets the value of the default property.
+     * Gets the value of the value property.
      * 
      * @return
      *     possible object is
      *     {@link String }
      *     
      */
-    public String getDefault() {
-        return _default;
+    public String getValue() {
+        return value;
     }
 
     /**
-     * Sets the value of the default property.
+     * Sets the value of the value property.
      * 
      * @param value
      *     allowed object is
      *     {@link String }
      *     
      */
-    public void setDefault(String value) {
-        this._default = value;
+    public void setValue(String value) {
+        this.value = value;
     }
 
 }

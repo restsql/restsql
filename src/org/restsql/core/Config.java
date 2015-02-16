@@ -94,6 +94,7 @@ public class Config {
 	public static final String KEY_SQL_RESOURCE_FACTORY = "org.restsql.core.Factory.SqlResourceFactory";
 	public static final String KEY_SQL_RESOURCE_METADATA = "org.restsql.core.SqlResourceMetaData";
 	public static final String KEY_SQLRESOURCES_DIR = "sqlresources.dir";
+	public static final String KEY_STARTUP_LOGGING_CONSOLE_ENABLED = "org.restsql.startupLogging.consoleEnabled";
 	public static final String KEY_TABLE_METADATA = "org.restsql.core.TableMetaData";
 	public static final String KEY_TRIGGERS_CLASSPATH = "triggers.classpath";
 	public static final String KEY_TRIGGERS_DEFINITION = "triggers.definition";
@@ -113,6 +114,7 @@ public class Config {
 	private static String loggingPropertiesFileContent;
 	private static String loggingPropertiesFileName;
 	private static String restsqlPropertiesFileName;
+	private static boolean startupLoggingConsoleEnabled = false;
 
 	static {
 		loadAllProperties();
@@ -127,7 +129,7 @@ public class Config {
 		dump.append(restsqlPropertiesFileName);
 		dump.append(":\n");
 		for (final Object key : properties.keySet()) {
-			printProperty(dump, (String) key, properties.getProperty((String) key));
+			appendProperty(dump, (String) key, properties.getProperty((String) key));
 		}
 
 		if (includeDefaults) {
@@ -142,7 +144,7 @@ public class Config {
 							try {
 								final Field valueField = Config.class.getField("DEFAULT_"
 										+ keyFieldName.substring(4));
-								printProperty(dump, (String) field.get(null), (String) valueField.get(null));
+								appendProperty(dump, (String) field.get(null), (String) valueField.get(null));
 							} catch (final Exception exception) {
 							}
 						}
@@ -167,6 +169,9 @@ public class Config {
 
 	/** Loads all properties. */
 	public static void loadAllProperties() {
+		startupLoggingConsoleEnabled = Boolean.valueOf(System.getProperty(
+				KEY_STARTUP_LOGGING_CONSOLE_ENABLED, "false"));
+
 		if (properties == null) {
 			// Load restsql properties
 			boolean propertiesLoaded = false;
@@ -207,7 +212,7 @@ public class Config {
 
 			if (!propertiesLoaded) {
 				logger.error(message);
-				System.out.println(String.format("ERROR: restSQL %s", message));
+				printToConsole("ERROR: restSQL %s", message);
 			} else {
 				message = String.format("loaded %d properties from %s", properties.backingProperties
 						.entrySet().size(), restsqlPropertiesFileName);
@@ -217,12 +222,20 @@ public class Config {
 				if (logger.isInfoEnabled()) {
 					logger.info(dumpConfig(false));
 				}
-				System.out.println(String.format("INFO: restSQL %s", message));
+				printToConsole("INFO: restSQL %s", message);
 			}
 		}
 	}
 
 	// Private utils
+
+	private static void appendProperty(final StringBuffer string, final String key, final String value) {
+		string.append("\t");
+		string.append(key);
+		string.append(" = ");
+		string.append(value);
+		string.append("\n");
+	}
 
 	private static void configureLogging() {
 		final String facility = properties.getProperty(KEY_LOGGING_FACILITY, DEFAULT_LOGGING_FACILITY);
@@ -263,11 +276,13 @@ public class Config {
 			try {
 				loggingProperties.backingProperties.load(inputStream);
 				loggingPropertiesFileContent = loggingProperties.toString();
-				System.out.println(String.format("INFO: restSQL using logging conf from $WEBAPPS/restsql%s", loggingPropertiesFileName));
+				printToConsole("INFO: restSQL using logging conf from $WEBAPPS/restsql%s",
+						loggingPropertiesFileName);
 			} catch (final Exception exception) {
-				String message = String.format("error loading logging conf from $WEBAPPS/restsql%s", loggingPropertiesFileName);
+				String message = String.format("error loading logging conf from $WEBAPPS/restsql%s",
+						loggingPropertiesFileName);
 				logger.error(message, exception);
-				System.out.println(String.format("ERROR: restSQL %s", message));
+				printToConsole("ERROR: restSQL %s", message);
 			} finally {
 				if (inputStream != null) {
 					try {
@@ -277,18 +292,18 @@ public class Config {
 				}
 			}
 		} else {
-			String message = String.format("logging conf not found in $WEBAPPS/restsql%s", loggingPropertiesFileName);
+			String message = String.format("logging conf not found in $WEBAPPS/restsql%s",
+					loggingPropertiesFileName);
 			logger.error(message);
-			System.out.println(String.format("ERROR: restSQL %s", message));
+			printToConsole("ERROR: restSQL %s", message);
 		}
 	}
 
-	private static void printProperty(final StringBuffer string, final String key, final String value) {
-		string.append("\t");
-		string.append(key);
-		string.append(" = ");
-		string.append(value);
-		string.append("\n");
+	/** Prints to console if startup logging is enabled. */
+	private static void printToConsole(final String string, final Object... args) {
+		if (startupLoggingConsoleEnabled) {
+			System.out.println(String.format(string, args));
+		}
 	}
 
 	/** Wraps a java.util.Properties, exposing only the property getter. */
@@ -307,7 +322,7 @@ public class Config {
 		public String toString() {
 			final StringBuffer buffer = new StringBuffer(1000);
 			for (final Object key : backingProperties.keySet()) {
-				printProperty(buffer, (String) key, backingProperties.getProperty((String) key));
+				appendProperty(buffer, (String) key, backingProperties.getProperty((String) key));
 			}
 			return buffer.toString();
 		}

@@ -49,7 +49,7 @@ public interface SqlResourceMetaData {
 	public void init(final String sqlResourceName, final SqlResourceDefinition definition, final SqlBuilder sqlBuilder)
 			throws SqlResourceException;
 
-	public String toXml();
+	public String toHtml();
 
-	String toHtml();
+	public String toXml();
 }

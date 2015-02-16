@@ -89,9 +89,6 @@
   </xs:complexType>
 
   <xs:complexType name="ColumnMetaData">
-    <xs:sequence>
-      <xs:element name="description" type="xs:string" minOccurs="0"/>
-    </xs:sequence>
     <xs:attribute name="tableName" type="xs:string" use="required"/>
     <xs:attribute name="sequenceName" type="xs:string"/>
     <xs:attribute name="sequence" type="xs:boolean" use="required"/>
@@ -111,7 +108,7 @@
 
   <xs:complexType name="Documentation">
     <xs:sequence>
-      <xs:element name="resource" type="xs:string" minOccurs="0"/>
+      <xs:element name="resource" type="rs:Resource" minOccurs="0"/>
       <xs:element name="columns" type="rs:Columns" minOccurs="0"/>
       <xs:element name="examples" type="rs:Examples" minOccurs="0"/>
     </xs:sequence>
@@ -164,6 +161,12 @@
     <xs:sequence/>
     <xs:attribute name="value" type="xs:string" use="required"/>
     <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="Resource">
+	<xs:sequence>
+		<xs:element name="description" type="rs:Description" maxOccurs="1" minOccurs="0"></xs:element>
+	</xs:sequence>
   </xs:complexType>
 
   <xs:complexType name="Response">

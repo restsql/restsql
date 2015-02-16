@@ -84,6 +84,9 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlTransient
 	private SqlResourceDefinition definition;
 
+	@XmlElement(name = "documentation", required = true)
+	private Documentation documentation;
+
 	@XmlTransient
 	private boolean extendedMetadataIsBuilt;
 
@@ -136,9 +139,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	@XmlElementWrapper(name = "tables", required = true)
 	@XmlElement(name = "table", type = TableMetaDataImpl.class, required = true)
 	private List<TableMetaData> tables;
-	
-	@XmlElement(name = "documentation", required = true)
-	private Documentation documentation;
 
 	// Public methods to retrieve metadata
 
@@ -236,11 +236,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		return multipleDatabases;
 	}
 
-	@Override
-	public boolean isHierarchical() {
-		return hierarchical;
-	}
-
 	/** Populates metadata using definition. */
 	@Override
 	public void init(final String resName, final SqlResourceDefinition definition, final SqlBuilder sqlBuilder)
@@ -280,59 +275,23 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		hierarchical = getChild() != null;
 	}
 
-	/** Returns XML representation. */
 	@Override
-	public String toXml() {
-		// Build extended metadata for serialization if first time through
-		if (!extendedMetadataIsBuilt) {
-			parentTableName = getQualifiedTableName(parentTable);
-			childTableName = getQualifiedTableName(childTable);
-			joinTableName = getQualifiedTableName(joinTable);
-			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
-			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
-			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
-			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
-			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
-			extendedMetadataIsBuilt = true;
-		}
-
-		try {
-			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
-			final Marshaller marshaller = context.createMarshaller();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-			final StringWriter writer = new StringWriter();
-			marshaller.marshal(this, writer);
-			return writer.toString();
-		} catch (final JAXBException exception) {
-			return exception.toString();
-		}
+	public boolean isHierarchical() {
+		return hierarchical;
 	}
-	
-	
+
 	/** Returns HTML representation. */
 	@Override
 	public String toHtml() {
-		// Build extended metadata for serialization if first time through
-		if (!extendedMetadataIsBuilt) {
-			parentTableName = getQualifiedTableName(parentTable);
-			childTableName = getQualifiedTableName(childTable);
-			joinTableName = getQualifiedTableName(joinTable);
-			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
-			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
-			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
-			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
-			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
-			extendedMetadataIsBuilt = true;
-		}
-
+		buildExtendedMetadata();
 		try {
 			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
 			final Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			final StringWriter writer = new StringWriter();
-		    writer.append("<?xml version=\"1.0\"?>");
-		    writer.append("<?xml-stylesheet type=\"text/xsl\" href=\"../../tools/Documentation.xsl\" ?>");
-		    marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+			writer.append("<?xml version=\"1.0\"?>");
+			writer.append("<?xml-stylesheet type=\"text/xsl\" href=\"../../tools/Documentation.xsl\" ?>");
+			marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
 			marshaller.marshal(this, writer);
 			return writer.toString();
 		} catch (final JAXBException exception) {
@@ -340,8 +299,50 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		}
 	}
 
+	/** Returns XML representation. */
+	@Override
+	public String toXml() {
+		buildExtendedMetadata();
+		try {
+			final JAXBContext context = JAXBContext.newInstance(AbstractSqlResourceMetaData.class);
+			final Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+			final StringWriter writer = new StringWriter();
+			marshaller.marshal(this, writer);
+			return writer.toString();
+		} catch (final JAXBException exception) {
+			return exception.toString();
+		}
+	}
+
+	/**
+	 * Retrieves database name from result set meta data. Hook method for buildTablesAndColumns() allows
+	 * database-specific overrides.
+	 */
+	protected String getColumnDatabaseName(final SqlResourceDefinition definition,
+			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
+		return resultSetMetaData.getCatalogName(colNumber);
+	}
 
 	// Protected methods for database-specific implementation
+
+	/**
+	 * Retrieves actual column name from result set meta data. Hook method for buildTablesAndColumns() allows
+	 * database-specific overrides.
+	 */
+	protected String getColumnName(final SqlResourceDefinition definition,
+			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
+		return resultSetMetaData.getColumnName(colNumber);
+	}
+
+	/**
+	 * Retrieves table name from result set meta data. Hook method for buildTablesAndColumns() allows database-specific
+	 * overrides.
+	 */
+	protected String getColumnTableName(final SqlResourceDefinition definition,
+			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
+		return resultSetMetaData.getTableName(colNumber);
+	}
 
 	/** Retrieves label disambiguated for duplication. Used in a result set value retrieval. */
 	protected abstract String getQualifiedColumnLabel(final String tableName,
@@ -371,33 +372,6 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		return qualifiedName.toString();
 	}
 
-	/**
-	 * Retrieves database name from result set meta data. Hook method for buildTablesAndColumns() allows
-	 * database-specific overrides.
-	 */
-	protected String getColumnDatabaseName(final SqlResourceDefinition definition,
-			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
-		return resultSetMetaData.getCatalogName(colNumber);
-	}
-
-	/**
-	 * Retrieves actual column name from result set meta data. Hook method for buildTablesAndColumns() allows
-	 * database-specific overrides.
-	 */
-	protected String getColumnName(final SqlResourceDefinition definition,
-			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
-		return resultSetMetaData.getColumnName(colNumber);
-	}
-
-	/**
-	 * Retrieves table name from result set meta data. Hook method for buildTablesAndColumns() allows database-specific
-	 * overrides.
-	 */
-	protected String getColumnTableName(final SqlResourceDefinition definition,
-			final ResultSetMetaData resultSetMetaData, final int colNumber) throws SQLException {
-		return resultSetMetaData.getTableName(colNumber);
-	}
-
 	/** Retrieves database-specific table name used in SQL statements. Used to build join table meta data. */
 	protected abstract String getQualifiedTableName(Connection connection, String databaseName,
 			String tableName) throws SQLException;
@@ -421,7 +395,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 */
 	protected String getSqlMainQuery(final SqlResourceDefinition definition, final SqlBuilder sqlBuilder)
 			throws InvalidRequestException {
-		Request request = Factory.getRequest(Type.SELECT, resName, null, null, null, null);
+		final Request request = Factory.getRequest(Type.SELECT, resName, null, null, null, null);
 		request.setSelectLimit(new Integer(1));
 		request.setSelectOffset(new Integer(0));
 		return sqlBuilder.buildSelectSql(this, definition.getQuery().getValue(), request).getStatement();
@@ -441,7 +415,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 * @param colNumber Column number (1..N)
 	 * @throws SQLException if a database access error occurs
 	 */
-	protected boolean isColumnReadOnly(ResultSetMetaData resultSetMetaData, int colNumber)
+	protected boolean isColumnReadOnly(final ResultSetMetaData resultSetMetaData, final int colNumber)
 			throws SQLException {
 		return resultSetMetaData.isReadOnly(colNumber);
 	}
@@ -462,6 +436,21 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	protected abstract void setSequenceMetaData(ColumnMetaDataImpl column, ResultSet resultSet)
 			throws SQLException;
 
+	/** Build extended metadata for serialization if first time through. */
+	private void buildExtendedMetadata() {
+		if (!extendedMetadataIsBuilt) {
+			parentTableName = getQualifiedTableName(parentTable);
+			childTableName = getQualifiedTableName(childTable);
+			joinTableName = getQualifiedTableName(joinTable);
+			parentPlusExtTableNames = getQualifiedTableNames(parentPlusExtTables);
+			childPlusExtTableNames = getQualifiedTableNames(childPlusExtTables);
+			allReadColumnNames = getQualifiedColumnNames(allReadColumns);
+			childReadColumnNames = getQualifiedColumnNames(childReadColumns);
+			parentReadColumnNames = getQualifiedColumnNames(parentReadColumns);
+			extendedMetadataIsBuilt = true;
+		}
+	}
+
 	// Private methods
 
 	private void buildInvisibleForeignKeys(final Connection connection) throws SQLException {
@@ -470,10 +459,10 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		try {
 			for (final TableMetaData table : tables) {
 				if (!table.isParent()) {
-					statement.setString(1, (isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
-							: table.getDatabaseName()));
-					statement.setString(2, (isDbMetaDataUpperCase() ? table.getTableName().toUpperCase()
-							: table.getTableName()));
+					statement.setString(1, isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
+							: table.getDatabaseName());
+					statement.setString(2, isDbMetaDataUpperCase() ? table.getTableName().toUpperCase()
+							: table.getTableName());
 					resultSet = statement.executeQuery();
 					while (resultSet.next()) {
 						final String columnName = resultSet.getString(1);
@@ -498,10 +487,10 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 											columnName,
 											getQualifiedColumnName(table.getTableName(),
 													table.getQualifiedTableName(), false, columnName),
-											pk.getColumnLabel(),
-											getQualifiedColumnLabel(table.getTableName(),
-													table.getQualifiedTableName(), false, pk.getColumnLabel()),
-											resultSet.getString(2));
+													pk.getColumnLabel(),
+													getQualifiedColumnLabel(table.getTableName(),
+															table.getQualifiedTableName(), false, pk.getColumnLabel()),
+															resultSet.getString(2));
 									((TableMetaDataImpl) table).addColumn(fkColumn);
 								}
 							}
@@ -551,8 +540,8 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 			ResultSet resultSet = null;
 			try {
 				statement = connection.prepareStatement(getSqlColumnsQuery());
-				statement.setString(1, (isDbMetaDataUpperCase() ? databaseName.toUpperCase() : databaseName));
-				statement.setString(2, (isDbMetaDataUpperCase() ? tableName.toUpperCase() : tableName));
+				statement.setString(1, isDbMetaDataUpperCase() ? databaseName.toUpperCase() : databaseName);
+				statement.setString(2, isDbMetaDataUpperCase() ? tableName.toUpperCase() : tableName);
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
 					final String columnName = resultSet.getString(1);
@@ -588,19 +577,16 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		ResultSet resultSet = null;
 		try {
 			for (final TableMetaData table : tables) {
-				statement.setString(1, (isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
-						: table.getDatabaseName()));
-				statement
-						.setString(
-								2,
-								(isDbMetaDataUpperCase() ? table.getTableName().toUpperCase() : table
-										.getTableName()));
+				statement.setString(1, isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
+						: table.getDatabaseName());
+				statement.setString(2,
+						isDbMetaDataUpperCase() ? table.getTableName().toUpperCase() : table.getTableName());
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
 					final String columnName = resultSet.getString(1);
 					for (final ColumnMetaData column : table.getColumns().values()) {
 						if (columnName.equalsIgnoreCase(column.getColumnName())) { // ignore case accommodates a db like
-																					// Oracle
+							// Oracle
 							((ColumnMetaDataImpl) column).setPrimaryKey(true);
 							((TableMetaDataImpl) table).addPrimaryKey(column);
 						}
@@ -630,19 +616,16 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 		ResultSet resultSet = null;
 		try {
 			for (final TableMetaData table : tables) {
-				statement.setString(1, (isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
-						: table.getDatabaseName()));
-				statement
-						.setString(
-								2,
-								(isDbMetaDataUpperCase() ? table.getTableName().toUpperCase() : table
-										.getTableName()));
+				statement.setString(1, isDbMetaDataUpperCase() ? table.getDatabaseName().toUpperCase()
+						: table.getDatabaseName());
+				statement.setString(2,
+						isDbMetaDataUpperCase() ? table.getTableName().toUpperCase() : table.getTableName());
 				resultSet = statement.executeQuery();
 				while (resultSet.next()) {
 					final String columnName = resultSet.getString(1);
-					for (ColumnMetaData column : table.getColumns().values()) {
+					for (final ColumnMetaData column : table.getColumns().values()) {
 						if (column.getColumnName().equalsIgnoreCase(columnName)) { // ignore case accommodates a db like
-																					// Oracle
+							// Oracle
 							setSequenceMetaData((ColumnMetaDataImpl) column, resultSet);
 							break;
 						}
@@ -685,7 +668,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 
 		for (int colNumber = 1; colNumber <= columnCount; colNumber++) {
 			final String databaseName, qualifiedTableName, tableName;
-			boolean readOnly = isColumnReadOnly(resultSetMetaData, colNumber);
+			final boolean readOnly = isColumnReadOnly(resultSetMetaData, colNumber);
 			if (readOnly) {
 				databaseName = SqlResourceDefinitionUtils.getDefaultDatabase(definition);
 				tableName = SqlResourceDefinitionUtils.getTable(definition, TableRole.Parent).getName();
@@ -706,7 +689,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 					resultSetMetaData.getColumnTypeName(colNumber),
 					resultSetMetaData.getColumnType(colNumber), readOnly);
 
-			TableMetaData table = (TableMetaDataImpl) tableMap.get(column.getQualifiedTableName());
+			TableMetaData table = tableMap.get(column.getQualifiedTableName());
 			if (table == null) {
 				// Create table metadata object and add to special references
 				final Table tableDef = SqlResourceDefinitionUtils.getTable(definition, column);

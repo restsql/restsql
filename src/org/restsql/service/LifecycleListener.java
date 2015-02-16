@@ -18,11 +18,14 @@ import org.restsql.service.monitoring.MonitoringManager;
  * @author Mark Sawers
  */
 public class LifecycleListener implements ServletContextListener {
-
+	private static final String KEY_STARTUP_LOGGING_CONSOLE_ENABLED = "org.restsql.startupLogging.consoleEnabled";
+	
 	/**
 	 * @see ServletContextListener#contextInitialized(ServletContextEvent)
 	 */
 	public void contextInitialized(ServletContextEvent event) {
+		System.setProperty(KEY_STARTUP_LOGGING_CONSOLE_ENABLED, "true");
+
 		String value = event.getServletContext().getInitParameter(Config.KEY_RESTSQL_PROPERTIES);
 		if (value == null) {
 			value = System.getProperty(Config.KEY_RESTSQL_PROPERTIES, Config.DEFAULT_RESTSQL_PROPERTIES);

@@ -141,6 +141,11 @@ public class RequestValue {
 	public Object getValue() {
 		return value;
 	}
+	
+	@Override
+	public int hashCode() {
+		return name.hashCode() + value.hashCode();
+	}
 
 	/** Sets value. */
 	public void setValue(final Object value) {

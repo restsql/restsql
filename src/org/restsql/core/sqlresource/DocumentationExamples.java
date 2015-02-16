@@ -12,22 +12,20 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for MetaData complex type.
+ * <p>Java class for Examples complex type.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType name="MetaData">
+ * &lt;complexType name="Examples">
  *   &lt;complexContent>
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
- *         &lt;element name="database" type="{http://restsql.org/schema}Database"/>
- *         &lt;element name="table" type="{http://restsql.org/schema}Table" maxOccurs="unbounded"/>
+ *         &lt;element name="example" type="{http://restsql.org/schema}Example" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -37,68 +35,40 @@ import javax.xml.bind.annotation.XmlType;
  * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "MetaData", propOrder = {
-    "database",
-    "table"
+@XmlType(name = "Examples", propOrder = {
+    "example"
 })
-public class MetaData {
+public class DocumentationExamples {
 
-    @XmlElement(required = true)
-    protected Database database;
-    @XmlElement(required = true)
-    protected List<Table> table;
+    protected List<DocumentationExample> example;
 
     /**
-     * Gets the value of the database property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Database }
-     *     
-     */
-    public Database getDatabase() {
-        return database;
-    }
-
-    /**
-     * Sets the value of the database property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Database }
-     *     
-     */
-    public void setDatabase(Database value) {
-        this.database = value;
-    }
-
-    /**
-     * Gets the value of the table property.
+     * Gets the value of the example property.
      * 
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
-     * This is why there is not a <CODE>set</CODE> method for the table property.
+     * This is why there is not a <CODE>set</CODE> method for the example property.
      * 
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
-     *    getTable().add(newItem);
+     *    getExample().add(newItem);
      * </pre>
      * 
      * 
      * <p>
      * Objects of the following type(s) are allowed in the list
-     * {@link Table }
+     * {@link DocumentationExample }
      * 
      * 
      */
-    public List<Table> getTable() {
-        if (table == null) {
-            table = new ArrayList<Table>();
+    public List<DocumentationExample> getExample() {
+        if (example == null) {
+            example = new ArrayList<DocumentationExample>();
         }
-        return this.table;
+        return this.example;
     }
 
 }

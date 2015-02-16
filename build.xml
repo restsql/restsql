@@ -37,14 +37,8 @@
 			<depends file="src/resources/xml/SqlResource.xsd" />
 			<produces dir="obj/bin" />
 		</xjc>
-	</target>
-
-	<target name="generate-schema" description="executes jxc on java files">
-		<java classpath="lib/jaxb-xjc.jar" classname="com.sun.tools.jxc.SchemaGenerator">
-			<arg line="-classpath obj/bin;${compile.classpath} -d src/resources/xml src/org/restsql/core/impl/AbstractSqlResourceMetaData.java" />
-		</java>
-		<move file="src/resources/xml/schema1.xsd" tofile="src/resources/xml/SqlResourceMetaData.xsd" />
-		<echo message="PLEASE MANUALLY CHANGE XML TYPE TO CONCRETE !!!" />
+		
+		<echo message="Don't forget to insert the line @XmlRootElement(name = &quot;sqlResource&quot;, namespace = &quot;http://restsql.org/schema&quot;) at the top of SqlResourceDefinition.java" />
 	</target>
 
 	<target name="generate-html" description="generates html for webapp">

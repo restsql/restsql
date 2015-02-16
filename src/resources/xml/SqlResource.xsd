@@ -13,13 +13,13 @@
 		</annotation>
 		<sequence>
 			<element name="query" type="rs:Query" maxOccurs="1" minOccurs="1"></element>
-			<element name="documentation" type="rs:Documentation" maxOccurs="1" minOccurs="1"></element>
 			<element name="metadata" type="rs:MetaData" maxOccurs="1" minOccurs="1"></element>
 			<element name="validatedAttribute" type="rs:ValidatedAttribute" maxOccurs="unbounded"
 				minOccurs="0">
 			</element>
 			<element name="http" type="rs:HttpConfig" maxOccurs="1" minOccurs="0"></element>
-		</sequence>
+            <element name="documentation" type="rs:Documentation" maxOccurs="1" minOccurs="0"></element>
+        </sequence>
 	</complexType>
 
 	<complexType name="Query">
@@ -31,19 +31,31 @@
 	
 	<complexType name="Documentation">
 		<sequence>
-		    <element name="resource" type="string" maxOccurs="1" minOccurs="0"></element>
-			<element name="columns" type="rs:Columns" maxOccurs="1" minOccurs="0"></element>
+		    <element name="resource" type="rs:Resource" maxOccurs="1"
+		    	minOccurs="0">
+		    </element>
+		    <element name="columns" type="rs:Columns" maxOccurs="1" minOccurs="0"></element>
 			<element name="examples" type="rs:Examples" maxOccurs="1" minOccurs="0"></element>
 		</sequence>
 	</complexType>
 	
 	<complexType name="Examples">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationExamples" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="example" type="rs:Example" maxOccurs="unbounded" minOccurs="0"></element>
 		</sequence>
 	</complexType>
 	
 	<complexType name="Example">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationExample" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="request" type="rs:Request" maxOccurs="1" minOccurs="0"></element>
 			<element name="response" type="rs:Response" maxOccurs="1" minOccurs="0"></element>
@@ -51,6 +63,11 @@
 	</complexType>
 	
 	<complexType name="Request">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationRequest" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="header" type="rs:Header" maxOccurs="unbounded" minOccurs="0"></element>
 			<element name="body" type="string" maxOccurs="1" minOccurs="0"></element>
@@ -73,6 +90,11 @@
 	</complexType>
 
 	<complexType name="Response">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationResponse" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="header" type="rs:Header" maxOccurs="unbounded" minOccurs="0"></element>
 			<element name="body" type="string" maxOccurs="1" minOccurs="0"></element>
@@ -81,17 +103,32 @@
 	</complexType>
 
 	<complexType name="Header">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationHeader" />
+			</appinfo>
+		</annotation>
 		<attribute name="name" type="string" use="required"></attribute>
 		<attribute name="value" type="string" use="required"></attribute>
 	</complexType>
 	
 	<complexType name="Columns">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationColumns" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="column" type="rs:Column" maxOccurs="unbounded" minOccurs="0"></element>
 		</sequence>
 	</complexType>
 	
 	<complexType name="Column">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationColumn" />
+			</appinfo>
+		</annotation>
 		<sequence>
 			<element name="description" type="rs:Description" maxOccurs="1" minOccurs="0"></element>
 		</sequence>
@@ -99,6 +136,11 @@
 	</complexType>
 	
 	<complexType name="Description">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationDescription" />
+			</appinfo>
+		</annotation>
 		<simpleContent>
 			<extension base="string">
 			</extension>
@@ -167,5 +209,16 @@
 				<documentation>Overrides system default in restsql.properties.
 Use the RFC 2616, Section 14.9 format: {cache-directive}, {cache-directive}, ...</documentation>
 			</annotation></attribute>
+	</complexType>
+
+	<complexType name="Resource">
+		<annotation>
+			<appinfo>
+				<jaxb:class name="DocumentationResource" />
+			</appinfo>
+		</annotation>
+		<sequence>
+			<element name="description" type="rs:Description" maxOccurs="1" minOccurs="0"></element>
+		</sequence>
 	</complexType>
 </schema>
