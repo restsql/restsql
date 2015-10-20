@@ -183,7 +183,21 @@
 
 	<complexType name="Table">
 		<attribute name="name" type="string" use="required"></attribute>
-		<attribute name="alias" type="string" use="optional"></attribute>
+		<attribute name="alias" type="string" use="optional">
+			<annotation>
+				<documentation>Deprecated: Use rowAlias and rowSetAlias</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="rowAlias" type="string" use="optional">
+			<annotation>
+				<documentation>Name used in XML element names in requests and responses for parent and child tables. Not used for parent or child extension tables.</documentation>
+			</annotation>
+		</attribute>
+		<attribute name="rowSetAlias" type="string" use="optional">
+			<annotation>
+				<documentation>Name used in JSON attribute names in requests and responses for parent and child tables. Not used for parent or child extension tables.</documentation>
+			</annotation>
+		</attribute>
 		<attribute name="role" use="required">
 			<simpleType>
 				<restriction base="string">

@@ -18,7 +18,7 @@ import org.restsql.core.sqlresource.SqlResourceDefinition;
  */
 public class Factory extends AbstractFactory {
 
-	/** Creates request for child record with blank params. Configurable implementation class. */
+	/** Creates request for child row with blank params. Configurable implementation class. */
 	public static Request getChildRequest(final Request parentRequest) {
 		final RequestFactory requestFactory = (RequestFactory) getInstance(Config.KEY_REQUEST_FACTORY,
 				Config.DEFAULT_REQUEST_FACTORY);

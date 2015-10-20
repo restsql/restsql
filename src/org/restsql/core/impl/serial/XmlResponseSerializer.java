@@ -57,7 +57,7 @@ public class XmlResponseSerializer implements ResponseSerializer {
 				body = new StringBuilder(1000);
 			}
 			body.append("\n\t<");
-			body.append(sqlResource.getMetaData().getParent().getTableAlias());
+			body.append(sqlResource.getMetaData().getParent().getRowAlias());
 			for (final ColumnMetaData column : sqlResource.getMetaData().getAllReadColumns()) {
 				if (!column.isNonqueriedForeignKey()) {
 					addAttribute(body, column.getColumnLabel(), column.getResultByNumber(resultSet));
@@ -154,9 +154,9 @@ public class XmlResponseSerializer implements ResponseSerializer {
 	/** One-level recursive method to serialize hierarchical results. */
 	private void serializeReadRowsHierarchical(final SqlResource sqlResource,
 			final List<Map<String, Object>> rows, final StringBuilder body, final int level) {
-		String tableAlias = sqlResource.getMetaData().getParent().getTableAlias();
+		String tableAlias = sqlResource.getMetaData().getParent().getRowAlias();
 		if (level == 2) {
-			tableAlias = sqlResource.getMetaData().getChild().getTableAlias();
+			tableAlias = sqlResource.getMetaData().getChild().getRowAlias();
 		}
 		for (final Map<String, Object> row : rows) {
 			boolean hasChildren = false;
@@ -210,9 +210,9 @@ public class XmlResponseSerializer implements ResponseSerializer {
 	/** One-level recursive method to serialize hierarchical results. */
 	private void serializeWriteRows(final SqlResource sqlResource, final List<Set<ResponseValue>> rows,
 			final StringBuilder body, final int level) {
-		String tableAlias = sqlResource.getMetaData().getParent().getTableAlias();
+		String tableAlias = sqlResource.getMetaData().getParent().getRowAlias();
 		if (level == 2) {
-			tableAlias = sqlResource.getMetaData().getChild().getTableAlias();
+			tableAlias = sqlResource.getMetaData().getChild().getRowAlias();
 		}
 		for (final Set<ResponseValue> row : rows) {
 			boolean hasChildren = false;

@@ -702,22 +702,17 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 						TableRole.valueOf(tableDef.getRole()));
 				tableMap.put(column.getQualifiedTableName(), table);
 				tables.add(table);
+				table.setAliases(tableDef.getAlias(), tableDef.getRowAlias(), tableDef.getRowSetAlias());
 
 				switch (table.getTableRole()) {
 					case Parent:
 						parentTable = table;
-						if (tableDef.getAlias() != null) {
-							table.setTableAlias(tableDef.getAlias());
-						}
 						// fall through
 					case ParentExtension:
 						parentPlusExtTables.add(table);
 						break;
 					case Child:
 						childTable = table;
-						if (tableDef.getAlias() != null) {
-							table.setTableAlias(tableDef.getAlias());
-						}
 						// fall through
 					case ChildExtension:
 						childPlusExtTables.add(table);

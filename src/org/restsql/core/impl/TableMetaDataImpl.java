@@ -24,7 +24,8 @@ import org.restsql.core.TableMetaData;
  */
 
 @XmlType(name = "TableMetaData", namespace = "http://restsql.org/schema", propOrder = { "databaseName",
-		"tableName", "tableAlias", "qualifiedTableName", "tableRole", "columnList", "primaryKeyNames" })
+		"tableName", "qualifiedTableName", "rowAlias", "rowSetAlias", "tableRole", "columnList",
+		"primaryKeyNames" })
 public class TableMetaDataImpl implements TableMetaData {
 	@XmlElementWrapper(name = "columns", required = true)
 	@XmlElement(name = "column", type = ColumnMetaDataImpl.class, required = true)
@@ -47,7 +48,10 @@ public class TableMetaDataImpl implements TableMetaData {
 	private String qualifiedTableName;
 
 	@XmlAttribute(required = true)
-	private String tableAlias;
+	private String rowAlias;
+
+	@XmlAttribute(required = true)
+	private String rowSetAlias;
 
 	@XmlAttribute(required = true)
 	private String tableName;
@@ -92,8 +96,25 @@ public class TableMetaDataImpl implements TableMetaData {
 
 	@XmlTransient
 	@Override
+	public String getRowAlias() {
+		return rowAlias;
+	}
+
+	@XmlTransient
+	@Override
+	public String getRowSetAlias() {
+		return rowSetAlias;
+	}
+
+	/**
+	 * Returns row alias.
+	 * 
+	 * @deprecated Use {@link #getRowAlias()}
+	 */
+	@Override
+	@XmlTransient
 	public String getTableAlias() {
-		return tableAlias;
+		return rowAlias;
 	}
 
 	@Override
@@ -120,7 +141,8 @@ public class TableMetaDataImpl implements TableMetaData {
 	public void setAttributes(final String tableName, final String qualifedTableName,
 			final String databaseName, final TableRole tableRole) {
 		this.tableName = tableName;
-		tableAlias = tableName;
+		rowAlias = tableName;
+		rowSetAlias = rowAlias + "s";
 		qualifiedTableName = qualifedTableName;
 		this.databaseName = databaseName;
 		this.tableRole = tableRole;
@@ -131,7 +153,29 @@ public class TableMetaDataImpl implements TableMetaData {
 	}
 
 	@Override
+	public void setAliases(final String alias, final String rowAlias, final String rowSetAlias) {
+		if (tableRole == TableRole.Parent || tableRole == TableRole.Child) {
+			// Set the row alias
+			if (rowAlias != null) {
+				this.rowAlias = rowAlias;
+			} else if (alias != null) {
+				this.rowAlias = alias;
+			} // else default set in init() to tableName
+
+			// Set row set alias
+			if (rowSetAlias != null) {
+				this.rowSetAlias = rowSetAlias;
+			} else {
+				this.rowSetAlias = this.rowAlias + "s";
+			}
+		}
+	}
+
+	/**
+	 * @deprecated Use {@link #setAliases()}
+	 */
+	@Override
 	public void setTableAlias(final String tableAlias) {
-		this.tableAlias = tableAlias;
+		rowAlias = tableAlias;
 	}
 }

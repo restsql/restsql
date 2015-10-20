@@ -110,7 +110,7 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 		@Override
 		public void endElement(final String uri, final String localName, final String qName)
 				throws SAXException {
-			if (qName.equals(sqlResource.getMetaData().getParent().getTableAlias())) {
+			if (qName.equals(sqlResource.getMetaData().getParent().getRowAlias())) {
 				if (childrenParams != null) {
 					// Apply operation to the children
 					// Parent is only for giving context to child inserts and updates

@@ -21,7 +21,7 @@ public interface TableMetaData {
 	/** Adds primary key column. */
 	public void addPrimaryKey(final ColumnMetaData column);
 
-	/** Returns map of column meta data, keyed by the column label (the alias if provided, otherwise the name). */
+	/** Returns map of column meta data, keyed by the column label (the alias if provided in the query, otherwise the name). */
 	public Map<String, ColumnMetaData> getColumns();
 
 	/** Returns database name. */
@@ -37,7 +37,17 @@ public interface TableMetaData {
 	 */
 	public String getQualifiedTableName();
 
-	/** Returns table alias. */
+	/** Returns row alias. */
+	public String getRowAlias();
+	
+	/** Returns row set alias. */
+	public String getRowSetAlias();
+	
+	/**
+	 * Returns row alias.
+	 * 
+     * @deprecated Use {@link #getRowAlias()}
+	 */
 	public String getTableAlias();
 
 	/** Returns table name. */
@@ -52,11 +62,18 @@ public interface TableMetaData {
 	/** Returns true if the SQL Resource role is parent. */
 	public boolean isParent();
 
+	/** Sets all the row and row set aliases. */
+	public void setAliases(final String alias, final String rowAlias, final String rowSetAlias);
+
 	/** Sets attributes. */
 	public void setAttributes(final String tableName, final String qualifedTableName,
 			final String databaseName, final TableRole tableRole);
 
-	/** Sets table alias. */
+	/**
+	 * Sets table alias.
+	 * 
+     * @deprecated Use {@link #setAliases()}
+	 */
 	public void setTableAlias(final String tableAlias);
 	
 	/** Represents all of the roles a table may plan in a SQL Resource. */

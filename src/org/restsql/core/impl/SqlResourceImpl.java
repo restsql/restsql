@@ -461,6 +461,6 @@ public class SqlResourceImpl implements SqlResource {
 	}
 
 	private String getChildRowsName() {
-		return metaData.getChild().getTableAlias() + "s";
+		return metaData.getChild().getRowSetAlias();
 	}
 }

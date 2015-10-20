@@ -128,7 +128,7 @@ public class JsonRequestDeserializer implements RequestDeserializer {
 			parentColumnCount = sqlResource.getMetaData().getParentReadColumns().size();
 			if (sqlResource.getMetaData().isHierarchical()) {
 				childColumnCount = sqlResource.getMetaData().getChildReadColumns().size();
-				childrenKey = sqlResource.getMetaData().getChild().getTableAlias() + "s";
+				childrenKey = sqlResource.getMetaData().getChild().getRowSetAlias();
 			} else {
 				childColumnCount = 0;
 			}

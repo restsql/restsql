@@ -116,8 +116,8 @@ public class JsonResponseSerializer implements ResponseSerializer {
 		// Init doc
 		if (docType == DocType.Read) {
 			doc.append("{ \"");
-			doc.append(sqlResource.getMetaData().getParent().getTableAlias());
-			doc.append("s\": [");
+			doc.append(sqlResource.getMetaData().getParent().getRowSetAlias());
+			doc.append("\": [");
 		} else { // DocType.Write
 			doc.append("{ ");
 		}
@@ -136,8 +136,8 @@ public class JsonResponseSerializer implements ResponseSerializer {
 					doc.append(",\n\t");
 				}
 				doc.append("\"");
-				doc.append(sqlResource.getMetaData().getParent().getTableAlias());
-				doc.append("s\": [");
+				doc.append(sqlResource.getMetaData().getParent().getRowSetAlias());
+				doc.append("\": [");
 			}
 			doc.append(body);
 			doc.append("\n\t]\n}");
@@ -182,8 +182,8 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			// Do embedded child object columns
 			if (level == 1 && childRows.size() > 0) {
 				body.append(",\n\t\t\t\"");
-				body.append(sqlResource.getMetaData().getChild().getTableAlias());
-				body.append("s\": [");
+				body.append(sqlResource.getMetaData().getChild().getRowSetAlias());
+				body.append("\": [");
 				serializeReadRowsHierarchical(sqlResource, childRows, body, 2);
 				body.append("\n\t\t\t]");
 			}
@@ -230,8 +230,8 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			// Do embedded child object columns
 			if (level == 1 && childRows != null && childRows.size() > 0) {
 				body.append(",\n\t\t\t\"");
-				body.append(sqlResource.getMetaData().getChild().getTableAlias());
-				body.append("s\": [");
+				body.append(sqlResource.getMetaData().getChild().getRowSetAlias());
+				body.append("\": [");
 				serializeWriteRowsHierarchical(sqlResource, childRows, body, 2);
 				body.append("\n\t\t\t]");
 			}
