@@ -43,27 +43,45 @@ public class RequestValue {
 	 * comparison operator is found, it returns Escaped operator. If no operator is found, it returns Equal.
 	 */
 	public static Operator parseOperatorFromValue(final Object value) {
-		Operator operator = Operator.Equals;
-		if (value instanceof String) {
-			final String stringValue = (String) value;
-			if (stringValue.charAt(0) == '<') {
-				if (stringValue.charAt(1) == '=') {
-					operator = Operator.LessThanOrEqualTo;
-				} else {
-					operator = Operator.LessThan;
+		Operator operator;
+		if (value == null) {
+			operator = Operator.IsNull;
+		} else {
+			operator = Operator.Equals;
+			if (value instanceof String) {
+				final String stringValue = (String) value;
+				if (stringValue.equalsIgnoreCase("null")) {
+					operator = Operator.IsNull;
+				} else if (stringValue.equalsIgnoreCase("!null")) {
+					operator = Operator.IsNotNull;
+				} else if (stringValue.equalsIgnoreCase("\\null")
+						|| (stringValue.length() > 2 && stringValue.substring(0, 2).equals("\\!"))) {
+					operator = Operator.Escaped;
+				} else if (stringValue.length() > 0) {
+					if (stringValue.charAt(0) == '!') {
+						operator = Operator.NotEquals;
+					} else if (stringValue.charAt(0) == '<') {
+						if (stringValue.charAt(1) == '=') {
+							operator = Operator.LessThanOrEqualTo;
+						} else {
+							operator = Operator.LessThan;
+						}
+					} else if (stringValue.charAt(0) == '>') {
+						if (stringValue.charAt(1) == '=') {
+							operator = Operator.GreaterThanOrEqualTo;
+						} else {
+							operator = Operator.GreaterThan;
+						}
+					} else if (stringValue.charAt(0) == '('
+							&& stringValue.charAt(stringValue.length() - 1) == ')') {
+						operator = Operator.In;
+					} else if (stringValue.charAt(0) == '\\'
+							&& stringValue.length() > 2
+							&& (stringValue.charAt(1) == '<' || stringValue.charAt(1) == '>' || stringValue
+									.charAt(1) == '(')) {
+						operator = Operator.Escaped;
+					}
 				}
-			} else if (stringValue.charAt(0) == '>') {
-				if (stringValue.charAt(1) == '=') {
-					operator = Operator.GreaterThanOrEqualTo;
-				} else {
-					operator = Operator.GreaterThan;
-				}
-			} else if (stringValue.charAt(0) == '(' && stringValue.charAt(stringValue.length() - 1) == ')') {
-				operator = Operator.In;
-			} else if (stringValue.charAt(0) == '\\'
-					&& stringValue.length() > 2
-					&& (stringValue.charAt(1) == '<' || stringValue.charAt(1) == '>' || stringValue.charAt(1) == '(')) {
-				operator = Operator.Escaped;
 			}
 		}
 		return operator;
@@ -73,10 +91,16 @@ public class RequestValue {
 	public static Object stripOperatorFromValue(final Operator operator, final Object value) {
 		if (value instanceof String) {
 			switch (operator) {
-			// Strip first char
+			// Null it out
+				case IsNull:
+				case IsNotNull:
+					return null;
+
+					// Strip first char
 				case Escaped:
 				case LessThan:
 				case GreaterThan:
+				case NotEquals:
 					return ((String) value).substring(1);
 
 					// Strip first two chars
@@ -141,7 +165,7 @@ public class RequestValue {
 	public Object getValue() {
 		return value;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return name.hashCode() + value.hashCode();
@@ -160,6 +184,7 @@ public class RequestValue {
 
 	/** Represents all operations for parameters. Note Escaped is for internal use only. */
 	public static enum Operator {
-		Equals, Escaped, GreaterThan, GreaterThanOrEqualTo, In, LessThan, LessThanOrEqualTo;
+		Equals, Escaped, GreaterThan, GreaterThanOrEqualTo, In, IsNull, IsNotNull, LessThan,
+		LessThanOrEqualTo, NotEquals;
 	}
 }

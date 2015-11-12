@@ -46,8 +46,9 @@ public interface TableMetaData {
 	/**
 	 * Returns row alias.
 	 * 
-     * @deprecated Use {@link #getRowAlias()}
+     * @deprecated As of 0.8.11 use {@link #getRowAlias()}
 	 */
+	@Deprecated
 	public String getTableAlias();
 
 	/** Returns table name. */
@@ -72,8 +73,9 @@ public interface TableMetaData {
 	/**
 	 * Sets table alias.
 	 * 
-     * @deprecated Use {@link #setAliases()}
+     * @deprecated As of 0.8.11 use {@link #setAliases(String, String, String)}
 	 */
+	@Deprecated
 	public void setTableAlias(final String tableAlias);
 	
 	/** Represents all of the roles a table may plan in a SQL Resource. */

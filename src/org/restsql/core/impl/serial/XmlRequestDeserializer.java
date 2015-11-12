@@ -148,7 +148,7 @@ public class XmlRequestDeserializer implements RequestDeserializer {
 		public void startElement(final String uri, final String localName, final String qName,
 				final Attributes attributes) throws SAXException {
 			if (!qName.equals(TAG_REQUEST)) {
-				if (qName.equals(sqlResource.getMetaData().getParent().getTableAlias())) {
+				if (qName.equals(sqlResource.getMetaData().getParent().getRowAlias())) {
 					parentAttributes = parseAttributes(attributes);
 				} else { // child element
 					if (childrenParams == null) {

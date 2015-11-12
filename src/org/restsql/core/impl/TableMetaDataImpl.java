@@ -109,8 +109,9 @@ public class TableMetaDataImpl implements TableMetaData {
 	/**
 	 * Returns row alias.
 	 * 
-	 * @deprecated Use {@link #getRowAlias()}
+	 * @deprecated As of 0.8.11 use {@link #getRowAlias()}
 	 */
+	@Deprecated
 	@Override
 	@XmlTransient
 	public String getTableAlias() {
@@ -172,8 +173,9 @@ public class TableMetaDataImpl implements TableMetaData {
 	}
 
 	/**
-	 * @deprecated Use {@link #setAliases()}
+     * @deprecated As of 0.8.11 use {@link #setAliases(String, String, String)}
 	 */
+	@Deprecated
 	@Override
 	public void setTableAlias(final String tableAlias) {
 		rowAlias = tableAlias;

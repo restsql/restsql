@@ -1,4 +1,4 @@
-README.txt (15-Feb-2014)
+README.txt (11-Nov-2015)
 
 restSQL Deployment Guide
 
@@ -48,6 +48,8 @@ restSQL uses two configuration files in both WAR and JAR modes:
 The files may be called anything you wish; these are only the suggested names.
 
 The general restsql.properties is set through a System Property, "org.restsql.properties". The value is an absolute path to your properties file, e.g. /etc/opt/business/restsql/restsql.properties. The WAR mode should use a context-param in the web.xml to set this (See Installation section later for details). The JAR mode will default to default-restsql.properties (source location: restsql/src/resources/properties) that is included in the jar.
+
+Note: All path separators must use the forward slash, even on Windows. To refer to a path on Windows, for example c:\tools\restsql, use the form /tools/restsql, or if the app server is on a different drive, use file:///c:/tools/restsql.
 
 The general restsql.properties contains the following configurations:
     1. Logging                              (required)

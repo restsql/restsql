@@ -115,7 +115,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 	}
 
 	private void appendValue(final StringBuilder part, final StringBuilder preparedPart,
-			final List<Object> preparedValues, final Object value, final boolean charOrDateTimeType, ColumnMetaData column) {
+			final List<Object> preparedValues, final Object value, final boolean charOrDateTimeType,
+			ColumnMetaData column) {
 		if (value != null && charOrDateTimeType) {
 			part.append('\'');
 		}
@@ -220,7 +221,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 					sql.getMain().append(column.getColumnName()); // since parameter may use column label
 
 					// Begin quote the column value
-					if (column.isCharOrDateTimeType()) {
+					if (column.isCharOrDateTimeType() && param.getValue() != null) {
 						sql.getClause().append('\'');
 					}
 
@@ -228,12 +229,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 					column.normalizeValue(param);
 
 					// Set the value in the printable clause, the ? in the prepared clause, and prepared clause value
-					sql.getClause().append(param.getValue().toString());
+					sql.getClause().append(param.getValue());
 					sql.getPreparedClause().append(buildPreparedParameterSql(column));
 					sql.getPreparedValues().add(param.getValue());
 
 					// End quote the column value
-					if (column.isCharOrDateTimeType()) {
+					if (column.isCharOrDateTimeType() && param.getValue() != null) {
 						sql.getClause().append('\'');
 					}
 				}
@@ -404,6 +405,9 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 		// Append the operator
 		if (columnIsSelector && param.getOperator() == Operator.Equals && containsWildcard(param.getValue())) {
 			appendToBoth(sql, useMain, " LIKE ");
+		} else if (!columnIsSelector && requestType == Request.Type.UPDATE
+				&& param.getOperator() == Operator.IsNull) {
+			appendToBoth(sql, useMain, " = ");
 		} else {
 			switch (param.getOperator()) {
 				case Equals:
@@ -411,6 +415,12 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 					break;
 				case In:
 					appendToBoth(sql, useMain, " IN ");
+					break;
+				case IsNull:
+					appendToBoth(sql, useMain, " IS NULL");
+					break;
+				case IsNotNull:
+					appendToBoth(sql, useMain, " IS NOT NULL");
 					break;
 				case LessThan:
 					appendToBoth(sql, useMain, " < ");
@@ -423,6 +433,9 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 					break;
 				case GreaterThanOrEqualTo:
 					appendToBoth(sql, useMain, " >= ");
+					break;
+				case NotEquals:
+					appendToBoth(sql, useMain, " != ");
 					break;
 				default: // case Escaped
 					throw new InvalidRequestException(
@@ -445,7 +458,8 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
 				firstValue = false;
 			}
 			appendToBoth(sql, useMain, ")");
-		} else {
+		} else if ((param.getOperator() != Operator.IsNull && param.getOperator() != Operator.IsNotNull)
+				|| (!columnIsSelector && requestType == Request.Type.UPDATE)) {
 			appendValue(useMain ? sql.getMain() : sql.getClause(),
 					useMain ? sql.getPreparedMain() : sql.getPreparedClause(), sql.getPreparedValues(),
 					param.getValue(), column.isCharOrDateTimeType(), column);

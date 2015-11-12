@@ -84,7 +84,7 @@ public class Factory extends AbstractFactory {
 
 	/**
 	 * Builds request from URI. Assumes pattern
-	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&{param2}={value2}</code>. Used by the test harness,
+	 * <code>res/{resourceName}/{resId1}/{resId2}?{param1}={value1}&amp;{param2}={value2}</code>. Used by the test harness,
 	 * Java API clients and perhaps a straight servlet implementation. Configurable implementation class.
 	 */
 	public static Request getRequest(final HttpRequestAttributes httpAttributes)

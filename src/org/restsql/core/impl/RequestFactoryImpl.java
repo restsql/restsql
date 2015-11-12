@@ -95,8 +95,12 @@ public class RequestFactoryImpl implements RequestFactory {
 					params = new ArrayList<RequestValue>(4);
 				}
 				final int equalsIndex = element.indexOf('=');
-				params.add(new RequestValue(element.substring(0, equalsIndex), element
-						.substring(equalsIndex + 1)));
+				String name = element.substring(0, equalsIndex);
+				String value = "";
+				if (element.length() > equalsIndex + 1) {
+					value = element.substring(equalsIndex + 1);
+				}
+				params.add(new RequestValue(name, value));
 			}
 		}
 

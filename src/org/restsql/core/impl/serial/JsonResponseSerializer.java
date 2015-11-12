@@ -48,9 +48,11 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			boolean firstPair = true;
 			for (ColumnMetaData column : columns) {
 				if (!column.isNonqueriedForeignKey()) {
-					addAttribute(firstPair, body, column.getColumnLabel(),
-							column.getResultByNumber(resultSet));
-					firstPair = false;
+					Object value = column.getResultByNumber(resultSet);
+					addAttribute(firstPair, body, column.getColumnLabel(), value);
+					if (value != null) {
+						firstPair = false;
+					}
 				}
 			}
 			body.append(" }");
@@ -94,15 +96,17 @@ public class JsonResponseSerializer implements ResponseSerializer {
 
 	void addAttribute(final boolean firstAttribute, final StringBuilder string, final String name,
 			final Object value) {
-		if (!firstAttribute) {
-			string.append(", ");
-		}
-		string.append(JsonUtil.quote(name));
-		string.append(": ");
-		if (value == null || value instanceof Number || value instanceof Boolean) {
-			string.append(value);
-		} else {
-			string.append(JsonUtil.quote(value.toString()));
+		if (value != null) {
+			if (!firstAttribute) {
+				string.append(", ");
+			}
+			string.append(JsonUtil.quote(name));
+			string.append(": ");
+			if (value instanceof Number || value instanceof Boolean) {
+				string.append(value);
+			} else {
+				string.append(JsonUtil.quote(value.toString()));
+			}
 		}
 	}
 
@@ -173,7 +177,9 @@ public class JsonResponseSerializer implements ResponseSerializer {
 				final Object value = row.get(columnLabel);
 				if (!(value instanceof List<?>)) {
 					addAttribute(firstPair, body, columnLabel, value);
-					firstPair = false;
+					if (value != null) {
+						firstPair = false;
+					}
 				} else {
 					childRows = (List<Map<String, Object>>) value;
 				}
@@ -221,7 +227,9 @@ public class JsonResponseSerializer implements ResponseSerializer {
 			for (final ResponseValue value : row) {
 				if (!(value.getValue() instanceof List<?>)) {
 					addAttribute(firstPair, body, value.getName(), value.getValue());
-					firstPair = false;
+					if (value.getValue() != null) {
+						firstPair = false;
+					}
 				} else {
 					childRows = (List<Set<ResponseValue>>) value.getValue();
 				}
