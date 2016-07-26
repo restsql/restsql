@@ -291,10 +291,11 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
                 for (final TableMetaData table : metaData.getTables()) {
                     final ColumnMetaData column = table.getColumns().get(param.getName());
                     if (column != null) {
-                        if (column.isReadOnly()) {
-                            throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
-                                    column.getColumnLabel());
-                        }
+                        //actually readOnly columns CAN have query params
+//                        if (column.isReadOnly()) {
+//                            throw new InvalidRequestException(InvalidRequestException.MESSAGE_READONLY_PARAM,
+//                                    column.getColumnLabel());
+//                        }
                         if (!column.isNonqueriedForeignKey()) {
                             validParamFound = true;
                             setNameValue(Request.Type.SELECT, metaData, column, param, true, sql, false);
