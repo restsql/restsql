@@ -185,7 +185,7 @@ public class Config {
 				if (file.exists()) {
 					inputStream = new FileInputStream(file);
 				} else {
-					inputStream = Config.class.getResourceAsStream(restsqlPropertiesFileName);
+					inputStream = Config.class.getResourceAsStream(DEFAULT_RESTSQL_PROPERTIES);
 				}
 				if (inputStream != null) {
 					properties.backingProperties.load(inputStream);

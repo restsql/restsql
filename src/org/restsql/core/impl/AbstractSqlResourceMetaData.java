@@ -417,7 +417,7 @@ public abstract class AbstractSqlResourceMetaData implements SqlResourceMetaData
 	 */
 	protected boolean isColumnReadOnly(final ResultSetMetaData resultSetMetaData, final int colNumber)
 			throws SQLException {
-		return resultSetMetaData.isReadOnly(colNumber);
+		return resultSetMetaData.isReadOnly(colNumber) || "".equals(resultSetMetaData.getCatalogName(colNumber));
 	}
 
 	/**

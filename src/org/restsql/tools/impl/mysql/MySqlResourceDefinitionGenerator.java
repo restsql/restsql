@@ -9,7 +9,7 @@ import org.restsql.tools.impl.AbstractResourceDefinitionGenerator;
  * @author Mark Sawers
  */
 public class MySqlResourceDefinitionGenerator extends AbstractResourceDefinitionGenerator {
-	private static final String SQL_COLUMNS_QUERY = "select column_name, table_name from information_schema.columns where table_schema = ? and table_name not in (select table_name from information_schema.views)";
+	private static final String SQL_COLUMNS_QUERY = "select column_name, table_name from information_schema.columns where table_schema = ? ";
 
 	@Override
 	public String getColumnsQuery() {
