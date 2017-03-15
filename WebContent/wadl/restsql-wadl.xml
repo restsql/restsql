@@ -3,8 +3,7 @@
 <wadl:application xmlns:wadl="http://wadl.dev.java.net/2009/02" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:rs="http://restsql.org/schema" xs:schemaLocation="http://wadl.dev.java.net/2009/02 wadl.xsd ">
 	<wadl:doc title="restSQL Web Service">
-		restSQL is a lightweight database framework that provides a RESTful
-		interface to an RDBMS.
+		restSQL is an open-source, ultra-lightweight data access layer for HTTP clients
     </wadl:doc>
 	<wadl:grammars>
 		<wadl:include href="Request.xsd" />
@@ -20,13 +19,13 @@
 			<wadl:method name="GET">
 				<wadl:doc title="Description">Returns rows for SQL Resource matching query parameters
 				</wadl:doc>
-				<wadl:doc title="Example">res/film?year=2010</wadl:doc>
-				<wadl:doc title="Example">res/actorFilm?year=2010&amp;_limit=100&amp;_offset=0
+				<wadl:doc title="Example">res/sdk.film.Film?year=2010</wadl:doc>
+				<wadl:doc title="Example">res/sdk.film.Film?_limit=100&amp;_offset=0
 				</wadl:doc>
 				<wadl:request>
-					<wadl:param name="-attribute-name-" type="xs:string" style="query" repeating="true"
+					<wadl:param name="resource-specific-column-alias" type="xs:string" style="query" repeating="true"
 						required="false">
-						<wadl:doc>Attach optional attribute values with which to filter results</wadl:doc>
+						<wadl:doc>Each column name, or if configured alias, specified in the resource definition is available for query.</wadl:doc>
 					</wadl:param>
 				</wadl:request>
 				<wadl:response status="200">
@@ -175,9 +174,7 @@
 			<wadl:method name="GET">
 				<wadl:doc title="Description">Returns row for SQL Resource matching primary key
 				</wadl:doc>
-				<wadl:doc title="Example">res/film/1023</wadl:doc>
-				<wadl:doc title="Example">res/actorFilm/Fredonia/123
-				</wadl:doc>
+				<wadl:doc title="Example">res/sdk.film.Film/1001</wadl:doc>
 				<wadl:response status="200">
 					<wadl:doc title="OK">Normal response</wadl:doc>
 					<wadl:representation mediaType="application/xml" element="rs:readResponse"
@@ -312,6 +309,14 @@
 					</wadl:response>
 				</wadl:method>
 			</wadl:resource>
+			<wadl:resource path="security">
+				<wadl:method name="GET">
+					<wadl:doc title="Description">Returns security configuration</wadl:doc>
+					<wadl:response>
+						<wadl:representation mediaType="text/plain" />
+					</wadl:response>
+				</wadl:method>
+			</wadl:resource>
 			<wadl:resource path="definition/{resName}">
 				<wadl:param name="resName" type="xs:string" style="template" required="true">
 					<wadl:doc>SQL Resource name</wadl:doc>
@@ -402,10 +407,46 @@
 				</wadl:method>
 			</wadl:resource>
 		</wadl:resource>
-		<wadl:resource path="stats">
+		<wadl:resource path="monitoring/metrics">
 			<wadl:method name="GET">
 				<wadl:doc title="Description">Returns summary statistics such as number of requests, errors and
 					average response times</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="application/json" />
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="monitoring/ping">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Responds with pong. Useful to monitor service health.</wadl:doc>
+				<wadl:response>
+					<wadl:representation mediaType="text/plain" />
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="monitoring/healthcheck">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Returns db connection health</wadl:doc>
+				<wadl:request>
+					<wadl:param name="pretty" type="xs:boolean" style="query" repeating="false"
+						required="false">
+						<wadl:doc>Pretty printing</wadl:doc>
+					</wadl:param>
+				</wadl:request>
+				<wadl:response>
+					<wadl:representation mediaType="text/plain" />
+				</wadl:response>
+			</wadl:method>
+		</wadl:resource>
+		<wadl:resource path="monitoring/threads">
+			<wadl:method name="GET">
+				<wadl:doc title="Description">Shows all current thread stack traces</wadl:doc>
+				<wadl:request>
+					<wadl:param name="pretty" type="xs:boolean" style="query" repeating="false"
+						required="false">
+						<wadl:doc>Pretty printing</wadl:doc>
+					</wadl:param>
+				</wadl:request>
 				<wadl:response>
 					<wadl:representation mediaType="text/plain" />
 				</wadl:response>

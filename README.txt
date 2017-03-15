@@ -1,4 +1,4 @@
-README.txt (11-Nov-2015)
+README.txt (15-Mar-2017)
 
 restSQL Deployment Guide
 
@@ -20,6 +20,10 @@ restSQL binary distributions contain three libraries:
 restSQL source distributions consist of one jar:
     1. restsql-{version}-src.jar    (service and core framework)
     
+restSQL docker images:
+	1. restsql/service - service and core framework
+	2. restsql/service-sdk - service and core framework + sdk
+	3. restsql/mysql-sakila - MySQL 7 + Sakila + restsql-test extensions
 
 -------------------------------------------------------------------------------
 Versions
@@ -31,10 +35,13 @@ The restsql and restsql-sdk versions are found in the jar and war's META-INF/MAN
 Deployment Modes
 
 restSQL may be deployed in two modes:
-    1. WAR - web application
+	1. Docker - containerized web application
+		Clients use an HTTP service (docker container) directly
+
+    2. WAR - web application
         Clients use an HTTP service (web app) directly
         
-    2. JAR - java library
+    3. JAR - java library
         Clients use your service which uses the restSQL Java API
 
 
@@ -181,6 +188,12 @@ Access http://yourhost:port/restsql for links to the effective runtime configura
 
 
 -------------------------------------------------------------------------------
+Installing restSQL Docker mode
+
+See docker hub documentation at https://hub.docker.com/r/restsql/service/ or https://hub.docker.com/r/restsql/service-sdk/. 
+
+
+-------------------------------------------------------------------------------
 Installing restSQL WAR mode
 
 Requirements: JEE Container, RDBMS, JAR tool
@@ -239,7 +252,9 @@ Installing restSQL JAR mode
 Properties: Follow the instructions for Configuring restSQL.
 
 Deploy: Copy jar to the classpath of your web app, e.g. WEB-INF/lib. The following third party dependencies also need to be in your classpath:
+	* commons-lang.jar - tested with version 2.6
 	* commons-logging.jar  (tested with version 1.1.1)
+	* json_simple - tested with version 1.1
 	* log4j.jar (tested with 1.2.16)
 
 log4j is not necessary if your app uses Java Native Logging. restSQL has been tested with JRE 1.6 and Java Native Logging.

@@ -1,0 +1,1473 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "0.8.12",
+    "title": "restSQL Web Service",
+    "description": "restSQL is an open-source, ultra-lightweight data access layer for HTTP clients",
+    "contact": "info@restsql.org",
+    "license": {
+      "name": "MIT",
+      "url": "http:\/\/restsql.org\/doc\/License.html"
+    }
+  },
+  "host": null,
+  "basePath": "\/restsql",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application\/json",
+    "application\/xml"
+  ],
+  "produces": [
+    "application\/json",
+    "application\/xml"
+  ],
+  "tags": [
+    {
+      "name": "data",
+      "description": "Data access"
+    },
+    {
+      "name": "admin",
+      "description": "Administration"
+    },
+    {
+      "name": "doc",
+      "description": "Documentation"
+    }
+  ],
+  "parameters": {
+    "outputParam": {
+      "name": "_output",
+      "in": "query",
+      "required": false,
+      "type": "string",
+      "description": "Alternate method to Accept header to specific content type. See [Media Types API doc](http:\/\/restsql.org\/doc\/ref\/ResMediaTypes.html) for detail."
+    },
+    "resNameParam": {
+      "name": "resName",
+      "in": "path",
+      "required": true,
+      "type": "string",
+      "description": "SQL Resource name",
+      "default": "sdk.film.Film"
+    },
+    "resIdParam": {
+      "name": "resId",
+      "in": "path",
+      "required": true,
+      "type": "long",
+      "description": "Primary key value. Note: Multiple path values allowed for multi-valued primary key.",
+      "default": 1001
+    }
+  },
+  "paths": {
+    "\/res\/{resName}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "description": "Returns rows for SQL Resource matching query parameters. See [ResGetQuery API doc](http:\/\/restsql.org\/doc\/ref\/ResGetQuery.html) for examples.\n* Example: \/res\/sdk.film.Film?year=2010\n* Example: \/res\/sdk.film.Film?_limit=100&_offset=0\n\nNote: Each column name, or configured column alias, specified in the resource definition is available for query, however you will not be able to enter those in this Swagger interface.",
+        "operationId": "ResGetQuery",
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "_limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "description": "Limits number of records in response. Must be paired with _offset. See [ResGetQuery API doc](http:\/\/restsql.org\/doc\/ref\/ResGetQuery.html) for detail.",
+            "default": 10
+          },
+          {
+            "name": "_offset",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32",
+            "description": "Sets the start row in response, where the fit row is zero. Must be paired with _limit. See [ResGetQuery API doc](http:\/\/restsql.org\/doc\/ref\/ResGetQuery.html) for detail.",
+            "default": 10
+          },
+          {
+            "$ref": "#\/parameters\/outputParam"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/ReadResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "description": "Creates row using URL-encoded form params or one or more rows in an XML or JSON body. See [ResPostUrlEnc API doc](http:\/\/restsql.org\/doc\/ref\/ResPostUrlEnc.html) or [ResPostXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResPostXmlOrJson.html) for detail. For hierarchical SQL Resources, parents and children must be added in separate requests.\n* Example: POST \/res\/sdk.film.Film, Form URL Encoded request body - title=The%20Fox&year=2018&language_id=1\n* Example: POST \/res\/sdk.film.Film, JSON request body - { \"films\":[ { \"title\": \"The Fox\", \"year\": 2018, \"language_id\": 1 } ] }\n* Example: POST \/res\/sdk.film.Film\/, XML request body - &lt;request&gt;&lt;film title=\"The Fox\" year=\"2018\" language_id=\"1\"\/&gt;&lt;\/request&gt;",
+        "operationId": "ResPostQuery",
+        "consumes": [
+          "application\/json",
+          "application\/xml",
+          "application\/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Array of SQL Resource-specific objects"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response includes affected rows and data created as an array of SQL Resource-specific objects",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponseExt"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "data"
+        ],
+        "description": "Updates rows using query params and URL-encoded form params. See [ResPutQueryUrlEnc API doc](http:\/\/restsql.org\/doc\/ref\/ResPutQueryUrlEnc.html) for detail.\n* Example: PUT \/res\/sdk.film.Film?title=%25Fox%25, Form URL Encoded body - year=2017\nThis updates the year for all films with titles containing Fox.\n\nOr rows specified in a XML or JSON body. For hierarchical SQL Resources, parents and children must be updated in separate requests. See [ResPutXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResPutXmlOrJson.html) for detail.\n* Example: PUT \/res\/sdk.film.Film, Form URL Encoded request body - id=1001&title=Grey%20Fox&year=2017\n* Example: PUT \/res\/sdk.film.Film, JSON request body - { \"films\":[ { \"id\": \"1001\", \"title\": \"Grey Fox\", \"year\": 2017 } ] }\n* Example: PUT \/res\/sdk.film.Film\/, XML request body - &lt;request&gt;&lt;film id=\"1001\" title=\"Grey Fox\" year=\"2017\"\/&gt;&lt;\/request&gt;",
+        "operationId": "ResPutQuery",
+        "consumes": [
+          "application\/json",
+          "application\/xml",
+          "application\/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Array of SQL Resource-specific objects"
+            }
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "data"
+        ],
+        "description": "Deletes one or more rows using query params. See [ResDeleteQuery API doc](http:\/\/restsql.org\/doc\/ref\/ResDeleteQuery.html) for detail.\n* Example: DELETE \/res\/sdk.film.Film?title=Red%20Fox.\n\nNote: Each column name, or configured column alias, specified in the resource definition is available for query, however you will not be able to enter those in this Swagger interface.\n\nOr deletes all rows in an XML or JSON body. See [ResDeleteXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResDeleteXmlOrJson.html) for detail.\n* Example: DELETE \/res\/sdk.film.Film, JSON request body - {\"films\": [ { \"id\": 1001 }, { \"id\": 1002 } ] }\n* Example: DELETE \/res\/sdk.film.Film\/, XML request body - &lt;request&gt;&lt;film id=\"1001\"\/&gt;&lt;film id=\"1002\"\/&gt;&lt;\/request&gt;",
+        "operationId": "ResDeleteQuery",
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Array of SQL Resource-specific objects"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponse"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/res\/{resName}\/{resId}": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "description": "Returns row for SQL Resource matching primary key. See [ResGetPath API doc](http:\/\/restsql.org\/doc\/ref\/ResGetPath.html) for detail.\n* Example: \/res\/sdk.film.Film\/1001",
+        "operationId": "ResGetPath",
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "$ref": "#\/parameters\/resIdParam"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/ReadResponse"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "data"
+        ],
+        "description": "Creates children rows using XML or JSON body for hierarchical SQL Resources. See [ResPostPathXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResPostPathXmlOrJson.html) for detail.",
+        "operationId": "ResPostPath",
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Array of SQL Resource-specific objects"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          },
+          {
+            "$ref": "#\/parameters\/resIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response includes affected rows and data created as an array of SQL Resource-specific objects",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponseExt"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "data"
+        ],
+        "description": "Updates specific row using URL-encoded form params. See [ResPutPathUrlEnc API doc](http:\/\/restsql.org\/doc\/ref\/ResPutPathUrlEnc.html)\n Or updates multiple child rows using XML or JSON body for hierarchical SQL Resources. See [ResPutPathXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResPutPathXmlOrJson.html) for detail.",
+        "operationId": "ResPutPath",
+        "consumes": [
+          "application\/json",
+          "application\/xml",
+          "application\/x-www-form-urlencoded"
+        ],
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Array of SQL Resource-specific objects"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          },
+          {
+            "$ref": "#\/parameters\/resIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "schema": {
+              
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "data"
+        ],
+        "description": "Deletes specific row by primary key. See [ResDeletePath API doc](http:\/\/restsql.org\/doc\/ref\/ResDeletePath.html) for detail.\n* Example: DELETE \/res\/sdk.film.Film\/1001\n\nFor hierarchical SQL Resources, deletes all children contained in the XML or JSON body. See [ResDeletePathXmlOrJson API doc](http:\/\/restsql.org\/doc\/ref\/ResDeletePathXmlOrJson.html) for detail.",
+        "operationId": "ResByResNameAndResIdDelete",
+        "produces": [
+          "application\/json",
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Array of SQL Resource-specific objects"
+          },
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          },
+          {
+            "$ref": "#\/parameters\/resIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/WriteResponse"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          },
+          "500": {
+            "description": "SQL Exception \/ database error",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/system": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns general restSQL framework configuration",
+        "operationId": "ConfSystem",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/log": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns logging configuration",
+        "operationId": "ConfLog",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/security": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns security configuration",
+        "operationId": "ConfSecurity",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/definition\/{resName}": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns SQL Resource definition (from user-provided XML file) definition",
+        "operationId": "ConfDefinitionByResName",
+        "produces": [
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/SqlResource"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/documentation\/{resName}": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns SQL Resource documentation",
+        "operationId": "ConfDocumentationByResName",
+        "produces": [
+          "text\/html"
+        ],
+        "parameters": [
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response"
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/metadata\/{resName}": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns SQL Resource MetaData as undetood by restSQL nMetaData",
+        "operationId": "ConfMetaDataByResName",
+        "produces": [
+          "application\/xml"
+        ],
+        "parameters": [
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "$ref": "#\/definitions\/SqlResourceMetaData"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/conf\/reload\/{resName}": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Reloads SQL Resource definition (from user-provided XML file)",
+        "operationId": "ConfReloadByResName",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          {
+            "$ref": "#\/parameters\/resNameParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "404": {
+            "description": "Invalid SQL Resource name",
+            "schema": {
+              
+            }
+          }
+        }
+      }
+    },
+    "\/log": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns browsable list of current and rollover access, error and trace log files, if any",
+        "operationId": "Log",
+        "produces": [
+          "text\/html"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/log\/access": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns current access log",
+        "operationId": "LogAccess",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/log\/error": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns current error log",
+        "operationId": "LogError",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/log\/trace": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns current trace log",
+        "operationId": "LogTrace",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/monitoring\/metrics": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns summary statistics such as number of requests, erro and average response times",
+        "operationId": "MonitoringMetrics",
+        "produces": [
+          "application\/json"
+        ],
+        "parameters": [
+          {
+            "name": "pretty",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "default": "true",
+            "description": "Pretty formatting"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/monitoring\/ping": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Responds with pong. Useful to monitor service health.",
+        "operationId": "MonitoringPing",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/monitoring\/healthcheck": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Returns db connection health",
+        "operationId": "MonitoringHealthcheck",
+        "produces": [
+          "application\/json"
+        ],
+        "parameters": [
+          {
+            "name": "pretty",
+            "in": "query",
+            "required": false,
+            "type": "boolean",
+            "default": "true",
+            "description": "Pretty formatting"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/monitoring\/threads": {
+      "get": {
+        "tags": [
+          "admin"
+        ],
+        "description": "Shows all current thread stack traces",
+        "operationId": "MonitoringThreads",
+        "produces": [
+          "text\/plain"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "\/wadl": {
+      "get": {
+        "tags": [
+          "doc"
+        ],
+        "description": "Returns restSQL WADL, an XML-based API description",
+        "operationId": "Wadl",
+        "produces": [
+          "application\/xml"
+        ],
+        "parameters": [
+          
+        ],
+        "responses": {
+          "200": {
+            "description": "Normal response",
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "ReadResponse": {
+      "type": "object",
+      "xml": {
+        "name": "readResponse"
+      },
+      "properties": {
+        "rowSet": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/ReadResponseObject"
+          },
+          "xml": {
+            "name": "resourceName"
+          }
+        }
+      }
+    },
+    "ReadResponseObject": {
+      "type": "object",
+      "properties": {
+        "column-name1": {
+          "type": "integer",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "column-name2": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "column-name3": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "column-nameX": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "WriteRequest": {
+      "type": "object",
+      "xml": {
+        "name": "request"
+      },
+      "properties": {
+        "rowSet": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/ReadResponseObject"
+          },
+          "xml": {
+            "name": "resourceName"
+          }
+        }
+      }
+    },
+    "WriteResponse": {
+      "type": "object",
+      "xml": {
+        "name": "writeResponse"
+      },
+      "properties": {
+        "rowsAffected": {
+          "type": "integer",
+          "format": "int32",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "WriteResponseExt": {
+      "type": "object",
+      "xml": {
+        "name": "writeResponse"
+      },
+      "properties": {
+        "rowsAffected": {
+          "type": "integer",
+          "format": "int32",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "rowSet": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/ReadResponseObject"
+          },
+          "xml": {
+            "name": "resourceName"
+          }
+        }
+      }
+    },
+    "SqlResource": {
+      "type": "object",
+      "xml": {
+        "name": "sqlResource"
+      },
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#\/definitions\/MetaData"
+        },
+        "http": {
+          "$ref": "#\/definitions\/HttpConfig"
+        },
+        "documentation": {
+          "$ref": "#\/definitions\/Documentation"
+        }
+      }
+    },
+    "Database": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "alias": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "rowAlias": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "rowSetAlias": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "Parent",
+            "ParentExtension",
+            "Child",
+            "ChildExtension",
+            "Join"
+          ],
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "MetaData": {
+      "type": "object",
+      "properties": {
+        "database": {
+          "$ref": "#\/definitions\/Database"
+        },
+        "table": {
+          "type": "array",
+          "$ref": "#\/definitions\/Table",
+          "xml": {
+            "wrapped": false
+          }
+        }
+      }
+    },
+    "HttpResponse": {
+      "type": "object",
+      "properties": {
+        "cacheControl": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "HttpConfig": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#\/definitions\/HttpResponse"
+        }
+      }
+    },
+    "SqlResourceMetaData": {
+      "type": "object",
+      "xml": {
+        "name": "sqlResourceMetaData"
+      },
+      "properties": {
+        "resName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "hierarchical": {
+          "type": "boolean",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "multipleDatabases": {
+          "type": "boolean",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/TableMetaData"
+          },
+          "xml": {
+            "wrapped": true
+          }
+        },
+        "parentTable": {
+          "type": "string"
+        },
+        "childTable": {
+          "type": "string"
+        },
+        "joinTable": {
+          "type": "string"
+        },
+        "parentPlusExtTables": {
+          "$ref": "#\/definitions\/TableName"
+        },
+        "childPlusExtTables": {
+          "$ref": "#\/definitions\/TableName"
+        },
+        "joinTables": {
+          "$ref": "#\/definitions\/TableName"
+        },
+        "allReadColumns": {
+          "$ref": "#\/definitions\/ColumnName"
+        },
+        "parentReadColumns": {
+          "$ref": "#\/definitions\/ColumnName"
+        },
+        "childReadColumns": {
+          "$ref": "#\/definitions\/ColumnName"
+        },
+        "documentation": {
+          "$ref": "#\/definitions\/Documentation"
+        }
+      }
+    },
+    "TableName": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "type": "string"
+        }
+      }
+    },
+    "ColumnName": {
+      "type": "object",
+      "properties": {
+        "column": {
+          "type": "string"
+        }
+      }
+    },
+    "TableMetaData": {
+      "type": "object",
+      "properties": {
+        "databaseName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "tableName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "tableAlias": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "qualifiedTableName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "tableRole": {
+          "type": "string",
+          "enum": [
+            "Child",
+            "ChildExtension",
+            "Join",
+            "Parent",
+            "ParentExtension",
+            "Unknown"
+          ],
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/ColumnMetaData",
+            "xml": {
+              "name": "column"
+            }
+          },
+          "xml": {
+            "wrapped": true
+          }
+        },
+        "primaryKeys": {
+          "type": "array",
+          "$ref": "#\/definitions\/ColumnName"
+        }
+      }
+    },
+    "ColumnMetaData": {
+      "type": "object",
+      "properties": {
+        "tableName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "readOnly": {
+          "type": "boolean",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "qualifiedTableName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "qualifiedColumnName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "primaryKey": {
+          "type": "boolean",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "nonqueriedForeignKey": {
+          "type": "boolean",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "databaseName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columnTypeName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columnType": {
+          "type": "integer",
+          "format": "int32",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columnNumber": {
+          "type": "integer",
+          "format": "int32",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columnName": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "columnLabel": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "Documentation": {
+      "type": "object",
+      "properties": {
+        "resource": {
+          "$ref": "#\/definitions\/DocResource"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/DocColumn"
+          },
+          "xml": {
+            "wrapped": true
+          }
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/DocExample"
+          },
+          "xml": {
+            "wrapped": true
+          }
+        }
+      }
+    },
+    "DocColumn": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "DocExample": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#\/definitions\/DocRequest"
+        },
+        "response": {
+          "$ref": "#\/definitions\/DocResponse"
+        }
+      }
+    },
+    "DocResource": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "DocHeader": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "value": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        }
+      }
+    },
+    "DocRequest": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "uri": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "contentType": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "accept": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "user": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "password": {
+          "type": "string",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/DocHeader"
+          },
+          "xml": {
+            "wrapped": true
+          }
+        },
+        "body": {
+          "type": "string"
+        }
+      }
+    },
+    "DocResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "xml": {
+            "attribute": true
+          }
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#\/definitions\/DocHeader"
+          },
+          "xml": {
+            "wrapped": true
+          }
+        },
+        "body": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
