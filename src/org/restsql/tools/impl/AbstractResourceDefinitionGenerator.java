@@ -31,10 +31,9 @@ import org.restsql.tools.ResourceDefinitionGenerator;
 public abstract class AbstractResourceDefinitionGenerator implements ResourceDefinitionGenerator {
 
 	@Override
-	public int generate(final String relativeSubDir, final String databaseName, final String exclusionPattern) throws GenerationException {
-		if (relativeSubDir == null || relativeSubDir.length() == 0) {
-			throw new GenerationException("relativeSubDir required");
-		} else if (databaseName == null || databaseName.length() == 0) {
+	public int generate(final String relativeSubDir, final String databaseName, final String exclusionPattern)
+			throws GenerationException {
+		if (databaseName == null || databaseName.length() == 0) {
 			throw new GenerationException("databaseName required");
 		}
 		final String sqlResourcesDir = Config.properties.getProperty(Config.KEY_SQLRESOURCES_DIR,
@@ -59,7 +58,8 @@ public abstract class AbstractResourceDefinitionGenerator implements ResourceDef
 	 * @return number of definitions created
 	 * @throws GenerationException if a database access or file write error occurs
 	 */
-	protected int createDefs(final File subDirObj, final String databaseName, final String exclusionPattern) throws GenerationException {
+	protected int createDefs(final File subDirObj, final String databaseName, final String exclusionPattern)
+			throws GenerationException {
 		// Create definition object
 		final ObjectFactory objectFactory = new ObjectFactory();
 		final SqlResourceDefinition def = objectFactory.createSqlResourceDefinition();
@@ -81,7 +81,7 @@ public abstract class AbstractResourceDefinitionGenerator implements ResourceDef
 		Connection connection = null;
 		try {
 			connection = Factory.getConnection(databaseName);
-	
+
 			// Build SQL query, prepare statement and execute
 			String sql = getColumnsQuery();
 			if (exclusionPattern != null) {
@@ -94,7 +94,7 @@ public abstract class AbstractResourceDefinitionGenerator implements ResourceDef
 			}
 			Config.logger.info(sql);
 			final ResultSet resultSet = statement.executeQuery();
-			
+
 			// Iterate through results, create build def and write the files
 			while (resultSet.next()) {
 				final String columnName = resultSet.getString(1);
@@ -164,18 +164,24 @@ public abstract class AbstractResourceDefinitionGenerator implements ResourceDef
 	 * @param sqlResourcesDir absolute sql resources directory
 	 * @throws GenerationException if subdir could not be created, or it exists and is not writable or empty
 	 */
-	private File createSubDir(final String relativeSubDir, final String sqlResourcesDir)
+	protected File createSubDir(final String relativeSubDir, final String sqlResourcesDir)
 			throws GenerationException {
-		final File dir = new File(sqlResourcesDir + "/" + relativeSubDir);
-		if (!dir.exists()) {
-			if (!dir.mkdir()) {
-				throw new GenerationException("Could not create subdir " + dir.getAbsolutePath());
-			}
+		File dir;
+		if (relativeSubDir == null || relativeSubDir.length() == 0) {
+			dir = new File(sqlResourcesDir);
 		} else {
-			if (!dir.canWrite()) {
-				throw new GenerationException("Cannot write to subdir " + dir.getAbsolutePath());
-			} else if (dir.list().length > 0) {
-				throw new GenerationException("Subdir " + dir.getAbsolutePath() + " exists and is not empty");
+			dir = new File(sqlResourcesDir + "/" + relativeSubDir);
+			if (!dir.exists()) {
+				if (!dir.mkdir()) {
+					throw new GenerationException("Could not create subdir " + dir.getAbsolutePath());
+				}
+			} else {
+				if (!dir.canWrite()) {
+					throw new GenerationException("Cannot write to subdir " + dir.getAbsolutePath());
+				} else if (dir.list().length > 0) {
+					throw new GenerationException("Subdir " + dir.getAbsolutePath()
+							+ " exists and is not empty");
+				}
 			}
 		}
 		return dir;
