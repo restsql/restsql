@@ -8,7 +8,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Factory;
 import org.restsql.core.Factory.SqlResourceFactoryException;
@@ -25,13 +24,16 @@ import org.restsql.core.SqlResourceException;
 public class HttpRequestHelper {
 
 	/** Builds HTML page with SQL Resources and actions for each. Used for /restsql/res and /restsql/conf. */
-	public static StringBuffer buildSqlResourceListing(final UriInfo uriInfo) {
+	public static StringBuffer buildSqlResourceListing() {
 		final StringBuffer requestBody = new StringBuffer(500);
-		requestBody.append("<!DOCTYPE html>\n<html><head><link rel=\"icon\" type=\"image/png\" href=\"../assets/favicon.ico\"/></head>\n<body style=\"font-family:sans-serif\">\n");
-		final String baseUri = uriInfo.getBaseUri().toString();
+		requestBody
+				.append("<!DOCTYPE html>\n<html><head><link rel=\"icon\" type=\"image/png\" href=\"../assets/favicon.ico\"/>");
+		requestBody
+				.append("<style>td{padding: 6px} table,tr,td {border-collapse: collapse} tr:nth-child(even){background-color: #f2f2f2} body {font-family:sans-serif}</style></head>\n<body>\n");
 		try {
 			final List<String> resNames = Factory.getSqlResourceNames();
-			requestBody.append("<span style=\"font-weight:bold\"><a href=\"..\">restSQL</a> SQL Resources</span><hr/>\n");
+			requestBody
+					.append("<span style=\"font-weight:bold\"><a href=\"..\">restSQL</a> SQL Resources</span><hr/>\n");
 			if (resNames.size() > 0) {
 				requestBody.append("<table>\n");
 				for (final String resName : resNames) {
@@ -39,38 +41,40 @@ public class HttpRequestHelper {
 					requestBody.append(resName);
 					requestBody.append("</td>");
 
-					// Query
+					// Query (JSON)
 					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append("res/");
+					requestBody.append("../res/");
 					requestBody.append(resName);
-					requestBody.append("?_limit=10&amp;_offset=0\">query</a></td>");
-					
+					requestBody
+							.append("?_output=application/json&_limit=10&amp;_offset=0\">query/json</a></td>");
+
+					// Query (XML)
+					requestBody.append("<td><a href=\"");
+					requestBody.append("../res/");
+					requestBody.append(resName);
+					requestBody.append("?_limit=10&amp;_offset=0\">query/xml</a></td>");
+
 					// Definition
 					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append("conf/definition/");
+					requestBody.append("../conf/definition/");
 					requestBody.append(resName);
 					requestBody.append("\">definition</a></td>");
 
-					// Metadata
+					// MetaData
 					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append("conf/metadata/");
+					requestBody.append("../conf/metadata/");
 					requestBody.append(resName);
 					requestBody.append("\">metadata</a></td>");
-					
+
 					// Documentation
 					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append("conf/documentation/");
+					requestBody.append("../conf/documentation/");
 					requestBody.append(resName);
 					requestBody.append("\">documentation</a></td>");
 
 					// Reload
 					requestBody.append("<td><a href=\"");
-					requestBody.append(baseUri);
-					requestBody.append("conf/reload/");
+					requestBody.append("../conf/reload/");
 					requestBody.append(resName);
 					requestBody.append("\">reload</a></td>");
 
@@ -82,7 +86,7 @@ public class HttpRequestHelper {
 				requestBody
 						.append(" ... please correct your <code>sqlresources.dir</code> property in your restsql.properties file");
 			}
-			requestBody.append("</table>\n</body>\n</html>");
+			requestBody.append("</table><p/>\n<a href=\"../swagger-ui/\">Swagger</a></body>\n</html>");
 		} catch (final SqlResourceFactoryException exception) {
 			requestBody.append(exception.getMessage());
 			requestBody

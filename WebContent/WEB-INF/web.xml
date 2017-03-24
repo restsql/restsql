@@ -99,7 +99,7 @@
 	<!-- Configure absolute path to restsql properties file -->
 	<context-param>
 		<param-name>org.restsql.properties</param-name>
-		<param-value>/opt/restsql/code/restsql-test/src/resources/properties/restsql-mysql.properties</param-value>
+		<param-value>/etc/opt/restsql/restsql.properties</param-value>
 	</context-param>
 
 	<!-- Uncomment security-roles, security-constraints and login-config for authentication/authorization -->
@@ -150,14 +150,4 @@
 		<realm-name>UserDatabase</realm-name>
 	</login-config>
 	-->
-
-	<!-- Configure restsql to be called by browser with contents loaded from any site -->
-	<filter>
-		<filter-name>CorsFilter</filter-name>
-		<filter-class>org.apache.catalina.filters.CorsFilter</filter-class>
-	</filter>
-	<filter-mapping>
-		<filter-name>CorsFilter</filter-name>
-		<url-pattern>/*</url-pattern>
-	</filter-mapping>
 </web-app>

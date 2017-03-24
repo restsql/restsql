@@ -146,7 +146,7 @@ public class ResResource {
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
 		confRequestCounter.inc();
-		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
+		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing();
 		return Response.ok(requestBody.toString()).build();
 	}
 

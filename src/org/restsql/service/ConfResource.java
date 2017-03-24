@@ -100,7 +100,7 @@ public class ConfResource {
 	@Produces(MediaType.TEXT_HTML)
 	public Response getResources(@Context final UriInfo uriInfo) {
 		requestCounter.inc();
-		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing(uriInfo);
+		final StringBuffer requestBody = HttpRequestHelper.buildSqlResourceListing();
 		return Response.ok(requestBody.toString()).build();
 	}
 

@@ -1,4 +1,4 @@
-README.txt (15-Mar-2017)
+README.txt (24-Mar-2017)
 
 restSQL Deployment Guide
 
@@ -23,7 +23,7 @@ restSQL source distributions consist of one jar:
 restSQL docker images:
 	1. restsql/service - service and core framework
 	2. restsql/service-sdk - service and core framework + sdk
-	3. restsql/mysql-sakila - MySQL 7 + Sakila + restsql-test extensions
+	3. restsql/mysql-sakila - MySQL 5.7 + Sakila + restsql-test extensions
 
 -------------------------------------------------------------------------------
 Versions
@@ -54,7 +54,7 @@ restSQL uses two configuration files in both WAR and JAR modes:
 
 The files may be called anything you wish; these are only the suggested names.
 
-The general restsql.properties is set through a System Property, "org.restsql.properties". The value is an absolute path to your properties file, e.g. /etc/opt/business/restsql/restsql.properties. The WAR mode should use a context-param in the web.xml to set this (See Installation section later for details). The JAR mode will default to default-restsql.properties (source location: restsql/src/resources/properties) that is included in the jar.
+The general restsql.properties is set through a System Property, "org.restsql.properties". The value is an absolute path to your properties file, e.g. /etc/opt/restsql/restsql.properties. The WAR mode should use a context-param in the web.xml to set this (See Installation section later for details). The JAR mode will default to default-restsql.properties (source location: restsql/src/resources/properties) that is included in the jar.
 
 Note: All path separators must use the forward slash, even on Windows. To refer to a path on Windows, for example c:\tools\restsql, use the form /tools/restsql, or if the app server is on a different drive, use file:///c:/tools/restsql.
 
@@ -83,18 +83,18 @@ Note that unlike all other locations, the logging.config location is RELATIVE to
 The location of SQL Resource definitions is critical. An example:
 
 	# sqlresources.dir=/absolute/path
-	sqlresources.dir=/etc/opt/business/restsql/sqlresources
+	sqlresources.dir=/etc/opt/restsql/sqlresources
 
 The Security configuration is optional. Here is an example:
 	# security.privileges=/absolute/path
-	security.privileges=/etc/opt/business/restsql/privileges.properties
+	security.privileges=/etc/opt/restsql/privileges.properties
 
 The Triggers configuration is optional. Here is an example:
 
 	# triggers.classpath=/absolute/path
 	# triggers.definition=/absolute/path
-	triggers.classpath=/etc/opt/business/restsql/triggers
-	triggers.definition=/etc/opt/business/restsql/triggers.properties
+	triggers.classpath=/etc/opt/restsql/triggers
+	triggers.definition=/etc/opt/restsql/triggers.properties
 
 The XML configuration is optional. The defaults are:
 
@@ -203,7 +203,7 @@ Properties Files: Create your two required properties files (restsql.properties 
 Abbreviated Deployment for Tomcat:
 You can use this shortcut if you are using Tomcat, do not want restSQL Authentication or Authorization and Java Security Manager is disabled (the default for Tomcat). Add a Parameter entry that indicates your absolute path to your restsql.properties in your $TOMCAT_HOME/conf/context.xml, as in:
 	
-	<Parameter name="org.restsql.properties" value="/etc/opt/business/restsql/restsql.properties" override="false" />
+	<Parameter name="org.restsql.properties" value="/etc/opt/restsql/restsql.properties" override="false" />
 
 That will override the default properties location in the web.xml of the WAR.
 
@@ -221,7 +221,7 @@ web.xml: Change the restSQL WEB-INF/web.xml. The LifecycleManager needs to know 
 
     <context-param>
         <param-name>org.restsql.properties</param-name>
-        <param-value>/etc/opt/business/restsql/restsql.properties</param-value>
+        <param-value>/etc/opt/restsql/restsql.properties</param-value>
     </context-param>
 
 The default deployment descriptor (web.xml) contains login config (authentication method) and security constraints (authorization declarations). See the restSQL SDK's /restsql-sdk/default/xml/web.xml for the default deployment descriptor. 

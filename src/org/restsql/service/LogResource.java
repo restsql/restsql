@@ -9,11 +9,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import org.restsql.core.Config;
 import org.restsql.service.monitoring.MonitoringFactory;
@@ -37,17 +35,16 @@ public class LogResource {
 
 	@GET
 	@Produces(MediaType.TEXT_HTML)
-	public Response getLogList(@Context final UriInfo uriInfo) {
+	public Response getLogList() {
 		logListCounter.inc();
-		String baseUri = uriInfo.getBaseUri().toString() + "log/";
 		final StringBuilder body = new StringBuilder(500);
 		body.append("<!DOCTYPE html>\n<html><head><link rel=\"icon\" type=\"image/png\" href=\"../assets/favicon.ico\"/></head>\n<body style=\"font-family:sans-serif\">\n");
 		body.append("<span style=\"font-weight:bold\"><a href=\"..\">restSQL</a> Logs</span><hr/>");
 		body.append("<span style=\"font-weight:bold\">Current Logs</span><br/>");
-		appendCurrentLogAnchor(body, baseUri, "access");
-		appendCurrentLogAnchor(body, baseUri, "error");
-		appendCurrentLogAnchor(body, baseUri, "trace");
-		appendCurrentLogAnchor(body, baseUri, "internal");
+		appendCurrentLogAnchor(body, "access");
+		appendCurrentLogAnchor(body, "error");
+		appendCurrentLogAnchor(body, "trace");
+		appendCurrentLogAnchor(body, "internal");
 		body.append("<p/><p/><span style=\"font-weight:bold\">Historical Logs</span><br/>");
 		final File dir = new File(getLogDir());
 		for (final File file : dir.listFiles()) {
@@ -56,7 +53,6 @@ public class LogResource {
 						&& !file.getName().equals(LOG_NAME_TRACE)
 						&& !file.getName().equals(LOG_NAME_INTERNAL)) {
 					body.append("<a href=\"");
-					body.append(baseUri);
 					body.append(file.getName());
 					body.append("\">");
 					body.append(file.getName());
@@ -110,9 +106,8 @@ public class LogResource {
 
 	// Private utils
 
-	private void appendCurrentLogAnchor(StringBuilder body, String baseUri, String log) {
+	private void appendCurrentLogAnchor(StringBuilder body, String log) {
 		body.append("<a href=\"");
-		body.append(baseUri);
 		body.append(log);
 		body.append("\">");
 		body.append(log);
