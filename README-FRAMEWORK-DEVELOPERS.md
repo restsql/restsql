@@ -186,13 +186,13 @@ Tomcat Server Configuration
     * Click Ok
     * Double click on /Servers/Tomcat v7.0 Server at localhost.server
     * Select Use Tomcat Installation (takes control of Tomcat installation). Deploy location says wtpwebapps.
-5. Add a Parameter to the context.xml for the server instance to facilitate switching between MySQL and PostgreSQL.
-		<!--
+5. Optionally add a Parameter to the context.xml for the server instance to facilitate switching between MySQL and PostgreSQL.
 		<Parameter name="org.restsql.properties"
 			value="/opt/restsql/code/restsql-test/src/resources/properties/restsql-postgresql.properties" override="false" />
-		 -->
-   The default restsql properties will be restsql-test/src/resources/properties/restsql-mysql.properties.
+   The default restsql properties will be /etc/opt/restsql.
    Uncomment the Parameter, publish and restart the server to start up with PostgreSQL.
+
+   But you may prefer to use the default location, and copy files to it using restsql-test's ant build target prep-mysql and prep-pgsql.
 
 
 Synchronizing Files
@@ -215,7 +215,25 @@ Stoping the Server
 1. Right-click on the server instance in the Servers view
 2. Select Stop
 
+## Docker Builds
+The restsql/docker project has three sub-projects:
+* service (the core service)
+* service-sdk (service + sdk)
+* mysql-sakila (mysql + sakila + extensions)
 
+Note: The mysql-sakila docker image is currently not building. The 5.7 minor release of mysql from apt-get repo, 5.7.23, does not start. If no updates are needed, you may simply create a new release tag off the old image, which used 5.17.17, and move the latest to it.
+
+
+Both service and service-sdk have shell scripts, build.sh, to build the images. Both pull from restsql/build.properties for the version to use for war file name and for image tagging. service/build.sh expects restsql dist ant target to be run prior, and service-sdk/build.sh expects reststql-sdk dist ant target to be run as well.
+
+To run the containers, use:
+* `run-service[-sdk]-default.sh` (expects mysql, container-based /etc/opt/restsql, mapped /var/log/restsql)
+* `run-service[-sdk]-mysql.sh` (expects mysql, mapped /etc/opt/restsql, mapped /var/log/restsql)
+* `run-service[-sdk]-pgsql.sh ip-address` (expects pgsql running on ip-address, mapped /etc/opt/restsql, mapped /var/log/restsql)
+
+Use the restsql-test ant build.xml prep-mysql and prep-pgsql for assistance with config files.
+
+Note: The mapped host volumes are prefaced with /private, e.g. /private/var/log/restsql, for macOS interoperability.
 
 # Functional Testing
 
@@ -266,7 +284,8 @@ Testing with SQL resource authorization via the Java API is enabled by
 1. Manually editing the src/resources/properties/restsql-mysql.properties, uncommenting this line:
     `security.privileges=/etc/opt/restsql/privileges.properties`
 2. Run the prep-mysql target
-3. Run the test-api-security target
+3. Copy the src/resources/properties/privileges.properties to /etc/opt/restsql
+4. Run the test-api-security target
 
 All should pass.
 
@@ -274,9 +293,10 @@ All should pass.
 Testing SQL and Administrative resource authentication and authorization via the HTTP API is enabled by:
 1. Uncomment security.privileges property in the restsql properties file
 2. Run the prep-mysql target
-3. build restsql and copy obj/bin/war contents to $TOMCAT_HOME/webapps/reststql
-4. Uncomment the security-roles, security-constraints and login-config elements in the restsql webapp's deployment descriptor (restsql/WebContent/WEB-INF/web.xml)
-5. Add the following entries to server's tomcat-users.xml:
+3. Copy the src/resources/properties/privileges.properties to /etc/opt/restsql
+4. build restsql and copy obj/bin/war contents to $TOMCAT_HOME/webapps/reststql
+5. Uncomment the security-roles, security-constraints and login-config elements in the restsql webapp's deployment descriptor (restsql/WebContent/WEB-INF/web.xml)
+6. Add the following entries to server's tomcat-users.xml:
         <tomcat-users>
             <role rolename="all"/>
             <role rolename="limited"/>
@@ -294,7 +314,7 @@ All should pass.
 ## App Server Testing
 The framework is designed to run on JEE compliant app servers. It was tested on Tomcat, JBoss and Weblogic. See [Architecture](http://restsql.org/doc/Architecture.html) for the versions. Every release should be at least tested with Tomcat, and this is also the bundled server in the docker image. Use your judgement if JBoss and Weblogic may be impacted for your new feature.
 
-## Regression Tests
+## Automated Regression Testing
 There's a lot of stuff to run before we can be confident in release quality.
 
 In addition to examples, The webapp needs to be exercised in multiple ways, as it is the ultimate product. The web app should be deployed to at least tomcat and tested with test-service-http. The docker container should be exercised with both databases and test-service-http.
@@ -327,6 +347,9 @@ Optionally it must pass
 
 There are no failures (with the one exception noted above) as of this writing in any of the four suites on any database. Please help us keep it clean.
 
+## Manual Regression Testing
+The automation http api coverage is good, however the service console and the sdk need manual testing. A light smoke test of each of the top-level console links, as well as any new or changed sdk doc is due.
+
 # Performance Testing
 A new feature could warrant a load or endurance test. There are no included test jigs. Free, simple options are
 * Apache Bench: a command line tool like curl. Use this if you just want to send one request repeatedly.
@@ -354,26 +377,45 @@ The following procedure documents the how leads get a make a release public. The
 
 ## Documentation
 * Check if the year range needs updates in LICENSE.txt in all projects.
+* Check if new contributors need to be added to CONTRIBUTORS.txt.
 * Update this document and the deployment guides (restql/README.txt and restsql-sdk/doc/Deployment.html) if necessary.
-* Create a release overview in restsql-sdk/doc/release. Add a reference in doc/ReleaseHistory.html and in the landing page doc/Overview.html.
+* Create a release overview in restsql-sdk/doc/release. Add a reference in doc/ReleaseHistory.html. Replace the recent news on the landing page doc/Overview.html and reference the release doc.
 
 ## Build and Test
-* Update release version in restsql/build.properties, restsql-sdk/build.properties, docker/service/Dockerfile, and docker/service-sdk/Dockerfile.
-* Build restsql, restsql-sdk and the three docker containers.
-* Run all functional tests
+* Update release version in restsql/build.properties, restsql-sdk/build.properties and restsql-website/build.properties.
+* Build restsql and restsql-sdk (dist targets) and the three docker containers (build.sh).
+* Run all functional tests and appropriate database, app server and docker variants 
 
-Note: The mysql-sakila docker image is not building. The 5.7 minor release of mysql from apt-get repo, 5.7.23, does not start. If no updates are needed, you may simply create a new release tag off the old image, and move the latest to it.
+Note: The mysql-sakila docker image is currently not building. The 5.7 minor release of mysql from apt-get repo, 5.7.23, does not start. If no updates are needed, you may simply create a new release tag off the old image, which used 5.17.17, and move the latest to it.
 
 ## Github Updates
-You need to check in, commit, push and tag. There is a single branch, master, in each of the six projects. Feature branches should be merged and deleted after use.
+Copy the restsql/obj/lib and restsql-sdk/obj/lib outputs to dist-archive, totaling five files.
+
+Check in, commit, push and tag all six projects. There is a single branch, master, in each of the six projects. Feature branches should be merged and deleted after use.
 
 A new release is tagged in each of the five non archive branches. dist-archive is not tagged. All six projects are updated and the five non-archive are tagged together for a release.
 
-## Docker Hub Updates
-
 ## Website Deployment
+1. Save the docker images as tars, then compress them with gzip and copy them to the target host.
+2. Build restsql-website (dist target). This creates two tar balls in restsql-webiste/obj:
+    * system.tar (archive of all files in /system)
+    * WebContent.tar.gz (compressed archive of all modified and new files to be added to the service-sdk container)
+3. Copy these two target host.
+4. Shell into the host. Expand the system.tar as root or sudo from the root directory.
+5. Load the images into the docker engine.
+6. Start the mysql container, then the service-sdk container using the /root/docker scripts.
+7. Uncompress and expand the WebContent.tar.gz in some temporary area.
+8. Copy the contents into the the service-sdk container
+9. Validate
+
+## Docker Hub Updates
+The README.md files must be updated with the tag list. The hub account owner can update the full descriptions for all three images on the [(]hub website](https://hub.docker.com/r/restsql/) with the new content manually.
+
+The hub account owner will push new images to the central repo.
+
 
 ## Community Notification
+The restSQL mailchimp account admin will send notification to the release notification list.
 
 # Support
-Use the issues forum on github (http://github.com/restsql/restsql/issues) or email the project lead directly at mark.sawers@restsql.org.
+Use the issues forum on github (http://github.com/restsql/restsql/issues) or email the support@restsql.org.

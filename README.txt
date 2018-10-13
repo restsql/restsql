@@ -260,8 +260,8 @@ Deploy: Copy jar to the classpath of your web app, e.g. WEB-INF/lib. The followi
 log4j is not necessary if your app uses Java Native Logging. restSQL has been tested with JRE 1.6 and Java Native Logging.
 
 Additionally one of the following jdbc drivers is necessary for databases with built-in support:
-	* mysql-connector-java-#.jar (tested with MySQL version 5.6)
-	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 9.3)
+	* mysql-connector-java-#.jar (tested with MySQL version 5.7)
+	* postgresql-#.jdbc4.jar (tested with PostgreSQL version 10.5)
 
 Enabling Authentication and Authorization: restSQL will authorize SQL Resource operations. Your app will authenticate users and associate users with roles. You must provide a priviliges properties file and reference it in the restsql.properties. Your app will call restSQL's Authorizer and provide a SecurityContextimplementation. See the SDK's Security configuration for more instructions.
 
