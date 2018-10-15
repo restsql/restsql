@@ -399,14 +399,14 @@ A new release is tagged in each of the five non archive branches. dist-archive i
 1. Save the docker images as tars, then compress them with gzip and copy them to the target host.
 2. Build restsql-website (dist target). This creates two tar balls in restsql-webiste/obj:
     * system.tar (archive of all files in /system)
-    * WebContent.tar.gz (compressed archive of all modified and new files to be added to the service-sdk container)
+    * WebContent.tar (compressed archive of all modified and new files to be added to the service-sdk container)
+    * deploy-WebContent.sh (to deploy the WebContent.tar)
 3. Copy these two target host.
 4. Shell into the host. Expand the system.tar as root or sudo from the root directory.
 5. Load the images into the docker engine.
 6. Start the mysql container, then the service-sdk container using the /root/docker scripts.
-7. Uncompress and expand the WebContent.tar.gz in some temporary area.
-8. Copy the contents into the the service-sdk container
-9. Validate
+7. cd to the directory containing WebContent.tar and run deploy-WebContent.sh. This will docker cp the content into the running container and restart it.
+8. Validate
 
 ## Docker Hub Updates
 The README.md files must be updated with the tag list. The hub account owner can update the full descriptions for all three images on the [(]hub website](https://hub.docker.com/r/restsql/) with the new content manually.
