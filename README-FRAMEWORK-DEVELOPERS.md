@@ -384,7 +384,7 @@ The following procedure documents the how leads get a make a release public. The
 ## Build and Test
 * Update release version in restsql/build.properties, restsql-sdk/build.properties and restsql-website/build.properties.
 * Build restsql and restsql-sdk (dist targets) and the three docker containers (build.sh).
-* Run all functional tests and appropriate database, app server and docker variants 
+* Run all functional tests and appropriate database, app server and docker variants
 
 Note: The mysql-sakila docker image is currently not building. The 5.7 minor release of mysql from apt-get repo, 5.7.23, does not start. If no updates are needed, you may simply create a new release tag off the old image, which used 5.17.17, and move the latest to it.
 
@@ -397,12 +397,15 @@ A new release is tagged in each of the five non archive branches. dist-archive i
 
 ## Website Deployment
 1. Save the docker images as tars, then compress them with gzip and copy them to the target host.
+2. There are non-public files that are shared with project leads. These need to be added to restsql-website:
+    * WebContent/usr/local/tomcat/webapps/restsql-sdk/google-xxx.html   (for google site verification)
+	* WebContent/usr/local/tomcat/conf/tomcat-users.xml   (tomcat admin user for protected areas)
 2. Build restsql-website (dist target). This creates two tar balls in restsql-webiste/obj:
     * system.tar (archive of all files in /system)
     * WebContent.tar (compressed archive of all modified and new files to be added to the service-sdk container)
     * deploy-WebContent.sh (to deploy the WebContent.tar)
 3. Copy these two target host.
-4. Shell into the host. Expand the system.tar as root or sudo from the root directory.
+4. Shell into the host. Expand the system.tar as root or sudo from the root directory. Make sure the /root/docker files are executable to root.
 5. Load the images into the docker engine.
 6. Start the mysql container, then the service-sdk container using the /root/docker scripts.
 7. cd to the directory containing WebContent.tar and run deploy-WebContent.sh. This will docker cp the content into the running container and restart it.
